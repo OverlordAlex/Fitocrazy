@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".workout.WorkoutStatsFragment">
+
+        <TextView
+            android:id="@+id/totalPoints"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Total Points: "
+            android:gravity="center"/>
+
+        <TextView
+            android:id="@+id/totalWeight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Total Weight: "
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/totalReps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Total Reps: "
+            android:gravity="center" />
+</LinearLayout>
