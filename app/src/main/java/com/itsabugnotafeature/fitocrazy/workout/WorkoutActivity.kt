@@ -2,6 +2,8 @@ package com.itsabugnotafeature.fitocrazy.workout
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -10,16 +12,29 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.itsabugnotafeature.fitocrazy.R
+import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.workout.addexercise.AddNewExerciseToWorkoutFragment
+import kotlinx.coroutines.launch
 
 class WorkoutActivity : AppCompatActivity() {
 
+    private lateinit var db: ExerciseDatabase
+
+    override fun onResume() {
+        super.onResume()
+
+        lifecycleScope.launch {
+            db = ExerciseDatabase.getInstance(applicationContext)
+            findViewById<Spinner>(R.id.equipment)?.adapter = ArrayAdapter(applicationContext, android.R.layout.simple_spinner_item, db.exerciseComponentsDao().getAllMovement())
+        }
+       }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //val db = Room.databaseBuilder(applicationContext, ExerciseDatabase::class.java, "exercise").build()
+
         enableEdgeToEdge()
         setContentView(R.layout.activity_workout)
 
@@ -45,9 +60,5 @@ class WorkoutActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-    }
-
-    fun addWorkout(equipment: String,) {
-        Log.i("", "$equipment")
     }
 }

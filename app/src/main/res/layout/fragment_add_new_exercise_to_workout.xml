@@ -21,7 +21,7 @@
 
     <Spinner
         android:id="@+id/equipment"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:minHeight="64dp"
         android:spinnerMode="dropdown"
@@ -42,7 +42,7 @@
 
     <Spinner
         android:id="@+id/position"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:minHeight="64dp"
         android:spinnerMode="dropdown"
@@ -63,7 +63,7 @@
 
     <Spinner
         android:id="@+id/movement"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:minHeight="64dp"
         android:spinnerMode="dropdown"
