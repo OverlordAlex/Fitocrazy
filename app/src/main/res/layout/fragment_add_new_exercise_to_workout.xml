@@ -1,96 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/addExerciseToWorkoutFragment"
+    android:id="@+id/layout_addNewExercise_parent"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-
-    android:padding="32dp"
-    tools:context=".workout.addexercise.AddNewExerciseToWorkoutFragment">
+    android:layout_height="wrap_content">
 
     <TextView
-        android:id="@+id/addExerciseText"
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Execise"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/addExerciseAutoComplete" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/addExerciseToWorkoutFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add exercise:"
-        app:layout_constraintBottom_toTopOf="@id/equipment"
+
+        android:padding="32dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        tools:context=".workout.addexercise.AddNewExerciseToWorkoutFragment">
+
+        <TextView
+            android:id="@+id/addExerciseText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add exercise:"
+            app:layout_constraintBottom_toTopOf="@id/equipment"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Spinner
+            android:id="@+id/equipment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="64dp"
+            android:spinnerMode="dropdown"
+            app:layout_constraintBottom_toTopOf="@id/position"
+            app:layout_constraintEnd_toEndOf="@+id/position"
+            app:layout_constraintEnd_toStartOf="@id/newEquipment"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/addExerciseText" />
+
+        <Button
+            android:id="@+id/newEquipment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+"
+            app:layout_constraintBottom_toBottomOf="@+id/equipment"
+            app:layout_constraintEnd_toEndOf="@+id/newPosition"
+            app:layout_constraintTop_toTopOf="@+id/equipment" />
+
+        <Spinner
+            android:id="@+id/position"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="64dp"
+            android:spinnerMode="dropdown"
+            app:layout_constraintBottom_toBottomOf="@id/movement"
+            app:layout_constraintEnd_toEndOf="@+id/movement"
+            app:layout_constraintEnd_toStartOf="@id/newPosition"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/equipment" />
+
+        <Button
+            android:id="@+id/newPosition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+"
+            app:layout_constraintBottom_toBottomOf="@+id/position"
+            app:layout_constraintEnd_toEndOf="@+id/newMovement"
+            app:layout_constraintTop_toTopOf="@+id/position" />
+
+        <Spinner
+            android:id="@+id/movement"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="64dp"
+            android:spinnerMode="dropdown"
+            app:layout_constraintEnd_toEndOf="@id/newMovement"
+            app:layout_constraintEnd_toStartOf="@id/newMovement"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/position" />
+
+        <Button
+            android:id="@+id/newMovement"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+"
+            app:layout_constraintBottom_toBottomOf="@+id/movement"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/movement"
+            app:layout_constraintTop_toBottomOf="@+id/position" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <AutoCompleteTextView
+        android:id="@+id/addExerciseAutoComplete"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:saveEnabled="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <Spinner
-        android:id="@+id/equipment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minHeight="64dp"
-        android:spinnerMode="dropdown"
-        app:layout_constraintBottom_toTopOf="@id/position"
-        app:layout_constraintEnd_toEndOf="@+id/position"
-        app:layout_constraintEnd_toStartOf="@id/newEquipment"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/addExerciseText" />
-
-    <Button
-        android:id="@+id/newEquipment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="+"
-        app:layout_constraintBottom_toBottomOf="@+id/equipment"
-        app:layout_constraintEnd_toEndOf="@+id/newPosition"
-        app:layout_constraintTop_toTopOf="@+id/equipment" />
-
-    <Spinner
-        android:id="@+id/position"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minHeight="64dp"
-        android:spinnerMode="dropdown"
-        app:layout_constraintBottom_toBottomOf="@id/movement"
-        app:layout_constraintEnd_toEndOf="@+id/movement"
-        app:layout_constraintEnd_toStartOf="@id/newPosition"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/equipment" />
-
-    <Button
-        android:id="@+id/newPosition"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="+"
-        app:layout_constraintBottom_toBottomOf="@+id/position"
-        app:layout_constraintEnd_toEndOf="@+id/newMovement"
-        app:layout_constraintTop_toTopOf="@+id/position" />
-
-    <Spinner
-        android:id="@+id/movement"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minHeight="64dp"
-        android:spinnerMode="dropdown"
-        app:layout_constraintBottom_toTopOf="@+id/addExerciseButton"
-        app:layout_constraintEnd_toEndOf="@id/newMovement"
-        app:layout_constraintEnd_toStartOf="@id/newMovement"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/position" />
-
-    <Button
-        android:id="@+id/newMovement"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="+"
-        app:layout_constraintBottom_toBottomOf="@+id/movement"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/movement"
-        app:layout_constraintTop_toBottomOf="@+id/position" />
 
     <Button
         android:id="@+id/addExerciseButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:enabled="false"
         android:text="Add"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/movement" />
-
+        app:layout_constraintTop_toBottomOf="@+id/addExerciseToWorkoutFragment" />
 </androidx.constraintlayout.widget.ConstraintLayout>

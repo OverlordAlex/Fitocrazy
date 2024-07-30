@@ -14,7 +14,6 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Transaction
 
-//@Fts4
 @Entity
 data class Exercise(
     @PrimaryKey(autoGenerate = true) val rowid: Int,
@@ -41,7 +40,11 @@ data class ExerciseWithComponents(
         entityColumn = "id"
     )
     val movement: Movement
-)
+) {
+    override fun toString(): String {
+        return "$equipment $position $movement"
+    }
+}
 
 abstract class ExerciseComponent {
     abstract val id: Int
@@ -88,6 +91,9 @@ interface ExerciseDao {
     @Transaction
     @Query("SELECT * FROM exercise")
     suspend fun getAll(): List<ExerciseWithComponents>
+
+    @Query("SELECT * FROM exercise WHERE equipmentId=:equipmentId AND positionId=:positionId AND movementId=:movementId")
+    suspend fun getExactExercise(equipmentId: Long, positionId: Long, movementId: Long): ExerciseWithComponents?
 
     @Insert
     suspend fun addExercise(exercise: Exercise)
