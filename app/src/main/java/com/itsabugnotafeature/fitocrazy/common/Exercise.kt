@@ -96,7 +96,7 @@ interface ExerciseDao {
     suspend fun getExactExercise(equipmentId: Long, positionId: Long, movementId: Long): ExerciseWithComponents?
 
     @Insert
-    suspend fun addExercise(exercise: Exercise)
+    suspend fun addExercise(exercise: Exercise): Long
 
     /*@Query("SELECT * FROM exercise_fts WHERE exercise_fts MATCH :query")
     fun searchExercises(query: String): List<Exercise>*/

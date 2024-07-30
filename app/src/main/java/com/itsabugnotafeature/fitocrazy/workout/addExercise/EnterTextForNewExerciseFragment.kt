@@ -1,4 +1,4 @@
-package com.itsabugnotafeature.fitocrazy.workout.addexercise
+package com.itsabugnotafeature.fitocrazy.workout.addExercise
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,38 +15,38 @@ import androidx.fragment.app.setFragmentResult
 import com.itsabugnotafeature.fitocrazy.R
 
 
-class EnterTextForNewExerciseFragment(val enterText: String) : DialogFragment() {
+class EnterTextForNewExerciseFragment(private val hintForExerciseComponentType: String) : DialogFragment() {
 
-    private var returnString: String? = ""
+    private var userInputtedString: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.fragment_enter_text_for_new_exercise, container, false)
+        return inflater.inflate(R.layout.new_exercise_fragment_enter_text_for_new_exercise, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.findViewById<TextView>(R.id.enterTextText).text = "Create a new ${enterText.lowercase()}:"
-        val editText = view.findViewById<EditText>(R.id.newExerciseTextEntry)
+        view.findViewById<TextView>(R.id.label_enterNewExerciseComponentText).text = getString(R.string.label_enterNewExerciseComponentText, hintForExerciseComponentType.lowercase())
+        val editText = view.findViewById<EditText>(R.id.textEntry_newExerciseComponentText)
 
-        editText.hint = enterText
+        editText.hint = hintForExerciseComponentType
         editText.requestFocus()
         requireDialog().window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
 
         editText.doOnTextChanged { text, _, _, _ ->
-            returnString = text?.toString()
+            userInputtedString = text?.toString()
         }
 
-        view.findViewById<Button>(R.id.EnterExerciseTextButton).setOnClickListener {
+        view.findViewById<Button>(R.id.btn_EnterExerciseComponentText).setOnClickListener {
             dismiss()
         }
     }
 
     override fun dismiss() {
-        setFragmentResult("exerciseTextEntered", bundleOf("newText" to returnString))
+        setFragmentResult("exerciseTextEntered", bundleOf("userInputtedString" to userInputtedString?.trim()?.uppercase()))
         super.dismiss()
     }
 

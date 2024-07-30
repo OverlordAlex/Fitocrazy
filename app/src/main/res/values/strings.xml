@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Fitocrazy</string>
+    <string name="label_ExpandNewExerciseGroup">New Execise</string>
+    <string name="btn_addExercise">Add</string>
+    <string name="label_addExercise">Add exercise:</string>
+    <string name="btn_addNewEquipment">+</string>
+    <string name="autocomplete_addExercise">select an existing exercice</string>
+    <string name="label_enterNewExerciseComponentText">Create a new %1$s:</string>
 </resources>

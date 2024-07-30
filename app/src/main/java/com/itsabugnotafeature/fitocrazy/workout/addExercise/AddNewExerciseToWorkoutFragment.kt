@@ -1,10 +1,9 @@
-package com.itsabugnotafeature.fitocrazy.workout.addexercise
+package com.itsabugnotafeature.fitocrazy.workout.addExercise
 
 import android.graphics.Color
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,7 +22,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
-import androidx.lifecycle.lifecycleScope
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.Equipment
 import com.itsabugnotafeature.fitocrazy.common.Exercise
@@ -32,19 +30,18 @@ import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseWithComponents
 import com.itsabugnotafeature.fitocrazy.common.Movement
 import com.itsabugnotafeature.fitocrazy.common.Position
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 
 class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSelectedListener {
 
-    private enum class EXERCISE_COMPONENTS {
+    private enum class ExerciseComponents {
         EQUIPMENT, POSITION, MOVEMENT
     }
 
-    private var equipment: Long = -1
-    private var position: Long = -1
-    private var movement: Long = -1
+    private var selectedEquipment: Long = -1
+    private var selectedPosition: Long = -1
+    private var selectedMovement: Long = -1
 
     private lateinit var equipmentAdapter: ArrayAdapter<Equipment>
     private lateinit var positionAdapter: ArrayAdapter<Position>
@@ -52,19 +49,20 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
     private lateinit var autocompleteAdapter: ArrayAdapter<ExerciseWithComponents>
 
     override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
+        // When a spinner selects an item, we get the update and capture it
         parent.getItemAtPosition(pos)
         when (parent.id) {
-            R.id.equipment -> equipment = (parent.getItemAtPosition(pos) as ExerciseComponent).id.toLong()
-            R.id.position -> position = (parent.getItemAtPosition(pos) as ExerciseComponent).id.toLong()
-            R.id.movement -> movement = (parent.getItemAtPosition(pos) as ExerciseComponent).id.toLong()
+            R.id.spinner_equipment -> selectedEquipment = (parent.getItemAtPosition(pos) as ExerciseComponent).id.toLong()
+            R.id.spinner_position -> selectedPosition = (parent.getItemAtPosition(pos) as ExerciseComponent).id.toLong()
+            R.id.spinner_movement -> selectedMovement = (parent.getItemAtPosition(pos) as ExerciseComponent).id.toLong()
         }
     }
 
     override fun onNothingSelected(parent: AdapterView<*>) {
-        // Another interface callback.
+        // Do nothing when a spinner does not select an item
     }
 
-    private fun setupEnterCustomTextDialog(hint:EXERCISE_COMPONENTS, btn: Button, spinner: Spinner) {
+    private fun setupEnterCustomTextDialog(hint: ExerciseComponents, btn: Button, spinner: Spinner) {
         val textFrag: DialogFragment = EnterTextForNewExerciseFragment(hint.toString())
 
         btn.setOnClickListener {
@@ -77,14 +75,13 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
 
             textFrag.show(ft, textFrag.tag)
             textFrag.setFragmentResultListener("exerciseTextEntered") { _, bundle ->
-                val enteredText: String? = bundle.getString("newText")?.trim()?.uppercase()
-                Log.i("test", "$hint ${bundle.getString("newText")}")
+                val enteredText: String? = bundle.getString("userInputtedString")
                 if (!enteredText.isNullOrBlank()) {
-                    viewLifecycleOwner.lifecycleScope.launch {
+                    runBlocking {
                         val db = ExerciseDatabase.getInstance(requireContext())
 
                         when (hint) {
-                            EXERCISE_COMPONENTS.MOVEMENT -> {
+                            ExerciseComponents.MOVEMENT -> {
                                 val movement = db.exerciseComponentsDao().getMovement(enteredText)
                                 if (movement == null) {
                                     db.exerciseComponentsDao().addMovement(Movement(0, enteredText))
@@ -93,7 +90,7 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
                                 }
                             }
 
-                            EXERCISE_COMPONENTS.POSITION -> {
+                            ExerciseComponents.POSITION -> {
                                 val position = db.exerciseComponentsDao().getPosition(enteredText)
                                 if (position == null ) {
                                     db.exerciseComponentsDao()
@@ -104,7 +101,7 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
 
                             }
 
-                            EXERCISE_COMPONENTS.EQUIPMENT -> {
+                            ExerciseComponents.EQUIPMENT -> {
                                 val equipment = db.exerciseComponentsDao().getEquipment(enteredText)
                                 if (equipment == null) {
                                     db.exerciseComponentsDao()
@@ -140,12 +137,12 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
         // make it always show full-screen
         dialog?.window?.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
 
-        val addExerciseButton: Button = view.findViewById(R.id.addExerciseButton)
-        val autocomplete = view.findViewById<AutoCompleteTextView>(R.id.addExerciseAutoComplete)
+        val addExerciseButton: Button = view.findViewById(R.id.btn_addExercise)
+        val autocomplete = view.findViewById<AutoCompleteTextView>(R.id.autocomplete_addExercise)
 
-        val detailLayout = view.findViewById<ConstraintLayout>(R.id.addExerciseToWorkoutFragment)
-        view.findViewById<TextView>(R.id.textView).setOnClickListener {
-            val visible: Int =  if (detailLayout.visibility == View.GONE) {
+        val detailLayout = view.findViewById<ConstraintLayout>(R.id.layout_addExerciseToWorkout)
+        view.findViewById<TextView>(R.id.label_ExpandNewExerciseGroup).setOnClickListener {
+            val visible: Int = if (detailLayout.visibility == View.GONE) {
                 autocomplete.isEnabled = false
                 addExerciseButton.isEnabled = true
                 View.VISIBLE
@@ -161,9 +158,9 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
             detailLayout.visibility = visible
         }
 
-        val equipmentSpinner = view.findViewById<Spinner>(R.id.equipment)
-        val positionSpinner = view.findViewById<Spinner>(R.id.position)
-        val movementSpinner = view.findViewById<Spinner>(R.id.movement)
+        val equipmentSpinner = view.findViewById<Spinner>(R.id.spinner_equipment)
+        val positionSpinner = view.findViewById<Spinner>(R.id.spinner_position)
+        val movementSpinner = view.findViewById<Spinner>(R.id.spinner_movement)
 
         runBlocking {
             equipmentAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item)
@@ -202,9 +199,9 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
         positionSpinner.onItemSelectedListener = this
         movementSpinner.onItemSelectedListener = this
 
-        setupEnterCustomTextDialog(EXERCISE_COMPONENTS.EQUIPMENT, view.findViewById<Button>(R.id.newEquipment), equipmentSpinner)
-        setupEnterCustomTextDialog(EXERCISE_COMPONENTS.POSITION, view.findViewById<Button>(R.id.newPosition), positionSpinner)
-        setupEnterCustomTextDialog(EXERCISE_COMPONENTS.MOVEMENT, view.findViewById<Button>(R.id.newMovement), movementSpinner)
+        setupEnterCustomTextDialog(ExerciseComponents.EQUIPMENT, view.findViewById<Button>(R.id.btn_addNewEquipment), equipmentSpinner)
+        setupEnterCustomTextDialog(ExerciseComponents.POSITION, view.findViewById<Button>(R.id.btn_addNewPosition), positionSpinner)
+        setupEnterCustomTextDialog(ExerciseComponents.MOVEMENT, view.findViewById<Button>(R.id.btn_addNewMovement), movementSpinner)
 
         addExerciseButton.setOnClickListener {
             if (detailLayout.visibility == View.VISIBLE) {
@@ -212,9 +209,9 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
                 runBlocking {
                     val db = ExerciseDatabase.getInstance(requireContext()).exerciseDao()
                     val exercise: ExerciseWithComponents? =
-                        db.getExactExercise(equipment, position, movement)
+                        db.getExactExercise(selectedEquipment, selectedPosition, selectedMovement)
                     if (exercise == null) {
-                        val newID = db.addExercise(Exercise(0, equipment, position, movement))
+                        val newID = db.addExercise(Exercise(0, selectedEquipment, selectedPosition, selectedMovement))
                         setFragmentResult("exerciseAdded", bundleOf("exerciseID" to newID))
                     } else {
                         setFragmentResult("exerciseAdded", bundleOf("exerciseID" to exercise.exercise.rowid))
@@ -232,7 +229,7 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.fragment_add_new_exercise_to_workout, container, false)
+        return inflater.inflate(R.layout.new_exercise_fragment_add_new_exercise_to_workout, container, false)
     }
 
     companion object {

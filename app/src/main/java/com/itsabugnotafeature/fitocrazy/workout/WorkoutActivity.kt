@@ -16,7 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
-import com.itsabugnotafeature.fitocrazy.workout.addexercise.AddNewExerciseToWorkoutFragment
+import com.itsabugnotafeature.fitocrazy.workout.addExercise.AddNewExerciseToWorkoutFragment
 import kotlinx.coroutines.launch
 
 class WorkoutActivity : AppCompatActivity() {
@@ -28,7 +28,7 @@ class WorkoutActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             db = ExerciseDatabase.getInstance(applicationContext)
-            findViewById<Spinner>(R.id.equipment)?.adapter = ArrayAdapter(applicationContext, android.R.layout.simple_spinner_item, db.exerciseComponentsDao().getAllMovement())
+            findViewById<Spinner>(R.id.spinner_equipment)?.adapter = ArrayAdapter(applicationContext, android.R.layout.simple_spinner_item, db.exerciseComponentsDao().getAllMovement())
         }
        }
 
