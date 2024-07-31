@@ -5,7 +5,6 @@ import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Embedded
 import androidx.room.Entity
-import androidx.room.Fts4
 import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
@@ -13,6 +12,29 @@ import androidx.room.Relation
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Transaction
+import androidx.room.TypeConverters
+import java.util.Date
+
+@Entity
+data class Workout(
+    @PrimaryKey(autoGenerate = true) val id: Int,
+    val date: Date,
+    val exerciseSets: List<ExerciseSets>
+)
+
+data class ExerciseSets(
+    val exercise: ExerciseWithComponents,
+    val sets: List<Set>
+)
+
+data class Set(
+    val weight: Double,
+    val reps: Int,
+) {
+    override fun toString(): String {
+        return "${weight}kg * $reps"
+    }
+}
 
 @Entity
 data class Exercise(
@@ -92,6 +114,7 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercise")
     suspend fun getAll(): List<ExerciseWithComponents>
 
+    @Transaction
     @Query("SELECT * FROM exercise WHERE equipmentId=:equipmentId AND positionId=:positionId AND movementId=:movementId")
     suspend fun getExactExercise(equipmentId: Long, positionId: Long, movementId: Long): ExerciseWithComponents?
 
@@ -132,7 +155,22 @@ interface ExerciseComponentsDao {
     suspend fun addMovement(movement: Movement): Long
 }
 
+interface WorkoutDao {
+    @Transaction
+    @Query("SELECT * FROM workout ORDER by date DESC LIMIT 3")
+    suspend fun getRecentWorkouts(): List<Workout>
+
+    // TODO check and get relationships working
+    /*@Query("SELECT * FROM workout WHERE exerciseSets = :exerciseId ORDER by date DESC LIMIT 1")
+    suspend fun getLastSetsByExercise(exerciseId: Long): List<Set>*/
+
+    @Transaction
+    @Insert
+    suspend fun addWorkout(workout: Workout): Long
+}
+
 @Database(entities = [Exercise::class, Equipment::class, Movement::class, Position::class], version = 1)
+@TypeConverters(Converters::class)
 abstract class ExerciseDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
     abstract fun exerciseComponentsDao(): ExerciseComponentsDao
