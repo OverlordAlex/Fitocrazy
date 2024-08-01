@@ -1,5 +1,5 @@
 package com.itsabugnotafeature.fitocrazy.common
-
+/*
 import android.content.Context
 import androidx.room.Dao
 import androidx.room.Database
@@ -15,19 +15,41 @@ import androidx.room.Transaction
 import androidx.room.TypeConverters
 import java.util.Date
 
+// TODO: all ids to Long
+
 @Entity
 data class Workout(
     @PrimaryKey(autoGenerate = true) val id: Int,
     val date: Date,
+)
+
+data class WorkoutSets(
+    @Embedded val workout: Workout,
+    @Relation(
+        parentColumn = "exerciseSetsId",
+        entityColumn = "id"
+    )
     val exerciseSets: List<ExerciseSets>
 )
 
+@Entity
 data class ExerciseSets(
+    @PrimaryKey(autoGenerate = true) val id: Int,
+    val workoutId: Long,
     val exercise: ExerciseWithComponents,
+)
+
+data class ExerciseSetsSet(
+    @Embedded val exerciseSets: ExerciseSets,
+    @Relation(
+        parentColumn = "setId",
+        entityColumn = "id"
+    )
     val sets: List<Set>
 )
 
 data class Set(
+    @PrimaryKey(autoGenerate = true) val id: Int,
     val weight: Double,
     val reps: Int,
 ) {
@@ -155,6 +177,7 @@ interface ExerciseComponentsDao {
     suspend fun addMovement(movement: Movement): Long
 }
 
+//@Dao
 interface WorkoutDao {
     @Transaction
     @Query("SELECT * FROM workout ORDER by date DESC LIMIT 3")
@@ -174,6 +197,7 @@ interface WorkoutDao {
 abstract class ExerciseDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
     abstract fun exerciseComponentsDao(): ExerciseComponentsDao
+    //abstract fun workoutDao(): WorkoutDao
 
     companion object {
         private const val DATABASE_NAME = "exercises.db"
@@ -203,4 +227,4 @@ abstract class ExerciseDatabase : RoomDatabase() {
             }
         }
     }
-}
+}*/

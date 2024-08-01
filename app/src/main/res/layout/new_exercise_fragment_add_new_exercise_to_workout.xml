@@ -51,9 +51,10 @@
             android:id="@+id/btn_addNewEquipment"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minWidth="0dp"
             android:text="@string/btn_addNewEquipment"
             app:layout_constraintBottom_toBottomOf="@+id/spinner_equipment"
-            app:layout_constraintEnd_toEndOf="@+id/btn_addNewPosition"
+            app:layout_constraintEnd_toEndOf="@+id/btn_addNewLocation"
             app:layout_constraintTop_toTopOf="@+id/spinner_equipment" />
 
         <Spinner
@@ -64,14 +65,15 @@
             android:spinnerMode="dropdown"
             app:layout_constraintBottom_toBottomOf="@id/spinner_movement"
             app:layout_constraintEnd_toEndOf="@+id/spinner_movement"
-            app:layout_constraintEnd_toStartOf="@id/btn_addNewPosition"
+            app:layout_constraintEnd_toStartOf="@id/btn_addNewLocation"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/spinner_equipment" />
 
         <Button
-            android:id="@+id/btn_addNewPosition"
+            android:id="@+id/btn_addNewLocation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minWidth="0dp"
             android:text="@string/btn_addNewEquipment"
             app:layout_constraintBottom_toBottomOf="@+id/spinner_position"
             app:layout_constraintEnd_toEndOf="@+id/btn_addNewMovement"
@@ -92,6 +94,7 @@
             android:id="@+id/btn_addNewMovement"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minWidth="0dp"
             android:text="@string/btn_addNewEquipment"
             app:layout_constraintBottom_toBottomOf="@+id/spinner_movement"
             app:layout_constraintEnd_toEndOf="parent"

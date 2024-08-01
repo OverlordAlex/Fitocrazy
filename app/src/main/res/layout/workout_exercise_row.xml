@@ -17,7 +17,7 @@
             android:id="@+id/label_exerciseNameOnCard"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:minHeight="16dp"
+            android:minHeight="32dp"
             app:layout_constraintBottom_toTopOf="@+id/scrollview_listOfSetsOnExerciseCard"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
