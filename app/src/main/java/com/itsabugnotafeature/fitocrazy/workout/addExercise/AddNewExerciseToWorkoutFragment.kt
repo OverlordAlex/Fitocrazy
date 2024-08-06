@@ -220,8 +220,9 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
                     val db = ExerciseDatabase.getInstance(requireContext()).exerciseDao()
                     val exercise: ExerciseExerciseComponentCrossRef? = db.getExercise(selectedEquipment, selectedLocation, selectedMovement)
                     if (exercise == null) {
+                        val displayName = listOf(db.getExercise(selectedEquipment)?.name, db.getExercise(selectedLocation)?.name, db.getExercise(selectedMovement)?.name).joinToString(" ")
                         val newExerciseId = db.addExercise(
-                            ExerciseModel(0, "REE?")
+                            ExerciseModel(0, displayName)
                         )
                         db.addExerciseExerciseComponentCrossRef(ExerciseExerciseComponentCrossRef(selectedEquipment, newExerciseId))
                         db.addExerciseExerciseComponentCrossRef(ExerciseExerciseComponentCrossRef(selectedLocation, newExerciseId))

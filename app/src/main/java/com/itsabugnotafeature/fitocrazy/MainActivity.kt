@@ -21,6 +21,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btn_AddNewWorkout).setOnClickListener {
+            //putExtra
             startActivity(Intent(applicationContext, WorkoutActivity::class.java).setAction("startedFromHome"))
         }
     }

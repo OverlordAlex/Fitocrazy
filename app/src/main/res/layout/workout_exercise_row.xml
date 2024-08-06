@@ -1,114 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="8dp"
+    android:background="#FFFFFF"
     android:baselineAligned="false"
-    android:orientation="horizontal">
+    android:elevation="4dp"
+    android:padding="6dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layout_leftExerciseCard"
+    <TextView
+        android:id="@+id/label_exerciseNameOnCard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/numberEntry_addKilogramsToThisExercise"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="6"
+        android:hint="@string/kilograms"
+        android:importantForAutofill="no"
+        android:includeFontPadding="false"
+        android:inputType="numberDecimal"
+        android:maxEms="6"
+        android:minHeight="48dp"
+        android:minEms="6"
+        android:paddingHorizontal="4dp"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="@id/btn_addSetToThisExercise"
+        app:layout_constraintEnd_toStartOf="@id/label_kilogramsAndRepsWhenAddingToExercise"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/label_exerciseNameOnCard" />
+
+    <TextView
+        android:id="@+id/label_kilogramsAndRepsWhenAddingToExercise"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:paddingHorizontal="4dp"
+        android:text="@string/label_kilogramTimesSets"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="@id/btn_addSetToThisExercise"
+        app:layout_constraintEnd_toStartOf="@id/numberEntry_addRepsToThisExercise"
+        app:layout_constraintStart_toEndOf="@id/numberEntry_addKilogramsToThisExercise"
+        app:layout_constraintTop_toBottomOf="@id/label_exerciseNameOnCard" />
+
+    <EditText
+        android:id="@+id/numberEntry_addRepsToThisExercise"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="3"
+        android:hint="@string/repetitions"
+        android:importantForAutofill="no"
+        android:includeFontPadding="false"
+        android:inputType="number"
+        android:maxEms="3"
+        android:minHeight="48dp"
+        android:minEms="1"
+        android:paddingHorizontal="4dp"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="@id/btn_addSetToThisExercise"
+        app:layout_constraintStart_toEndOf="@id/label_kilogramsAndRepsWhenAddingToExercise"
+        app:layout_constraintTop_toBottomOf="@id/label_exerciseNameOnCard" />
+
+    <Button
+        android:id="@+id/btn_removeLastSetFromThisExercise"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:width="48dp"
+        android:height="48dp"
+        android:maxWidth="48dp"
+        android:maxHeight="48dp"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:text="@string/btn_removeLastSet"
+        app:layout_constraintBottom_toTopOf="@id/scrollview_listOfSetsOnExerciseCard"
+        app:layout_constraintEnd_toStartOf="@id/btn_addSetToThisExercise"
+        app:layout_constraintTop_toBottomOf="@id/label_exerciseNameOnCard" />
+
+    <Button
+        android:id="@+id/btn_addSetToThisExercise"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:width="48dp"
+        android:height="48dp"
+        android:maxWidth="48dp"
+        android:maxHeight="48dp"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:text="@string/btn_addNewEquipment"
+        app:layout_constraintBottom_toTopOf="@id/scrollview_listOfSetsOnExerciseCard"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/label_exerciseNameOnCard" />
+
+    <HorizontalScrollView
+        android:id="@+id/scrollview_listOfSetsOnExerciseCard"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="2">
-
-        <TextView
-            android:id="@+id/label_exerciseNameOnCard"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:minHeight="32dp"
-            app:layout_constraintBottom_toTopOf="@+id/scrollview_listOfSetsOnExerciseCard"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_weight="1" />
-
-        <HorizontalScrollView
-            android:id="@+id/scrollview_listOfSetsOnExerciseCard"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:contentDescription="@string/label_ExpandNewExerciseGroup"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/label_exerciseNameOnCard"
-            app:layout_constraintVertical_weight="5">
-
-            <LinearLayout
-                android:id="@+id/layout_listOfSetsOnExerciseCard"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal" />
-        </HorizontalScrollView>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layout_right_exerciseCard"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1">
-
-        <Button
-            android:id="@+id/btn_addSetToThisExercise"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="12dp"
-            android:minWidth="0dp"
-            android:text="@string/btn_addNewEquipment"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <Button
-            android:id="@+id/btn_removeLastSetFromThisExercise"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="12dp"
-            android:minWidth="0dp"
-            android:text="@string/btn_removeLastSet"
-            app:layout_constraintEnd_toStartOf="@+id/btn_addSetToThisExercise"
-            app:layout_constraintTop_toTopOf="parent" />
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/label_ExpandNewExerciseGroup"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_addSetToThisExercise">
 
         <LinearLayout
-            android:id="@+id/layout_addSetToThisExercise"
-            android:layout_width="0dp"
+            android:id="@+id/layout_listOfSetsOnExerciseCard"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btn_addSetToThisExercise">
+            android:layout_gravity="end"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
 
-            <EditText
-                android:id="@+id/numberEntry_addKilogramsToThisExercise"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="32dp"
-                android:layout_weight="3"
-                android:ems="10"
-                android:hint="@string/kilograms"
-                android:importantForAutofill="no"
-                android:inputType="numberDecimal" />
-
-            <TextView
-                android:id="@+id/label_kilogramsAndRepsWhenAddingToExercise"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/label_kilogramTimesSets"
-                android:textAlignment="center" />
-
-            <EditText
-                android:id="@+id/numberEntry_addRepsToThisExercise"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="32dp"
-                android:layout_weight="3"
-                android:ems="10"
-                android:hint="@string/repetitions"
-                android:importantForAutofill="no"
-                android:inputType="number" />
-        </LinearLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

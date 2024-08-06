@@ -12,12 +12,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
         android:clickable="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_add"
         android:contentDescription="Add new exercise"
-        android:layout_margin="16dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_add" />
 
     <LinearLayout
         android:id="@+id/layout_currentWorkoutMainArea"
@@ -37,35 +37,112 @@
             android:layout_height="match_parent"
             android:layout_weight="4">
 
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/fragmentContainer_workoutTimer"
-                android:name="com.itsabugnotafeature.fitocrazy.workout.WorkoutTimerFragment"
+            <LinearLayout
+                android:id="@+id/layout_workoutTimer"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/layout_workoutTotals"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.5" />
+                tools:context=".workout.WorkoutTimerFragment">
 
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/fragmentContrainer_workoutStats"
-                android:name="com.itsabugnotafeature.fitocrazy.workout.WorkoutStatsFragment"
+                <TextView
+                    android:id="@+id/timer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="3:21" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/totals"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="4">
+
+                    <TextView
+                        android:id="@+id/totalTime"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="12:34"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/averageTime"
+                        app:layout_constraintTop_toBottomOf="@id/averageTime"
+                        app:layout_constraintWidth_percent="0.5" />
+
+                    <TextView
+                        android:id="@+id/averageTime"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="1:23"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/totalTime"
+                        app:layout_constraintWidth_percent="0.5" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_workoutTotals"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/layout_workoutTimer"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.5" />
+                tools:context=".workout.WorkoutStatsFragment">
+
+                <TextView
+                    android:id="@+id/totalPoints"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Total Points: " />
+
+                <TextView
+                    android:id="@+id/totalWeight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Total Weight: " />
+
+                <TextView
+                    android:id="@+id/totalReps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Total Reps: " />
+            </LinearLayout>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/label_startWorkoutAddExercise"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/label_add_some_exercises"
+            android:visibility="gone" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/list_exercisesInCurrentWorkout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginBottom="10dp"
             android:layout_weight="1"
-            android:paddingHorizontal="2dp"></androidx.recyclerview.widget.RecyclerView>
+            android:background="#F2F2F2"
+            android:paddingHorizontal="2dp">
+
+        </androidx.recyclerview.widget.RecyclerView>
 
     </LinearLayout>
 
