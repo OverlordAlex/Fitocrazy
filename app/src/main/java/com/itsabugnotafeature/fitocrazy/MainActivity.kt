@@ -30,12 +30,16 @@ import kotlinx.coroutines.runBlocking
 import org.w3c.dom.Text
 import java.time.format.DateTimeFormatter
 import java.util.SortedMap
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var workoutListViewAdapter: WorkoutListViewAdapter
+
     class WorkoutListViewAdapter(
-        private var workoutList: List<Workout>,
-        private var db: ExerciseDatabase
+        private var workoutList: List<Workout>
     ) : RecyclerView.Adapter<WorkoutListViewAdapter.ViewHolder>() {
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             fun bind(
@@ -44,21 +48,32 @@ class MainActivity : AppCompatActivity() {
                 itemView.findViewById<TextView>(R.id.label_workoutDate).text =
                     currentWorkout.date.format(DateTimeFormatter.ofPattern("dd LLLL yyyy"))
                 itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).text =
-                    currentWorkout.totalExercises.toString()
-                itemView.findViewById<TextView>(R.id.label_workoutPoints).text = currentWorkout.totalPoints.toString()
+                    itemView.context.getString(R.string.number_of_exercises_in_workout, currentWorkout.totalExercises)
+                itemView.findViewById<TextView>(R.id.label_workoutPoints).text =
+                    itemView.context.getString(R.string.total_points_in_workout, currentWorkout.totalPoints)
 
                 itemView.findViewById<TextView>(R.id.label_workoutTotalWeight).text =
-                    currentWorkout.totalWeight.toString()
-                itemView.findViewById<TextView>(R.id.label_workoutTotalReps).text = currentWorkout.totalReps.toString()
-                itemView.findViewById<TextView>(R.id.label_workoutTotalSets).text = currentWorkout.totalSets.toString()
-                itemView.findViewById<Chronometer>(R.id.label_workoutTotalTime).base =
-                    SystemClock.elapsedRealtime() - currentWorkout.totalTime
+                    itemView.context.getString(R.string.total_weight, currentWorkout.totalWeight)
+
+                itemView.findViewById<TextView>(R.id.label_workoutTotalReps).text =
+                    itemView.context.getString(R.string.total_reps, currentWorkout.totalReps)
+
+                itemView.findViewById<TextView>(R.id.label_workoutTotalSets).text =
+                    itemView.context.getString(R.string.total_sets, currentWorkout.totalSets)
+
+                val totalTime =
+                    currentWorkout.totalTime.toDuration(DurationUnit.MILLISECONDS)
+                        .toComponents { hours, minutes, _, _ -> "%02d:%02d".format(hours, minutes) }
+                itemView.findViewById<TextView>(R.id.label_workoutTotalTime).text =
+                    itemView.context.getString(R.string.total_time, totalTime)
+
 
                 val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_workoutTopTags)
                 chipGroup.visibility = ChipGroup.VISIBLE
                 currentWorkout.topTags.split(" ").forEach { chipName ->
                     val newChip = Chip(itemView.context)
                     newChip.text = chipName
+                    //newChip.setEnsureMinTouchTargetSize(false)
                     /*newChip.setChipBackgroundColorResource(R.color.purple_500)
                     newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.white) } ?: R.color.white)*/
                     chipGroup.addView(newChip)
@@ -84,7 +99,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onBindViewHolder(holder: WorkoutListViewAdapter.ViewHolder, position: Int) {
+            // TODO: refetch
             holder.bind(workoutList[position])
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (data?.getBooleanExtra("dataUpdated", false) == true) {
+            workoutListViewAdapter.notifyDataSetChanged()
         }
     }
 
@@ -103,7 +126,7 @@ class MainActivity : AppCompatActivity() {
             db.exerciseDao().listWorkouts()
         }
 
-        val workoutListViewAdapter = WorkoutListViewAdapter(workoutList, db)
+        workoutListViewAdapter = WorkoutListViewAdapter(workoutList)
         val workoutListView = findViewById<RecyclerView>(R.id.list_allWorkoutsHomepage)
         workoutListView.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)

@@ -48,10 +48,11 @@ import kotlin.math.pow
  *      - DONE ~~resumable timers~~
  *      - DONE ~~ensure timers don't start if adding sets to historical exercises~~
  *      - DONE ~~verify that historical exercises show their "today" sets appropriately~~
- *      - style main page
+ *      - DONE ~~style main page strings~~
  *      - bring points to the spinners on exercise type for more flexibility?
  *      - DONE ~~chip group for body parts per exercise~~
  *      - DONE ~~total chip group per exercise~~
+ *      - refresh DB workout list on result
  *      - make DB queries live
  *      - handle background running and all on-resume stuff
  *      - allow editing of exercise components
@@ -152,6 +153,7 @@ class WorkoutActivity : AppCompatActivity() {
                 itemView.findViewById<TextView>(R.id.label_exerciseNameOnCard).text = currentExercise.displayName
                 if (currentExercise.tags.isNotEmpty()) {
                     val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
+                    chipGroup.removeAllViews()
                     chipGroup.visibility = ChipGroup.VISIBLE
                     currentExercise.tags.forEach { chipName ->
                         val newChip = Chip(itemView.context)
@@ -434,6 +436,9 @@ class WorkoutActivity : AppCompatActivity() {
 
             setTimeTimer.stop()  // needed?
             totalTimeTimer.stop()  // needed?
+
+            intent.putExtra("dataUpdated", true)
+            setResult(RESULT_OK, intent)
             finish()
         }
 

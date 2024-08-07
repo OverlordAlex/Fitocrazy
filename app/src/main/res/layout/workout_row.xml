@@ -3,7 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:background="#FFFFFF"
+    android:elevation="4dp"
+    android:padding="8dp">
 
     <TextView
         android:id="@+id/label_workoutDate"
@@ -21,8 +25,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="top|end"
-        android:text="Total Exercises:"
-        android:textSize="32sp"
+        android:text="@string/number_of_exercises_in_workout"
+        android:textSize="22sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/label_workoutDate"
         app:layout_constraintTop_toTopOf="parent" />
@@ -43,7 +47,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="bottom|left"
-        android:text="@string/total_points"
         android:textSize="32sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/layout_workoutOtherStats"
@@ -81,7 +84,7 @@
             android:layout_weight="1"
             android:text="total_sets" />
 
-        <Chronometer
+        <TextView
             android:id="@+id/label_workoutTotalTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
