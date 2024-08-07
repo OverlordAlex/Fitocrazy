@@ -1,8 +1,10 @@
 package com.itsabugnotafeature.fitocrazy.common
 
 import android.content.Context
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
+import androidx.room.DatabaseView
 import androidx.room.Delete
 import androidx.room.Embedded
 import androidx.room.Entity
@@ -37,7 +39,8 @@ data class ExerciseComponentModel(
 @Entity
 data class ExerciseModel(
     @PrimaryKey(autoGenerate = true) val exerciseId: Long,
-    val displayName: String
+    val displayName: String,
+    @ColumnInfo(defaultValue = "10") val basePoints : Int,
 ) {
     override fun toString() = displayName
 }
@@ -93,6 +96,14 @@ data class Set(
     override fun compareTo(other: Set): Int = this.order.compareTo(other.order)
 }
 
+@DatabaseView("SELECT exerciseModelId, max(weight) as maxWeight, max(reps) as maxReps, max(weight*reps) as mostWeightMoved FROM `Set` s JOIN exercise e ON s.exerciseId = e.exerciseId GROUP BY exerciseModelId")
+data class SetRecordView(
+    @PrimaryKey val exerciseModelId: Long,
+    val maxWeight: Double,
+    val maxReps: Int,
+    val mostWeightMoved: Double,
+)
+
 @Dao
 interface ExerciseDao {
     @Transaction
@@ -142,11 +153,7 @@ interface ExerciseDao {
     @Delete
     suspend fun deleteExercise(exercise: Exercise)
 
-    @Query("SELECT * FROM Exercise WHERE date = :date")
-    suspend fun getExercisesInWorkout(date: LocalDate): List<Exercise>
-
-
-    @Query("SELECT * FROM `Set` s JOIN (SELECT * FROM Exercise ORDER BY date DESC LIMIT 1, :nSets) as E ON s.exerciseId=E.exerciseId WHERE E.exerciseModelId=:exerciseModelId AND NOT E.date = :excludeDate")
+    @Query("SELECT * FROM `Set` s JOIN (SELECT * FROM Exercise ORDER BY date DESC LIMIT 1, :nSets) as E ON s.exerciseId=E.exerciseId WHERE E.exerciseModelId=:exerciseModelId AND E.date < :excludeDate")
     suspend fun getHistoricalSets(exerciseModelId: Long, nSets: Int, excludeDate: Long? = 0): Map<Exercise, List<Set>>
 
     @Query("SELECT * FROM Exercise WHERE date = :date")
@@ -155,11 +162,14 @@ interface ExerciseDao {
     @Query("SELECT * FROM `Set` WHERE exerciseId = :exerciseId")
     suspend fun getSets(exerciseId: Long): List<Set>
 
+    @Query("SELECT * FROM SetRecordView WHERE exerciseModelId = :exerciseId")
+    suspend fun getRecord(exerciseId: Long): SetRecordView?
 }
 
 @Database(
     entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class],
-    version = 1
+    views = [SetRecordView::class],
+    version = 2
 )
 @TypeConverters(Converters::class)
 abstract class ExerciseDatabase : RoomDatabase() {

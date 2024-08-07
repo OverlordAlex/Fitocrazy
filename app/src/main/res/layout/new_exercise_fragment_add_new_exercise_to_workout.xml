@@ -102,6 +102,33 @@
             app:layout_constraintStart_toEndOf="@+id/spinner_movement"
             app:layout_constraintTop_toBottomOf="@+id/spinner_position" />
 
+        <RadioGroup
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/spinner_movement">
+
+            <RadioButton
+                android:id="@+id/radio_isMachineExercise"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Machine" />
+
+            <RadioButton
+                android:id="@+id/radio_isFreeWeightExercise"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Free Weight" />
+
+            <RadioButton
+                android:id="@+id/radio_isCompoundExercise"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Compound" />
+        </RadioGroup>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <AutoCompleteTextView

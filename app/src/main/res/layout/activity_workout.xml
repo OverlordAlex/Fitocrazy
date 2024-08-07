@@ -40,7 +40,7 @@
             <LinearLayout
                 android:id="@+id/layout_workoutTimer"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="144dp"
                 android:orientation="vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -48,8 +48,8 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:context=".workout.WorkoutTimerFragment">
 
-                <TextView
-                    android:id="@+id/timer"
+                <Chronometer
+                    android:id="@+id/timer_timeAfterLastSet"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -62,26 +62,26 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="4">
 
-                    <TextView
-                        android:id="@+id/totalTime"
+                    <Chronometer
+                        android:id="@+id/timer_totalTime"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="124dp"
                         android:gravity="center"
                         android:text="12:34"
-                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintBottom_toBottomOf="@+id/averageTime"
                         app:layout_constraintEnd_toStartOf="@+id/averageTime"
-                        app:layout_constraintTop_toBottomOf="@id/averageTime"
+                        app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintWidth_percent="0.5" />
 
                     <TextView
                         android:id="@+id/averageTime"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="124dp"
                         android:gravity="center"
                         android:text="1:23"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/totalTime"
+                        app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintWidth_percent="0.5" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
@@ -91,7 +91,7 @@
             <LinearLayout
                 android:id="@+id/layout_workoutTotals"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="144dp"
                 android:orientation="vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/layout_workoutTimer"
@@ -105,7 +105,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Total Points: " />
+                    android:text="@string/total_points" />
 
                 <TextView
                     android:id="@+id/totalWeight"
@@ -113,7 +113,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Total Weight: " />
+                    android:text="@string/total_weight" />
 
                 <TextView
                     android:id="@+id/totalReps"
@@ -121,7 +121,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Total Reps: " />
+                    android:text="@string/total_reps" />
             </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>

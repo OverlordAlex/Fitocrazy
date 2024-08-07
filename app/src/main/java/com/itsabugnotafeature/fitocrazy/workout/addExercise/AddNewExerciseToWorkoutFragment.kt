@@ -12,6 +12,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
+import android.widget.RadioButton
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -37,6 +38,7 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
     private var selectedEquipment: Long = -1
     private var selectedLocation: Long = -1
     private var selectedMovement: Long = -1
+    private var selectedBasePoints: Int = -1
 
     private lateinit var equipmentAdapter: ArrayAdapter<ExerciseComponentModel>
     private lateinit var locationAdapter: ArrayAdapter<ExerciseComponentModel>
@@ -213,20 +215,47 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
             movementSpinner
         )
 
+        view.findViewById<RadioButton>(R.id.radio_isCompoundExercise)
+            .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 15}
+        view.findViewById<RadioButton>(R.id.radio_isFreeWeightExercise)
+            .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 10}
+        view.findViewById<RadioButton>(R.id.radio_isMachineExercise)
+            .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 8}
+
         addExerciseButton.setOnClickListener {
             if (detailLayout.visibility == View.VISIBLE) {
                 // if adding a new activity
                 runBlocking {
                     val db = ExerciseDatabase.getInstance(requireContext()).exerciseDao()
-                    val exercise: ExerciseExerciseComponentCrossRef? = db.getExercise(selectedEquipment, selectedLocation, selectedMovement)
+                    val exercise: ExerciseExerciseComponentCrossRef? =
+                        db.getExercise(selectedEquipment, selectedLocation, selectedMovement)
                     if (exercise == null) {
-                        val displayName = listOf(db.getExercise(selectedEquipment)?.name, db.getExercise(selectedLocation)?.name, db.getExercise(selectedMovement)?.name).joinToString(" ")
+                        val displayName = listOf(
+                            db.getExercise(selectedEquipment)?.name,
+                            db.getExercise(selectedLocation)?.name,
+                            db.getExercise(selectedMovement)?.name
+                        ).joinToString(" ")
                         val newExerciseId = db.addExercise(
-                            ExerciseModel(0, displayName)
+                            ExerciseModel(0, displayName, selectedBasePoints)
                         )
-                        db.addExerciseExerciseComponentCrossRef(ExerciseExerciseComponentCrossRef(selectedEquipment, newExerciseId))
-                        db.addExerciseExerciseComponentCrossRef(ExerciseExerciseComponentCrossRef(selectedLocation, newExerciseId))
-                        db.addExerciseExerciseComponentCrossRef(ExerciseExerciseComponentCrossRef(selectedMovement, newExerciseId))
+                        db.addExerciseExerciseComponentCrossRef(
+                            ExerciseExerciseComponentCrossRef(
+                                selectedEquipment,
+                                newExerciseId
+                            )
+                        )
+                        db.addExerciseExerciseComponentCrossRef(
+                            ExerciseExerciseComponentCrossRef(
+                                selectedLocation,
+                                newExerciseId
+                            )
+                        )
+                        db.addExerciseExerciseComponentCrossRef(
+                            ExerciseExerciseComponentCrossRef(
+                                selectedMovement,
+                                newExerciseId
+                            )
+                        )
                         setFragmentResult("exerciseAdded", bundleOf("exerciseID" to newExerciseId))
                     } else {
                         setFragmentResult(

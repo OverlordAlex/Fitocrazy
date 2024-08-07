@@ -11,4 +11,7 @@
     <string name="label_kilogramTimesSets">X</string>
     <string name="repetitions">reps</string>
     <string name="label_add_some_exercises">Add some exercises...</string>
+    <string name="total_points">Total Points: %1$d</string>
+    <string name="total_weight">Total Weight: %1$.2f kg</string>
+    <string name="total_reps">Total Reps: %1$d</string>
 </resources>
