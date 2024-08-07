@@ -5,7 +5,7 @@ import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
+import android.view.animation.AccelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.Chronometer
@@ -28,10 +28,10 @@ import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.Set
+import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.workout.addExercise.AddNewExerciseToWorkoutFragment
 import kotlinx.coroutines.runBlocking
 import java.math.RoundingMode
-import java.security.AccessController.getContext
 import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -39,15 +39,24 @@ import java.util.Locale
 import java.util.SortedMap
 import kotlin.math.pow
 
+/**
+ * TODO
+ *      - workout selection on main page
+ *      - DONE ~~resumable timers~~
+ *      - ensure timers don't start if adding sets to historical exercises
+ *      - verify that historical exercises show their "today" sets appropriately
+ *      - bring points to the spinners on exercise type for more flexibility?
+ *      - chip group for body parts per exercise
+ *      - make DB queries live
+ *      - handle background running and all on-resume stuff
+ */
+
 
 class WorkoutActivity : AppCompatActivity() {
 
     private lateinit var db: ExerciseDatabase
-    private var totalWeight = 0.0
-    private var totalReps = 0
-    private var totalPoints = 0
+    private lateinit var workout: Workout
 
-    // TODO: bring points to the spinners on exercise type
     fun calculatePoints(exerciseModelId: Long, weight: Double, reps: Int): Int {
         // we will never calculate points for an exercise that doesn't exist
         var points = 0.0
@@ -120,7 +129,9 @@ class WorkoutActivity : AppCompatActivity() {
 
                 if (currentExercise.sets.lastOrNull() == null) {
                     weightEditText.text = null
-                } else if (currentExercise.sets.lastOrNull()?.weight?.toInt()?.toDouble() != currentExercise.sets.lastOrNull()?.weight) {
+                } else if (currentExercise.sets.lastOrNull()?.weight?.toInt()
+                        ?.toDouble() != currentExercise.sets.lastOrNull()?.weight
+                ) {
                     // if int() and double() dont match, then there are decimal places
                     weightEditText.setText(currentExercise.sets.lastOrNull()?.weight?.toString())
                 } else {
@@ -210,7 +221,11 @@ class WorkoutActivity : AppCompatActivity() {
                             }
                             removeItem(adapterPosition)
                         } else {
-                            notifier.setRemoved(currentExercise.exercise.exerciseModelId, currentExercise.sets.last().weight, currentExercise.sets.last().reps)
+                            notifier.setRemoved(
+                                currentExercise.exercise.exerciseModelId,
+                                currentExercise.sets.last().weight,
+                                currentExercise.sets.last().reps
+                            )
                             runBlocking {
                                 db.exerciseDao()
                                     .deleteSetFromExercise(currentExercise.sets.removeLast())
@@ -305,49 +320,63 @@ class WorkoutActivity : AppCompatActivity() {
         var exercises: List<Exercise>
         var exerciseList: MutableList<Pair<Exercise, MutableList<Set>>>
         var order = 1
-
         runBlocking {
-            exercises = db.exerciseDao().getWorkout(today)
+            workout = db.exerciseDao().getWorkout(intent.getLongExtra("workoutId", -1)) ?: Workout(0, today)
+            if (workout.workoutId == 0L) {
+                workout.workoutId = db.exerciseDao().addWorkout(workout)
+            }
+
+            exercises = db.exerciseDao().getListOfExercise(today)
             exerciseList =
                 exercises.map { Pair(it, db.exerciseDao().getSets(it.exerciseId).toMutableList()) }
                     .toMutableList()
         }
         exerciseList.forEach {
             it.second.forEach { set ->
-                totalWeight += set.weight * set.reps
-                totalReps += set.reps
+                workout.totalWeight += set.weight * set.reps
+                workout.totalReps += set.reps
+                workout.totalPoints += calculatePoints(it.first.exerciseModelId, set.weight, set.reps)
+                workout.totalSets += 1
             }
         }
-        findViewById<TextView>(R.id.totalWeight).text = getString(R.string.total_weight, totalWeight)
-        findViewById<TextView>(R.id.totalReps).text = getString(R.string.total_reps, totalReps)
+        findViewById<TextView>(R.id.totalWeight).text = getString(R.string.total_weight, workout.totalWeight)
+        findViewById<TextView>(R.id.totalReps).text = getString(R.string.total_reps, workout.totalReps)
+        findViewById<TextView>(R.id.totalPoints).text = getString(R.string.total_points, workout.totalPoints)
+
+        val totalTimeTimer = findViewById<Chronometer>(R.id.timer_totalTime)
+        val setTimeTimer = findViewById<Chronometer>(R.id.timer_timeAfterLastSet)
 
         class Notifier : ExerciseNotification {
             override fun setAdded(exerciseModelId: Long, weight: Double, reps: Int) {
-                totalWeight += weight * reps
-                totalReps += reps
-                totalPoints += calculatePoints(exerciseModelId, weight, reps)
+                workout.totalWeight += weight * reps
+                workout.totalReps += reps
+                workout.totalSets += 1
+                workout.totalPoints += calculatePoints(exerciseModelId, weight, reps)
 
-                findViewById<TextView>(R.id.totalWeight).text = getString(R.string.total_weight, totalWeight)
-                findViewById<TextView>(R.id.totalReps).text = getString(R.string.total_reps, totalReps)
-                findViewById<TextView>(R.id.totalPoints).text = getString(R.string.total_points, totalPoints)
+                findViewById<TextView>(R.id.totalWeight).text = getString(R.string.total_weight, workout.totalWeight)
+                findViewById<TextView>(R.id.totalReps).text = getString(R.string.total_reps, workout.totalReps)
+                findViewById<TextView>(R.id.totalPoints).text = getString(R.string.total_points, workout.totalPoints)
 
-                findViewById<Chronometer>(R.id.timer_timeAfterLastSet).base = SystemClock.elapsedRealtime()
-                findViewById<Chronometer>(R.id.timer_timeAfterLastSet).start()
+                setTimeTimer.base = SystemClock.elapsedRealtime()
+                setTimeTimer.start()
+                totalTimeTimer.start()
+                totalTimeTimer.base = SystemClock.elapsedRealtime() - workout.totalTime
             }
 
             override fun setRemoved(exerciseModelId: Long, weight: Double, reps: Int) {
-                totalWeight -= weight * reps
-                totalReps -= reps
-                totalPoints -= calculatePoints(exerciseModelId, weight, reps)
+                workout.totalWeight -= weight * reps
+                workout.totalReps -= reps
+                workout.totalSets -= 1
+                workout.totalPoints -= calculatePoints(exerciseModelId, weight, reps)
 
-                findViewById<TextView>(R.id.totalWeight).text = getString(R.string.total_weight, totalWeight)
-                findViewById<TextView>(R.id.totalReps).text = getString(R.string.total_reps, totalReps)
-                findViewById<TextView>(R.id.totalPoints).text = getString(R.string.total_points, totalPoints)
+                findViewById<TextView>(R.id.totalWeight).text = getString(R.string.total_weight, workout.totalWeight)
+                findViewById<TextView>(R.id.totalReps).text = getString(R.string.total_reps, workout.totalReps)
+                findViewById<TextView>(R.id.totalPoints).text = getString(R.string.total_points, workout.totalPoints)
             }
         }
 
-
-        findViewById<Chronometer>(R.id.timer_totalTime).start()
+        totalTimeTimer.base = SystemClock.elapsedRealtime() - workout.totalTime
+        if (workout.date == today) totalTimeTimer.start()
 
         val labelForEmptyExerciseList = findViewById<TextView>(R.id.label_startWorkoutAddExercise)
         val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
@@ -366,8 +395,30 @@ class WorkoutActivity : AppCompatActivity() {
 
         val dialog: DialogFragment = AddNewExerciseToWorkoutFragment()
         val showDialog = findViewById<FloatingActionButton>(R.id.btn_addNewExerciseToCurrentWorkout)
-        showDialog.setOnClickListener {
 
+        val endWorkoutBtn = findViewById<FloatingActionButton>(R.id.btn_endWorkout)
+        endWorkoutBtn.setOnClickListener {
+            workout.totalExercises = exerciseList.size
+            workout.totalTime = SystemClock.elapsedRealtime() - totalTimeTimer.base
+            runBlocking { db.exerciseDao().updateWorkout(workout) }
+
+            setTimeTimer.stop()
+            totalTimeTimer.stop()
+        }
+
+        showDialog.setOnLongClickListener {
+            endWorkoutBtn.visibility = FloatingActionButton.VISIBLE
+            endWorkoutBtn.animate().alpha(1f).setDuration(200).setInterpolator(AccelerateInterpolator())
+
+            endWorkoutBtn.postDelayed({
+                endWorkoutBtn.animate().alpha(0f).setDuration(100).setInterpolator(AccelerateInterpolator())
+                    .withEndAction {
+                        endWorkoutBtn.visibility = FloatingActionButton.GONE
+                    }
+            }, 2000)
+            true
+        }
+        showDialog.setOnClickListener {
             val ft: FragmentTransaction = supportFragmentManager.beginTransaction()
             val prev: Fragment? = supportFragmentManager.findFragmentByTag(dialog.tag)
             if (prev != null) {
@@ -387,7 +438,7 @@ class WorkoutActivity : AppCompatActivity() {
                 }
                 exerciseList.add(Pair(exercise, mutableListOf()))
                 exerciseListViewAdapter.notifyItemInserted(exerciseList.size - 1)
-                exerciseListView.scrollToPosition(exerciseList.size - 1)
+                exerciseListView.smoothScrollToPosition(exerciseList.size - 1)
                 exerciseListView.visibility = RecyclerView.VISIBLE
                 labelForEmptyExerciseList.visibility = TextView.GONE
             }
@@ -404,7 +455,7 @@ class WorkoutActivity : AppCompatActivity() {
         private val decimalFormatter = DecimalFormat("###.##")
 
         init {
-            decimalFormatter.roundingMode = RoundingMode.UNNECESSARY
+            decimalFormatter.roundingMode = RoundingMode.FLOOR
         }
 
     }

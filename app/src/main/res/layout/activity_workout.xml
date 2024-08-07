@@ -8,6 +8,19 @@
     tools:context=".workout.WorkoutActivity">
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btn_endWorkout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:alpha="0"
+        android:clickable="true"
+        android:contentDescription="End timing of workout"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@id/btn_addNewExerciseToCurrentWorkout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_addNewExerciseToCurrentWorkout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

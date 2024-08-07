@@ -17,6 +17,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Transaction
 import androidx.room.TypeConverters
+import androidx.room.Update
 import java.time.LocalDate
 import java.util.Date
 import java.util.SortedMap
@@ -40,7 +41,7 @@ data class ExerciseComponentModel(
 data class ExerciseModel(
     @PrimaryKey(autoGenerate = true) val exerciseId: Long,
     val displayName: String,
-    @ColumnInfo(defaultValue = "10") val basePoints : Int,
+    @ColumnInfo(defaultValue = "10") val basePoints: Int,
 ) {
     override fun toString() = displayName
 }
@@ -82,6 +83,7 @@ data class Exercise(
     override fun compareTo(other: Exercise): Int {
         return if (this.date == other.date) this.order.compareTo(other.order) else this.date.compareTo(other.date)
     }
+
     fun toTimeStamp(): Long? = Converters.dateToTimestamp(date)
 }
 
@@ -102,6 +104,18 @@ data class SetRecordView(
     val maxWeight: Double,
     val maxReps: Int,
     val mostWeightMoved: Double,
+)
+
+@Entity
+data class Workout(
+    @PrimaryKey(autoGenerate = true) var workoutId: Long,
+    val date: LocalDate,
+    var totalWeight: Double = 0.0,
+    var totalReps: Int = 0,
+    var totalPoints: Int = 0,
+    var totalSets: Int = 0,
+    var totalExercises: Int = 0,
+    var totalTime: Long = 0
 )
 
 @Dao
@@ -157,19 +171,31 @@ interface ExerciseDao {
     suspend fun getHistoricalSets(exerciseModelId: Long, nSets: Int, excludeDate: Long? = 0): Map<Exercise, List<Set>>
 
     @Query("SELECT * FROM Exercise WHERE date = :date")
-    suspend fun getWorkout(date: LocalDate): List<Exercise>
+    suspend fun getListOfExercise(date: LocalDate): List<Exercise>
 
     @Query("SELECT * FROM `Set` WHERE exerciseId = :exerciseId")
     suspend fun getSets(exerciseId: Long): List<Set>
 
     @Query("SELECT * FROM SetRecordView WHERE exerciseModelId = :exerciseId")
     suspend fun getRecord(exerciseId: Long): SetRecordView?
+
+    @Insert
+    suspend fun addWorkout(workout: Workout): Long
+
+    @Query("SELECT * FROM Workout WHERE workoutId = :workoutId")
+    suspend fun getWorkout(workoutId: Long): Workout?
+
+    @Update
+    suspend fun updateWorkout(workout: Workout)
+
+    @Query("SELECT * FROM Workout")
+    suspend fun listWorkouts(): List<Workout>
 }
 
 @Database(
-    entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class],
+    entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class],
     views = [SetRecordView::class],
-    version = 2
+    version = 3
 )
 @TypeConverters(Converters::class)
 abstract class ExerciseDatabase : RoomDatabase() {
