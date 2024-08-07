@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="arrayOfExerciseTagChips">
+        <item>shoulders</item>
+        <item>biceps</item>
+        <item>triceps</item>
+        <item>chest</item>
+        <item>back</item>
+        <item>legs</item>
+        <item>core</item>
+
+<!--        <item>forearm</item>-->
+<!--        <item>bicep</item>-->
+<!--        <item>tricep</item>-->
+
+<!--        <item>delts</item>-->
+<!--        <item>traps</item>-->
+<!--        <item>lats</item>-->
+<!--        <item>rhomboid</item>-->
+
+<!--        <item>pecs</item>-->
+<!--        <item>abs</item>-->
+<!--        <item>erectors</item>-->
+<!--        <item>obliques</item>-->
+
+<!--        <item>quads</item>-->
+<!--        <item>glutes</item>-->
+<!--        <item>hamstrings</item>-->
+<!--        <item>ab/ad-ductors</item>-->
+<!--        <item>calves</item>-->
+    </string-array>
+
+</resources>

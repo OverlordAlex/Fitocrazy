@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,13 +17,17 @@ import android.widget.RadioButton
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
+import androidx.core.view.ViewCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentModel
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
@@ -129,8 +134,20 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // make it always show full-screen
+        // make it always show full-screen, not sure why it's not working via the xml
         dialog?.window?.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+
+        val chipGroup = view.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
+        val chipList = resources.getStringArray(R.array.arrayOfExerciseTagChips)
+        chipList.forEach { chipName ->
+            val newChip = Chip(context)
+            newChip.text = chipName
+            newChip.setChipBackgroundColorResource(R.color.purple_500)
+            newChip.isCheckable = true
+            newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.white) } ?: R.color.white)
+
+            chipGroup.addView(newChip)
+        }
 
         val addExerciseButton: Button = view.findViewById(R.id.btn_addExercise)
         val autocomplete = view.findViewById<AutoCompleteTextView>(R.id.autocomplete_addExercise)
@@ -166,7 +183,6 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
             positionSpinner.adapter = locationAdapter
             movementSpinner.adapter = movementAdapter
 
-            var x = ExerciseDatabase.getInstance(requireContext()).exerciseDao().getAllExercises()
             autocompleteAdapter = ArrayAdapter<ExerciseWithComponentModel>(
                 requireContext(),
                 android.R.layout.simple_dropdown_item_1line,
@@ -216,11 +232,11 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
         )
 
         view.findViewById<RadioButton>(R.id.radio_isCompoundExercise)
-            .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 15}
+            .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 15 }
         view.findViewById<RadioButton>(R.id.radio_isFreeWeightExercise)
-            .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 10}
+            .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 10 }
         view.findViewById<RadioButton>(R.id.radio_isMachineExercise)
-            .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 8}
+            .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 8 }
 
         addExerciseButton.setOnClickListener {
             if (detailLayout.visibility == View.VISIBLE) {
@@ -235,8 +251,9 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
                             db.getExercise(selectedLocation)?.name,
                             db.getExercise(selectedMovement)?.name
                         ).joinToString(" ")
+                        val chips = chipGroup.checkedChipIds.joinToString(" ") { view.findViewById<Chip>(it).text }
                         val newExerciseId = db.addExercise(
-                            ExerciseModel(0, displayName, selectedBasePoints)
+                            ExerciseModel(0, displayName, selectedBasePoints, chips)
                         )
                         db.addExerciseExerciseComponentCrossRef(
                             ExerciseExerciseComponentCrossRef(

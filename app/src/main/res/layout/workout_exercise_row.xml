@@ -20,6 +20,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipGroup_exerciseTags"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/numberEntry_addKilogramsToThisExercise"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/label_exerciseNameOnCard">
+
+    </com.google.android.material.chip.ChipGroup>
+
     <EditText
         android:id="@+id/numberEntry_addKilogramsToThisExercise"
         android:layout_width="wrap_content"
@@ -38,7 +50,7 @@
         app:layout_constraintBottom_toBottomOf="@id/btn_addSetToThisExercise"
         app:layout_constraintEnd_toStartOf="@id/label_kilogramsAndRepsWhenAddingToExercise"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/label_exerciseNameOnCard" />
+        app:layout_constraintTop_toBottomOf="@id/chipGroup_exerciseTags" />
 
     <TextView
         android:id="@+id/label_kilogramsAndRepsWhenAddingToExercise"
@@ -51,7 +63,7 @@
         app:layout_constraintBottom_toBottomOf="@id/btn_addSetToThisExercise"
         app:layout_constraintEnd_toStartOf="@id/numberEntry_addRepsToThisExercise"
         app:layout_constraintStart_toEndOf="@id/numberEntry_addKilogramsToThisExercise"
-        app:layout_constraintTop_toBottomOf="@id/label_exerciseNameOnCard" />
+        app:layout_constraintTop_toBottomOf="@id/chipGroup_exerciseTags" />
 
     <EditText
         android:id="@+id/numberEntry_addRepsToThisExercise"
@@ -70,7 +82,7 @@
         android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="@id/btn_addSetToThisExercise"
         app:layout_constraintStart_toEndOf="@id/label_kilogramsAndRepsWhenAddingToExercise"
-        app:layout_constraintTop_toBottomOf="@id/label_exerciseNameOnCard" />
+        app:layout_constraintTop_toBottomOf="@id/chipGroup_exerciseTags" />
 
     <Button
         android:id="@+id/btn_removeLastSetFromThisExercise"

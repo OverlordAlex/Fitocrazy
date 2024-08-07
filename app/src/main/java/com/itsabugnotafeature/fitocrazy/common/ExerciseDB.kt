@@ -19,8 +19,6 @@ import androidx.room.Transaction
 import androidx.room.TypeConverters
 import androidx.room.Update
 import java.time.LocalDate
-import java.util.Date
-import java.util.SortedMap
 
 enum class ExerciseComponentType {
     EQUIPMENT, LOCATION, MOVEMENT
@@ -42,8 +40,10 @@ data class ExerciseModel(
     @PrimaryKey(autoGenerate = true) val exerciseId: Long,
     val displayName: String,
     @ColumnInfo(defaultValue = "10") val basePoints: Int,
+    val bodyPartChips: String?,
 ) {
     override fun toString() = displayName
+    fun getChips(): List<String> = bodyPartChips?.split(" ") ?: emptyList()
 }
 
 @Entity(primaryKeys = ["componentId", "exerciseId"])
@@ -117,7 +117,9 @@ data class Workout(
     var totalReps: Int = 0,
     var totalSets: Int = 0,
 
-    var totalTime: Long = 0
+    var totalTime: Long = 0,
+
+    var topTags: String = "",
 )
 
 @Dao
@@ -197,7 +199,7 @@ interface ExerciseDao {
 @Database(
     entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class],
     views = [SetRecordView::class],
-    version = 3
+    version = 5
 )
 @TypeConverters(Converters::class)
 abstract class ExerciseDatabase : RoomDatabase() {

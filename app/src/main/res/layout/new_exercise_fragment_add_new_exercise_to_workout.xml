@@ -103,9 +103,10 @@
             app:layout_constraintTop_toBottomOf="@+id/spinner_position" />
 
         <RadioGroup
+            android:id="@+id/radioGroup_exerciseType"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/chipGroup_exerciseTags"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/spinner_movement">
@@ -128,6 +129,17 @@
                 android:layout_height="wrap_content"
                 android:text="Compound" />
         </RadioGroup>
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroup_exerciseTags"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/radioGroup_exerciseType">
+
+        </com.google.android.material.chip.ChipGroup>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

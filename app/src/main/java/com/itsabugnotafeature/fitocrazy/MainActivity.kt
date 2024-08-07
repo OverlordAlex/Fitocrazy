@@ -15,6 +15,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.Set
@@ -51,6 +53,16 @@ class MainActivity : AppCompatActivity() {
                 itemView.findViewById<TextView>(R.id.label_workoutTotalSets).text = currentWorkout.totalSets.toString()
                 itemView.findViewById<Chronometer>(R.id.label_workoutTotalTime).base =
                     SystemClock.elapsedRealtime() - currentWorkout.totalTime
+
+                val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_workoutTopTags)
+                chipGroup.visibility = ChipGroup.VISIBLE
+                currentWorkout.topTags.split(" ").forEach { chipName ->
+                    val newChip = Chip(itemView.context)
+                    newChip.text = chipName
+                    /*newChip.setChipBackgroundColorResource(R.color.purple_500)
+                    newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.white) } ?: R.color.white)*/
+                    chipGroup.addView(newChip)
+                }
 
                 itemView.setOnClickListener {
                     itemView.context.startActivity(

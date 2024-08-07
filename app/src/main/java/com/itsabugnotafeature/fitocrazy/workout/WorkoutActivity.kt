@@ -23,6 +23,8 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.setFragmentResultListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.Exercise
@@ -48,10 +50,13 @@ import kotlin.math.pow
  *      - DONE ~~verify that historical exercises show their "today" sets appropriately~~
  *      - style main page
  *      - bring points to the spinners on exercise type for more flexibility?
- *      - chip group for body parts per exercise
+ *      - DONE ~~chip group for body parts per exercise~~
+ *      - DONE ~~total chip group per exercise~~
  *      - make DB queries live
  *      - handle background running and all on-resume stuff
  *      - allow editing of exercise components
+ *      - "enter" when creating a new exercise component does weird stuff (should trim+enter)
+ *      - color and theme everything
  */
 
 
@@ -90,6 +95,7 @@ class WorkoutActivity : AppCompatActivity() {
         val displayName: String,
         val exercise: Exercise,
         val sets: MutableList<Set>,
+        val tags: List<String>,
     )
 
     interface ExerciseNotification {
@@ -144,6 +150,17 @@ class WorkoutActivity : AppCompatActivity() {
                 repsEditText.setText(currentExercise.sets.lastOrNull()?.reps?.toString())
 
                 itemView.findViewById<TextView>(R.id.label_exerciseNameOnCard).text = currentExercise.displayName
+                if (currentExercise.tags.isNotEmpty()) {
+                    val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
+                    chipGroup.visibility = ChipGroup.VISIBLE
+                    currentExercise.tags.forEach { chipName ->
+                        val newChip = Chip(itemView.context)
+                        newChip.text = chipName
+                        /*newChip.setChipBackgroundColorResource(R.color.purple_500)
+                    newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.white) } ?: R.color.white)*/
+                        chipGroup.addView(newChip)
+                    }
+                }
 
                 val exerciseScrollLayout = itemView.findViewById<LinearLayout>(R.id.layout_listOfSetsOnExerciseCard)
                 exerciseScrollLayout.removeAllViews()
@@ -292,14 +309,15 @@ class WorkoutActivity : AppCompatActivity() {
                     10,
                     currentExercise.first.toTimeStamp()
                 ).toSortedMap()
-                val displayName = db.exerciseDao()
-                    .getExerciseDetails(currentExercise.first.exerciseModelId)?.exercise?.displayName
-                    ?: "NAME NOT FOUND?"
+                val exerciseModel = db.exerciseDao().getExerciseDetails(currentExercise.first.exerciseModelId)
+                val displayName = exerciseModel?.exercise?.displayName ?: "NAME NOT FOUND?"
+                val chips = exerciseModel?.exercise?.getChips() ?: emptyList()
                 holder.bind(
                     ExerciseView(
                         displayName,
                         currentExercise.first,
-                        currentExercise.second
+                        currentExercise.second,
+                        chips
                     ), historicalSets
                 )
             }
@@ -406,7 +424,13 @@ class WorkoutActivity : AppCompatActivity() {
         endWorkoutBtn.setOnClickListener {
             workout.totalExercises = exerciseList.size
             if (today == workout.date) workout.totalTime = SystemClock.elapsedRealtime() - totalTimeTimer.base
-            runBlocking { db.exerciseDao().updateWorkout(workout) }
+            runBlocking {
+                workout.topTags = exerciseList.fold(emptyList<String>()) { ongoing, item ->
+                    ongoing + db.exerciseDao().getExerciseDetails(item.first.exerciseModelId)!!.exercise.getChips()
+                }.groupingBy { it }.eachCount().toSortedMap().asIterable().take(3).joinToString(" ") { it.key }
+
+                db.exerciseDao().updateWorkout(workout)
+            }
 
             setTimeTimer.stop()  // needed?
             totalTimeTimer.stop()  // needed?
