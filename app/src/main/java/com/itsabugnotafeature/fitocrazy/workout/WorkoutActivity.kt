@@ -41,14 +41,17 @@ import kotlin.math.pow
 
 /**
  * TODO
- *      - workout selection on main page
+ *      - DONE ~~workout list on main page~~
+ *      - DONE ~~workout selection on main page~~
  *      - DONE ~~resumable timers~~
- *      - ensure timers don't start if adding sets to historical exercises
- *      - verify that historical exercises show their "today" sets appropriately
+ *      - DONE ~~ensure timers don't start if adding sets to historical exercises~~
+ *      - DONE ~~verify that historical exercises show their "today" sets appropriately~~
+ *      - style main page
  *      - bring points to the spinners on exercise type for more flexibility?
  *      - chip group for body parts per exercise
  *      - make DB queries live
  *      - handle background running and all on-resume stuff
+ *      - allow editing of exercise components
  */
 
 
@@ -59,11 +62,10 @@ class WorkoutActivity : AppCompatActivity() {
 
     fun calculatePoints(exerciseModelId: Long, weight: Double, reps: Int): Int {
         // we will never calculate points for an exercise that doesn't exist
-        var points = 0.0
+        var points: Double
         runBlocking {
             val exercise = db.exerciseDao().getExerciseDetails(exerciseModelId)!!
             val record = db.exerciseDao().getRecord(exercise.exercise.exerciseId)
-
 
             val basePoints = exercise.exercise.basePoints
             val maxWeight = record?.maxWeight ?: weight
@@ -166,8 +168,7 @@ class WorkoutActivity : AppCompatActivity() {
                         setRepsString.appendLine(set.reps)
                     }
 
-                    setListView.findViewById<TextView>(R.id.textlist_weightInSet).text =
-                        setWeightString
+                    setListView.findViewById<TextView>(R.id.textlist_weightInSet).text = setWeightString
                     setListView.findViewById<TextView>(R.id.textlist_repsInSet).text = setRepsString
                     exerciseScrollLayout.addView(setListView)
                 }
@@ -177,12 +178,13 @@ class WorkoutActivity : AppCompatActivity() {
                     parent,
                     false
                 )
-                /*val param = LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
-                param.weight = 5f
-                param.gravity = Gravity.END
-                setListView.layoutParams = param*/
 
-                setListView.findViewById<TextView>(R.id.label_setDate).text = "Today"
+                setListView.findViewById<TextView>(R.id.label_setDate).text =
+                    if (LocalDate.now() == currentExercise.exercise.date) {
+                        itemView.context.getString(R.string.today)
+                    } else {
+                        currentExercise.exercise.date.format(DateTimeFormatter.ofPattern("dd LLL yy"))
+                    }
 
                 val setWeightString = StringBuilder()
                 val setRepsString = StringBuilder()
@@ -197,8 +199,7 @@ class WorkoutActivity : AppCompatActivity() {
                     setRepsString.appendLine(set.reps)
                 }
                 setWeightString.append("KG *")
-                setListView.findViewById<TextView>(R.id.textlist_weightInSet).text =
-                    setWeightString
+                setListView.findViewById<TextView>(R.id.textlist_weightInSet).text = setWeightString
                 setListView.findViewById<TextView>(R.id.textlist_repsInSet).text = setRepsString
 
                 setListView.minimumWidth = (parent.width * 0.3).toInt()
@@ -238,9 +239,6 @@ class WorkoutActivity : AppCompatActivity() {
                     val imm = parent.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                     imm.hideSoftInputFromWindow(parent.windowToken, 0)
 
-                    // TODO work on total reps + weight (incl calculate on load)
-                    // TODO refactor some large methods
-                    // TODO: ensure weight is formatted correctly to 2 decimal places for storing *100 to int /100.0 ?
                     val weight: Double? = weightEditText.text.toString().toDoubleOrNull()
                     val reps: Int? = repsEditText.text.toString().toIntOrNull()
                     if (weight == null || reps == null) return@setOnClickListener
@@ -319,18 +317,18 @@ class WorkoutActivity : AppCompatActivity() {
         val today = LocalDate.now()
         var exercises: List<Exercise>
         var exerciseList: MutableList<Pair<Exercise, MutableList<Set>>>
-        var order = 1
         runBlocking {
             workout = db.exerciseDao().getWorkout(intent.getLongExtra("workoutId", -1)) ?: Workout(0, today)
             if (workout.workoutId == 0L) {
                 workout.workoutId = db.exerciseDao().addWorkout(workout)
             }
 
-            exercises = db.exerciseDao().getListOfExercise(today)
+            exercises = db.exerciseDao().getListOfExercise(workout.date)
             exerciseList =
                 exercises.map { Pair(it, db.exerciseDao().getSets(it.exerciseId).toMutableList()) }
                     .toMutableList()
         }
+
         exerciseList.forEach {
             it.second.forEach { set ->
                 workout.totalWeight += set.weight * set.reps
@@ -339,9 +337,14 @@ class WorkoutActivity : AppCompatActivity() {
                 workout.totalSets += 1
             }
         }
-        findViewById<TextView>(R.id.totalWeight).text = getString(R.string.total_weight, workout.totalWeight)
-        findViewById<TextView>(R.id.totalReps).text = getString(R.string.total_reps, workout.totalReps)
-        findViewById<TextView>(R.id.totalPoints).text = getString(R.string.total_points, workout.totalPoints)
+
+        val totalWeightLabel = findViewById<TextView>(R.id.totalWeight)
+        val totalRepsLabel = findViewById<TextView>(R.id.totalReps)
+        val totalPointsLabel = findViewById<TextView>(R.id.totalPoints)
+
+        totalWeightLabel.text = getString(R.string.total_weight, workout.totalWeight)
+        totalRepsLabel.text = getString(R.string.total_reps, workout.totalReps)
+        totalPointsLabel.text = getString(R.string.total_points, workout.totalPoints)
 
         val totalTimeTimer = findViewById<Chronometer>(R.id.timer_totalTime)
         val setTimeTimer = findViewById<Chronometer>(R.id.timer_timeAfterLastSet)
@@ -353,14 +356,17 @@ class WorkoutActivity : AppCompatActivity() {
                 workout.totalSets += 1
                 workout.totalPoints += calculatePoints(exerciseModelId, weight, reps)
 
-                findViewById<TextView>(R.id.totalWeight).text = getString(R.string.total_weight, workout.totalWeight)
-                findViewById<TextView>(R.id.totalReps).text = getString(R.string.total_reps, workout.totalReps)
-                findViewById<TextView>(R.id.totalPoints).text = getString(R.string.total_points, workout.totalPoints)
+                totalWeightLabel.text = getString(R.string.total_weight, workout.totalWeight)
+                totalRepsLabel.text = getString(R.string.total_reps, workout.totalReps)
+                totalPointsLabel.text = getString(R.string.total_points, workout.totalPoints)
 
-                setTimeTimer.base = SystemClock.elapsedRealtime()
-                setTimeTimer.start()
-                totalTimeTimer.start()
-                totalTimeTimer.base = SystemClock.elapsedRealtime() - workout.totalTime
+                if (today == workout.date) {
+                    setTimeTimer.base = SystemClock.elapsedRealtime()
+                    setTimeTimer.start()
+
+                    totalTimeTimer.base = SystemClock.elapsedRealtime() - workout.totalTime
+                    totalTimeTimer.start()
+                }
             }
 
             override fun setRemoved(exerciseModelId: Long, weight: Double, reps: Int) {
@@ -369,9 +375,9 @@ class WorkoutActivity : AppCompatActivity() {
                 workout.totalSets -= 1
                 workout.totalPoints -= calculatePoints(exerciseModelId, weight, reps)
 
-                findViewById<TextView>(R.id.totalWeight).text = getString(R.string.total_weight, workout.totalWeight)
-                findViewById<TextView>(R.id.totalReps).text = getString(R.string.total_reps, workout.totalReps)
-                findViewById<TextView>(R.id.totalPoints).text = getString(R.string.total_points, workout.totalPoints)
+                totalWeightLabel.text = getString(R.string.total_weight, workout.totalWeight)
+                totalRepsLabel.text = getString(R.string.total_reps, workout.totalReps)
+                totalPointsLabel.text = getString(R.string.total_points, workout.totalPoints)
             }
         }
 
@@ -393,20 +399,21 @@ class WorkoutActivity : AppCompatActivity() {
             labelForEmptyExerciseList.visibility = TextView.VISIBLE
         }
 
-        val dialog: DialogFragment = AddNewExerciseToWorkoutFragment()
-        val showDialog = findViewById<FloatingActionButton>(R.id.btn_addNewExerciseToCurrentWorkout)
+        val addNewExerciseDialog: DialogFragment = AddNewExerciseToWorkoutFragment()
+        val addNewExerciseButton = findViewById<FloatingActionButton>(R.id.btn_addNewExerciseToCurrentWorkout)
 
         val endWorkoutBtn = findViewById<FloatingActionButton>(R.id.btn_endWorkout)
         endWorkoutBtn.setOnClickListener {
             workout.totalExercises = exerciseList.size
-            workout.totalTime = SystemClock.elapsedRealtime() - totalTimeTimer.base
+            if (today == workout.date) workout.totalTime = SystemClock.elapsedRealtime() - totalTimeTimer.base
             runBlocking { db.exerciseDao().updateWorkout(workout) }
 
-            setTimeTimer.stop()
-            totalTimeTimer.stop()
+            setTimeTimer.stop()  // needed?
+            totalTimeTimer.stop()  // needed?
+            finish()
         }
 
-        showDialog.setOnLongClickListener {
+        addNewExerciseButton.setOnLongClickListener {
             endWorkoutBtn.visibility = FloatingActionButton.VISIBLE
             endWorkoutBtn.animate().alpha(1f).setDuration(200).setInterpolator(AccelerateInterpolator())
 
@@ -418,21 +425,22 @@ class WorkoutActivity : AppCompatActivity() {
             }, 2000)
             true
         }
-        showDialog.setOnClickListener {
+
+        addNewExerciseButton.setOnClickListener {
             val ft: FragmentTransaction = supportFragmentManager.beginTransaction()
-            val prev: Fragment? = supportFragmentManager.findFragmentByTag(dialog.tag)
+            val prev: Fragment? = supportFragmentManager.findFragmentByTag(addNewExerciseDialog.tag)
             if (prev != null) {
                 ft.remove(prev)
             }
             ft.addToBackStack(null)
 
             // Create and show the dialog.
-            dialog.show(ft, dialog.tag)
-            dialog.setFragmentResultListener("exerciseAdded") { _, bundle ->
+            addNewExerciseDialog.show(ft, addNewExerciseDialog.tag)
+            addNewExerciseDialog.setFragmentResultListener("exerciseAdded") { _, bundle ->
                 val exerciseModelId = bundle.getLong("exerciseID", -1L)
                 if (exerciseModelId == -1L) return@setFragmentResultListener
 
-                val exercise = Exercise(0, exerciseModelId, today, order++)
+                val exercise = Exercise(0, exerciseModelId, today, exerciseList.size)
                 runBlocking {
                     exercise.exerciseId = db.exerciseDao().addExerciseSet(exercise)
                 }

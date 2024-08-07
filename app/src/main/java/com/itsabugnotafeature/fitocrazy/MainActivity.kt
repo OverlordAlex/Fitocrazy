@@ -2,14 +2,80 @@ package com.itsabugnotafeature.fitocrazy
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
+import android.widget.Chronometer
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.itsabugnotafeature.fitocrazy.common.Exercise
+import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
+import com.itsabugnotafeature.fitocrazy.common.Set
+import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity
+import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseListViewAdapter
+import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseListViewAdapter.ViewHolder
+import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseNotification
+import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseView
+import kotlinx.coroutines.runBlocking
+import org.w3c.dom.Text
+import java.time.format.DateTimeFormatter
+import java.util.SortedMap
 
 class MainActivity : AppCompatActivity() {
+
+    class WorkoutListViewAdapter(
+        private var workoutList: List<Workout>,
+        private var db: ExerciseDatabase
+    ) : RecyclerView.Adapter<WorkoutListViewAdapter.ViewHolder>() {
+        inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            fun bind(
+                currentWorkout: Workout
+            ) {
+                itemView.findViewById<TextView>(R.id.label_workoutDate).text =
+                    currentWorkout.date.format(DateTimeFormatter.ofPattern("dd LLLL yyyy"))
+                itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).text =
+                    currentWorkout.totalExercises.toString()
+                itemView.findViewById<TextView>(R.id.label_workoutPoints).text = currentWorkout.totalPoints.toString()
+
+                itemView.findViewById<TextView>(R.id.label_workoutTotalWeight).text =
+                    currentWorkout.totalWeight.toString()
+                itemView.findViewById<TextView>(R.id.label_workoutTotalReps).text = currentWorkout.totalReps.toString()
+                itemView.findViewById<TextView>(R.id.label_workoutTotalSets).text = currentWorkout.totalSets.toString()
+                itemView.findViewById<Chronometer>(R.id.label_workoutTotalTime).base =
+                    SystemClock.elapsedRealtime() - currentWorkout.totalTime
+
+                itemView.setOnClickListener {
+                    itemView.context.startActivity(
+                        Intent(
+                            itemView.context.applicationContext,
+                            WorkoutActivity::class.java
+                        ).setAction("oldWorkoutStartedFromHome").putExtra("workoutId", currentWorkout.workoutId)
+                    )
+                }
+            }
+        }
+
+        override fun getItemCount() = workoutList.size
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WorkoutListViewAdapter.ViewHolder {
+            val view: View = LayoutInflater.from(parent.context)
+                .inflate(R.layout.workout_row, parent, false)
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: WorkoutListViewAdapter.ViewHolder, position: Int) {
+            holder.bind(workoutList[position])
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -20,9 +86,25 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        val db = ExerciseDatabase.getInstance(applicationContext)
+        val workoutList = runBlocking {
+            db.exerciseDao().listWorkouts()
+        }
+
+        val workoutListViewAdapter = WorkoutListViewAdapter(workoutList, db)
+        val workoutListView = findViewById<RecyclerView>(R.id.list_allWorkoutsHomepage)
+        workoutListView.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        workoutListView.adapter = workoutListViewAdapter
+
         findViewById<Button>(R.id.btn_AddNewWorkout).setOnClickListener {
             //putExtra workoutID
-            startActivity(Intent(applicationContext, WorkoutActivity::class.java).setAction("startedFromHome"))
+            startActivity(
+                Intent(
+                    applicationContext,
+                    WorkoutActivity::class.java
+                ).setAction("newWorkoutStartedFromHome")
+            )
         }
     }
 }

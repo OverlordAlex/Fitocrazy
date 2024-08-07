@@ -110,11 +110,13 @@ data class SetRecordView(
 data class Workout(
     @PrimaryKey(autoGenerate = true) var workoutId: Long,
     val date: LocalDate,
+    var totalPoints: Int = 0,
+    var totalExercises: Int = 0,
+
     var totalWeight: Double = 0.0,
     var totalReps: Int = 0,
-    var totalPoints: Int = 0,
     var totalSets: Int = 0,
-    var totalExercises: Int = 0,
+
     var totalTime: Long = 0
 )
 

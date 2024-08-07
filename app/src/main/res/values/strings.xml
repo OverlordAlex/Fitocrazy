@@ -14,4 +14,5 @@
     <string name="total_points">Total Points: %1$d</string>
     <string name="total_weight">Total Weight: %1$.0f kg</string>
     <string name="total_reps">Total Reps: %1$d</string>
+    <string name="today">Today</string>
 </resources>
