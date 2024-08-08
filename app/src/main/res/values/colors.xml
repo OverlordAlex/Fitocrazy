@@ -11,5 +11,9 @@
 
     <color name="slate_dark">#2B3856</color>
 
+    <color name="orange_gradient1">#FFBF78</color>
+    <color name="orange_gradient2">#FFEEA9</color>
+    <color name="orange_gradient3">#FEFFD2</color>
+
 
 </resources>

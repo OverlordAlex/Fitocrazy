@@ -40,7 +40,7 @@
             android:text="@string/number_of_exercises_in_workout"
             android:textColor="@color/slate_dark"
             android:textSize="22sp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/frame_deleteWorkout"
             app:layout_constraintStart_toEndOf="@id/label_workoutDate"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -72,7 +72,7 @@
             android:gravity="bottom|end"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/frame_deleteWorkout"
             app:layout_constraintStart_toEndOf="@id/label_workoutPoints"
             app:layout_constraintTop_toBottomOf="@id/label_workoutDate">
 
@@ -88,7 +88,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="4"
                     android:gravity="end"
-                    android:text="@string/total_weight" />
+                    android:text="@string/total_weight"
+                    android:textColor="@color/slate_dark" />
 
                 <Space
                     android:layout_width="32dp"
@@ -100,7 +101,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="4"
-                    android:gravity="start" />
+                    android:gravity="start"
+                    android:textColor="@color/slate_dark" />
             </LinearLayout>
 
             <LinearLayout
@@ -115,7 +117,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="4"
                     android:gravity="end"
-                    android:text="@string/total_reps" />
+                    android:text="@string/total_reps"
+                    android:textColor="@color/slate_dark" />
 
                 <Space
                     android:layout_width="32dp"
@@ -128,7 +131,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="4"
-                    android:gravity="start" />
+                    android:gravity="start"
+                    android:textColor="@color/slate_dark" />
             </LinearLayout>
 
             <LinearLayout
@@ -143,7 +147,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="4"
                     android:gravity="end"
-                    android:text="@string/total_sets" />
+                    android:text="@string/total_sets"
+                    android:textColor="@color/slate_dark" />
 
                 <Space
                     android:layout_width="32dp"
@@ -156,7 +161,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="4"
-                    android:gravity="start" />
+                    android:gravity="start"
+                    android:textColor="@color/slate_dark" />
             </LinearLayout>
 
             <LinearLayout
@@ -171,7 +177,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="4"
                     android:gravity="end"
-                    android:text="@string/total_time" />
+                    android:text="@string/total_time"
+                    android:textColor="@color/slate_dark" />
 
                 <Space
                     android:layout_width="32dp"
@@ -184,10 +191,34 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="4"
-                    android:gravity="start" />
+                    android:gravity="start"
+                    android:textColor="@color/slate_dark" />
             </LinearLayout>
 
         </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/frame_deleteWorkout"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:animateLayoutChanges="true"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/layout_workoutOtherStats"
+            app:layout_constraintTop_toTopOf="@id/label_workoutDate">
+
+            <Button
+                android:id="@+id/btnDeleteWorkout"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_margin="4dp"
+                android:gravity="center"
+                android:text="X"
+                android:textSize="50dp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView>

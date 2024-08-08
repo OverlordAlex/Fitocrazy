@@ -49,15 +49,18 @@ import kotlin.math.pow
  *      - DONE ~~ensure timers don't start if adding sets to historical exercises~~
  *      - DONE ~~verify that historical exercises show their "today" sets appropriately~~
  *      - DONE ~~style main page strings~~
- *      - bring points to the spinners on exercise type for more flexibility?
+ *      - DONE ~~color and theme main page~~
  *      - DONE ~~chip group for body parts per exercise~~
  *      - DONE ~~total chip group per exercise~~
  *      - DONE ~~refresh DB workout list on result~~
+ *      - bring points to the spinners on exercise type for more flexibility?
  *      - handle background running and all on-resume stuff
  *      - allow editing of exercise components
  *      - "enter" when creating a new exercise component does weird stuff (should trim+enter)
- *      - color and theme everything
+ *      - color and theme workout page
  *      - delete workouts on long-press
+ *      - tint of chips should be per bodypart
+ *      - close delete-workout button on scroll
  */
 
 

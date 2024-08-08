@@ -4,6 +4,9 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
+import android.transition.Fade
+import android.transition.Slide
+import android.transition.TransitionManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +15,8 @@ import android.view.ViewGroup
 import android.widget.AdapterView.OnItemClickListener
 import android.widget.Button
 import android.widget.Chronometer
+import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResult
@@ -52,6 +57,7 @@ class MainActivity : AppCompatActivity() {
         private val workoutLauncher: ActivityResultLauncher<Intent>
     ) : RecyclerView.Adapter<WorkoutListViewAdapter.ViewHolder>() {
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
             fun bind(
                 currentWorkout: Workout
             ) {
@@ -80,25 +86,51 @@ class MainActivity : AppCompatActivity() {
                 val tags = currentWorkout.topTags
                 if (tags.isNotEmpty()) {
                     chipGroup.visibility = ChipGroup.VISIBLE
-                    tags.trim().split(" ").forEach { chipName ->
+                    val colourGradient =
+                        listOf(R.color.orange_gradient1, R.color.orange_gradient2, R.color.orange_gradient3)
+
+                    tags.trim().split(" ").forEachIndexed { index, chipName ->
                         val newChip = Chip(itemView.context)
                         newChip.text = chipName
-                        newChip.setChipBackgroundColorResource(R.color.orange_main)
+                        newChip.setChipBackgroundColorResource(colourGradient[index % 3])
+
                         newChip.setTextColor(itemView.context.getColor(R.color.black))
-                        //newChip.setEnsureMinTouchTargetSize(false)
-                        /*newChip.setChipBackgroundColorResource(R.color.purple_500)
-                newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.white) } ?: R.color.white)*/
                         chipGroup.addView(newChip)
                     }
                 }
 
+                val deleteFrame = itemView.findViewById<FrameLayout>(R.id.frame_deleteWorkout)
+
                 itemView.setOnClickListener {
+                    if (deleteFrame.visibility == FrameLayout.VISIBLE) {
+                        deleteFrame.visibility = FrameLayout.GONE
+                        itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.VISIBLE
+                        itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).visibility = TextView.VISIBLE
+                        return@setOnClickListener
+                    }
+
                     workoutLauncher.launch(
                         Intent(
                             itemView.context.applicationContext,
                             WorkoutActivity::class.java
                         ).setAction("oldWorkoutStartedFromHome").putExtra("workoutId", currentWorkout.workoutId)
                     )
+                }
+
+                itemView.setOnLongClickListener {
+                    // TODO move to onBindViewHolder actually
+                    // TODO made delete button better!
+                    /*val transition = Slide()
+                    transition.duration = 5000
+                    transition.addTarget(itemView)
+                    TransitionManager.beginDelayedTransition(itemView.parent, transition)*/
+                    deleteFrame.visibility = FrameLayout.VISIBLE
+                    itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.GONE
+                    itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).visibility = TextView.GONE
+                    /*itemView.postDelayed({
+                        deleteFrame.visibility = FrameLayout.GONE
+                    }, 10000)*/
+                    true
                 }
             }
         }
