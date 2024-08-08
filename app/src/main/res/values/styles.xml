@@ -4,8 +4,8 @@
         <item name="colorPrimary">@color/purple_accent</item>
     </style>
 
-<!--    <style name="Button.PurpleAccent" parent="Theme.Fitocrazy">-->
-<!--        <item name="colorPrimary">@color/purple_accent</item>-->
-<!--    </style>-->
+    <style name="Layout.OrangeAccent" parent="Theme.Fitocrazy">
+        <item name="background">@color/orange_accent</item>
+    </style>
 
 </resources>

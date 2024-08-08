@@ -1,95 +1,193 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_workoutRow"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
-    android:background="#FFFFFF"
-    android:elevation="4dp"
     android:outlineSpotShadowColor="@color/orange_main"
-    android:padding="8dp">
+    app:cardCornerRadius="20dp">
 
-    <TextView
-        android:id="@+id/label_workoutDate"
-        android:layout_width="0dp"
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_workoutRowConstraintLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="start|top"
-        android:text="TODAY"
-        android:textColor="@color/black"
-        android:textSize="42sp"
-        app:layout_constraintEnd_toStartOf="@+id/label_workoutNumberExercises"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_margin="4dp"
+        android:background="#FFFFFF"
+        android:padding="8dp">
 
-    <TextView
-        android:id="@+id/label_workoutNumberExercises"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="top|end"
-        android:text="@string/number_of_exercises_in_workout"
-        android:textSize="22sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/label_workoutDate"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/chipGroup_workoutTopTags"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@id/label_workoutPoints"
-        app:layout_constraintEnd_toStartOf="@id/layout_workoutOtherStats"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/label_workoutDate">
-
-    </com.google.android.material.chip.ChipGroup>
-
-    <TextView
-        android:id="@+id/label_workoutPoints"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="bottom|left"
-        android:textSize="32sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/layout_workoutOtherStats"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/layout_workoutOtherStats"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="bottom|end"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/label_workoutPoints"
-        app:layout_constraintTop_toBottomOf="@id/label_workoutDate">
 
         <TextView
-            android:id="@+id/label_workoutTotalWeight"
-            android:layout_width="match_parent"
+            android:id="@+id/label_workoutDate"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/total_weight" />
+            android:gravity="start|top"
+            android:text="TODAY"
+            android:textColor="@color/black"
+            android:textSize="42sp"
+            app:layout_constraintEnd_toStartOf="@+id/label_workoutNumberExercises"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/label_workoutTotalReps"
-            android:layout_width="match_parent"
+            android:id="@+id/label_workoutNumberExercises"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/total_reps" />
+            android:gravity="top|end"
+            android:text="@string/number_of_exercises_in_workout"
+            android:textColor="@color/slate_dark"
+            android:textSize="22sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/label_workoutDate"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroup_workoutTopTags"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@id/label_workoutPoints"
+            app:layout_constraintEnd_toStartOf="@id/layout_workoutOtherStats"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/label_workoutDate">
+
+        </com.google.android.material.chip.ChipGroup>
 
         <TextView
-            android:id="@+id/label_workoutTotalSets"
-            android:layout_width="match_parent"
+            android:id="@+id/label_workoutPoints"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="total_sets" />
+            android:gravity="bottom|left"
+            android:textSize="32sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/layout_workoutOtherStats"
+            app:layout_constraintStart_toStartOf="parent" />
 
-        <TextView
-            android:id="@+id/label_workoutTotalTime"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:id="@+id/layout_workoutOtherStats"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="3" />
-    </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+            android:gravity="bottom|end"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/label_workoutPoints"
+            app:layout_constraintTop_toBottomOf="@id/label_workoutDate">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/label_workoutTotalWeight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="4"
+                    android:gravity="end"
+                    android:text="@string/total_weight" />
+
+                <Space
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/label_workoutTotalWeightValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="4"
+                    android:gravity="start" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/label_workoutTotalReps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="4"
+                    android:gravity="end"
+                    android:text="@string/total_reps" />
+
+                <Space
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:minWidth="12dp" />
+
+                <TextView
+                    android:id="@+id/label_workoutTotalRepsValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="4"
+                    android:gravity="start" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/label_workoutTotalSets"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="4"
+                    android:gravity="end"
+                    android:text="@string/total_sets" />
+
+                <Space
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:minWidth="12dp" />
+
+                <TextView
+                    android:id="@+id/label_workoutTotalSetsValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="4"
+                    android:gravity="start" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/label_workoutTotalTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="4"
+                    android:gravity="end"
+                    android:text="@string/total_time" />
+
+                <Space
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:minWidth="12dp" />
+
+                <TextView
+                    android:id="@+id/label_workoutTotalTimeValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="4"
+                    android:gravity="start" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

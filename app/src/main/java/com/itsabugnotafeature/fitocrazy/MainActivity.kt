@@ -62,31 +62,34 @@ class MainActivity : AppCompatActivity() {
                 itemView.findViewById<TextView>(R.id.label_workoutPoints).text =
                     itemView.context.getString(R.string.total_points_in_workout, currentWorkout.totalPoints)
 
-                itemView.findViewById<TextView>(R.id.label_workoutTotalWeight).text =
-                    itemView.context.getString(R.string.total_weight, currentWorkout.totalWeight)
+                itemView.findViewById<TextView>(R.id.label_workoutTotalWeightValue).text =
+                    "%.0f kg".format(currentWorkout.totalWeight)
 
-                itemView.findViewById<TextView>(R.id.label_workoutTotalReps).text =
-                    itemView.context.getString(R.string.total_reps, currentWorkout.totalReps)
+                itemView.findViewById<TextView>(R.id.label_workoutTotalRepsValue).text =
+                    currentWorkout.totalReps.toString()
 
-                itemView.findViewById<TextView>(R.id.label_workoutTotalSets).text =
-                    itemView.context.getString(R.string.total_sets, currentWorkout.totalSets)
+                itemView.findViewById<TextView>(R.id.label_workoutTotalSetsValue).text =
+                    currentWorkout.totalSets.toString()
 
-                val totalTime =
-                    currentWorkout.totalTime.toDuration(DurationUnit.MILLISECONDS)
-                        .toComponents { hours, minutes, _, _ -> "%02d:%02d".format(hours, minutes) }
-                itemView.findViewById<TextView>(R.id.label_workoutTotalTime).text =
-                    itemView.context.getString(R.string.total_time, totalTime)
-
+                val totalTime = currentWorkout.totalTime.toDuration(DurationUnit.MILLISECONDS)
+                    .toComponents { hours, minutes, _, _ -> "%02d:%02d".format(hours, minutes) }
+                itemView.findViewById<TextView>(R.id.label_workoutTotalTimeValue).text = totalTime
 
                 val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_workoutTopTags)
-                chipGroup.visibility = ChipGroup.VISIBLE
-                currentWorkout.topTags.split(" ").forEach { chipName ->
-                    val newChip = Chip(itemView.context)
-                    newChip.text = chipName
-                    //newChip.setEnsureMinTouchTargetSize(false)
-                    /*newChip.setChipBackgroundColorResource(R.color.purple_500)
-                    newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.white) } ?: R.color.white)*/
-                    chipGroup.addView(newChip)
+                chipGroup.removeAllViews()
+                val tags = currentWorkout.topTags
+                if (tags.isNotEmpty()) {
+                    chipGroup.visibility = ChipGroup.VISIBLE
+                    tags.trim().split(" ").forEach { chipName ->
+                        val newChip = Chip(itemView.context)
+                        newChip.text = chipName
+                        newChip.setChipBackgroundColorResource(R.color.orange_main)
+                        newChip.setTextColor(itemView.context.getColor(R.color.black))
+                        //newChip.setEnsureMinTouchTargetSize(false)
+                        /*newChip.setChipBackgroundColorResource(R.color.purple_500)
+                newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.white) } ?: R.color.white)*/
+                        chipGroup.addView(newChip)
+                    }
                 }
 
                 itemView.setOnClickListener {
@@ -128,18 +131,19 @@ class MainActivity : AppCompatActivity() {
             db.exerciseDao().listWorkouts()
         }.toMutableList()
 
-        val goToWorkout = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                if (result.data?.getBooleanExtra("dataUpdated", false) == true) {
-                    val workoutId = result.data?.getLongExtra("workoutId", -1) ?: -1L
-                    val position = workoutList.indexOfFirst { it.workoutId == workoutId }
-                    runBlocking {
-                        workoutList[position] = db.exerciseDao().getWorkout(workoutId)!!
+        val goToWorkout =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    if (result.data?.getBooleanExtra("dataUpdated", false) == true) {
+                        val workoutId = result.data?.getLongExtra("workoutId", -1) ?: -1L
+                        val position = workoutList.indexOfFirst { it.workoutId == workoutId }
+                        runBlocking {
+                            workoutList[position] = db.exerciseDao().getWorkout(workoutId)!!
+                        }
+                        workoutListViewAdapter.notifyItemChanged(position)
                     }
-                    workoutListViewAdapter.notifyItemChanged(position)
                 }
             }
-        }
 
         workoutListViewAdapter = WorkoutListViewAdapter(workoutList, goToWorkout)
         val workoutListView = findViewById<RecyclerView>(R.id.list_allWorkoutsHomepage)

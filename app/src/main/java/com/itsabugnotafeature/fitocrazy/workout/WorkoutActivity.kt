@@ -52,11 +52,12 @@ import kotlin.math.pow
  *      - bring points to the spinners on exercise type for more flexibility?
  *      - DONE ~~chip group for body parts per exercise~~
  *      - DONE ~~total chip group per exercise~~
- *      - DEON ~~refresh DB workout list on result~~
+ *      - DONE ~~refresh DB workout list on result~~
  *      - handle background running and all on-resume stuff
  *      - allow editing of exercise components
  *      - "enter" when creating a new exercise component does weird stuff (should trim+enter)
  *      - color and theme everything
+ *      - delete workouts on long-press
  */
 
 
@@ -357,13 +358,13 @@ class WorkoutActivity : AppCompatActivity() {
             }
         }*/
 
-        val totalWeightLabel = findViewById<TextView>(R.id.totalWeight)
-        val totalRepsLabel = findViewById<TextView>(R.id.totalReps)
-        val totalPointsLabel = findViewById<TextView>(R.id.totalPoints)
+        val totalWeightLabel = findViewById<TextView>(R.id.totalWeightValue)
+        val totalRepsLabel = findViewById<TextView>(R.id.totalRepsValue)
+        val totalPointsLabel = findViewById<TextView>(R.id.totalPointsValue)
 
-        totalWeightLabel.text = getString(R.string.total_weight, workout.totalWeight)
-        totalRepsLabel.text = getString(R.string.total_reps, workout.totalReps)
-        totalPointsLabel.text = getString(R.string.total_points, workout.totalPoints)
+        totalWeightLabel.text =  workout.totalWeight.toString()
+        totalRepsLabel.text = workout.totalReps.toString()
+        totalPointsLabel.text = workout.totalPoints.toString()
 
         val totalTimeTimer = findViewById<Chronometer>(R.id.timer_totalTime)
         val setTimeTimer = findViewById<Chronometer>(R.id.timer_timeAfterLastSet)
@@ -375,9 +376,9 @@ class WorkoutActivity : AppCompatActivity() {
                 workout.totalSets += 1
                 workout.totalPoints += calculatePoints(exerciseModelId, weight, reps)
 
-                totalWeightLabel.text = getString(R.string.total_weight, workout.totalWeight)
-                totalRepsLabel.text = getString(R.string.total_reps, workout.totalReps)
-                totalPointsLabel.text = getString(R.string.total_points, workout.totalPoints)
+                totalWeightLabel.text =  workout.totalWeight.toString()
+                totalRepsLabel.text = workout.totalReps.toString()
+                totalPointsLabel.text = workout.totalPoints.toString()
 
                 if (today == workout.date) {
                     setTimeTimer.base = SystemClock.elapsedRealtime()
@@ -394,9 +395,9 @@ class WorkoutActivity : AppCompatActivity() {
                 workout.totalSets -= 1
                 workout.totalPoints -= calculatePoints(exerciseModelId, weight, reps)
 
-                totalWeightLabel.text = getString(R.string.total_weight, workout.totalWeight)
-                totalRepsLabel.text = getString(R.string.total_reps, workout.totalReps)
-                totalPointsLabel.text = getString(R.string.total_points, workout.totalPoints)
+                totalWeightLabel.text =  workout.totalWeight.toString()
+                totalRepsLabel.text = workout.totalReps.toString()
+                totalPointsLabel.text = workout.totalPoints.toString()
             }
         }
 
@@ -428,7 +429,7 @@ class WorkoutActivity : AppCompatActivity() {
             runBlocking {
                 workout.topTags = exerciseList.fold(emptyList<String>()) { ongoing, item ->
                     ongoing + db.exerciseDao().getExerciseDetails(item.first.exerciseModelId)!!.exercise.getChips()
-                }.groupingBy { it }.eachCount().toSortedMap().asIterable().take(3).joinToString(" ") { it.key }
+                }.groupingBy { it }.eachCount().toSortedMap().asIterable().take(3).joinToString(" ") { it.key }.trim()
 
                 db.exerciseDao().updateWorkout(workout)
             }

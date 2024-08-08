@@ -4,9 +4,12 @@
     <color name="purple_accent">#B51B75</color>
     <color name="orange_main">#E65C19</color>
     <color name="orange_accent">#F8D082</color>
+    <color name="orange_accent_light">#F7F1E4</color>
 
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+
+    <color name="slate_dark">#2B3856</color>
 
 
 </resources>
