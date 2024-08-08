@@ -142,7 +142,7 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
         chipList.forEach { chipName ->
             val newChip = Chip(context)
             newChip.text = chipName
-            newChip.setChipBackgroundColorResource(R.color.purple_500)
+            newChip.setChipBackgroundColorResource(R.color.orange_main)
             newChip.isCheckable = true
             newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.white) } ?: R.color.white)
 

@@ -11,7 +11,10 @@
         android:id="@+id/btn_AddNewWorkout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginRight="6dp"
         android:text="New Workout"
+        android:theme="@style/Button.PurpleAccent"
+        app:cornerRadius="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

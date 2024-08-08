@@ -1,15 +1,22 @@
 package com.itsabugnotafeature.fitocrazy
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.OnClickListener
 import android.view.ViewGroup
+import android.widget.AdapterView.OnItemClickListener
 import android.widget.Button
 import android.widget.Chronometer
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -26,6 +33,8 @@ import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseListView
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseListViewAdapter.ViewHolder
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseNotification
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseView
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
 import org.w3c.dom.Text
 import java.time.format.DateTimeFormatter
@@ -39,7 +48,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var workoutListViewAdapter: WorkoutListViewAdapter
 
     class WorkoutListViewAdapter(
-        private var workoutList: List<Workout>
+        var workoutList: List<Workout>,
+        private val workoutLauncher: ActivityResultLauncher<Intent>
     ) : RecyclerView.Adapter<WorkoutListViewAdapter.ViewHolder>() {
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             fun bind(
@@ -80,7 +90,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 itemView.setOnClickListener {
-                    itemView.context.startActivity(
+                    workoutLauncher.launch(
                         Intent(
                             itemView.context.applicationContext,
                             WorkoutActivity::class.java
@@ -99,15 +109,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onBindViewHolder(holder: WorkoutListViewAdapter.ViewHolder, position: Int) {
-            // TODO: refetch
             holder.bind(workoutList[position])
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (data?.getBooleanExtra("dataUpdated", false) == true) {
-            workoutListViewAdapter.notifyDataSetChanged()
         }
     }
 
@@ -124,9 +126,22 @@ class MainActivity : AppCompatActivity() {
         val db = ExerciseDatabase.getInstance(applicationContext)
         val workoutList = runBlocking {
             db.exerciseDao().listWorkouts()
+        }.toMutableList()
+
+        val goToWorkout = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                if (result.data?.getBooleanExtra("dataUpdated", false) == true) {
+                    val workoutId = result.data?.getLongExtra("workoutId", -1) ?: -1L
+                    val position = workoutList.indexOfFirst { it.workoutId == workoutId }
+                    runBlocking {
+                        workoutList[position] = db.exerciseDao().getWorkout(workoutId)!!
+                    }
+                    workoutListViewAdapter.notifyItemChanged(position)
+                }
+            }
         }
 
-        workoutListViewAdapter = WorkoutListViewAdapter(workoutList)
+        workoutListViewAdapter = WorkoutListViewAdapter(workoutList, goToWorkout)
         val workoutListView = findViewById<RecyclerView>(R.id.list_allWorkoutsHomepage)
         workoutListView.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)

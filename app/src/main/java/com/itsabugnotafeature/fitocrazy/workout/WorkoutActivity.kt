@@ -52,8 +52,7 @@ import kotlin.math.pow
  *      - bring points to the spinners on exercise type for more flexibility?
  *      - DONE ~~chip group for body parts per exercise~~
  *      - DONE ~~total chip group per exercise~~
- *      - refresh DB workout list on result
- *      - make DB queries live
+ *      - DEON ~~refresh DB workout list on result~~
  *      - handle background running and all on-resume stuff
  *      - allow editing of exercise components
  *      - "enter" when creating a new exercise component does weird stuff (should trim+enter)
@@ -349,14 +348,14 @@ class WorkoutActivity : AppCompatActivity() {
                     .toMutableList()
         }
 
-        exerciseList.forEach {
+        /*exerciseList.forEach {
             it.second.forEach { set ->
                 workout.totalWeight += set.weight * set.reps
                 workout.totalReps += set.reps
                 workout.totalPoints += calculatePoints(it.first.exerciseModelId, set.weight, set.reps)
                 workout.totalSets += 1
             }
-        }
+        }*/
 
         val totalWeightLabel = findViewById<TextView>(R.id.totalWeight)
         val totalRepsLabel = findViewById<TextView>(R.id.totalReps)
@@ -438,6 +437,7 @@ class WorkoutActivity : AppCompatActivity() {
             totalTimeTimer.stop()  // needed?
 
             intent.putExtra("dataUpdated", true)
+            intent.putExtra("workoutId", workout.workoutId)
             setResult(RESULT_OK, intent)
             finish()
         }

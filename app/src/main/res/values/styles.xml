@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Button.PurpleAccent" parent="Theme.Fitocrazy">
+        <item name="colorPrimary">@color/purple_accent</item>
+    </style>
+
+<!--    <style name="Button.PurpleAccent" parent="Theme.Fitocrazy">-->
+<!--        <item name="colorPrimary">@color/purple_accent</item>-->
+<!--    </style>-->
+
+</resources>

@@ -18,6 +18,7 @@ import androidx.room.RoomDatabase
 import androidx.room.Transaction
 import androidx.room.TypeConverters
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 enum class ExerciseComponentType {
@@ -192,7 +193,7 @@ interface ExerciseDao {
     @Update
     suspend fun updateWorkout(workout: Workout)
 
-    @Query("SELECT * FROM Workout")
+    @Query("SELECT * FROM Workout ORDER BY date DESC")
     suspend fun listWorkouts(): List<Workout>
 }
 

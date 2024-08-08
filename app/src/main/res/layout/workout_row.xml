@@ -7,6 +7,7 @@
     android:layout_margin="4dp"
     android:background="#FFFFFF"
     android:elevation="4dp"
+    android:outlineSpotShadowColor="@color/orange_main"
     android:padding="8dp">
 
     <TextView
@@ -15,6 +16,7 @@
         android:layout_height="wrap_content"
         android:gravity="start|top"
         android:text="TODAY"
+        android:textColor="@color/black"
         android:textSize="42sp"
         app:layout_constraintEnd_toStartOf="@+id/label_workoutNumberExercises"
         app:layout_constraintStart_toStartOf="parent"
