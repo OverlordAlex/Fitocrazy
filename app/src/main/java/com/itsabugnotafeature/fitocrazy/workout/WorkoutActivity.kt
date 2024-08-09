@@ -58,9 +58,11 @@ import kotlin.math.pow
  *      - allow editing of exercise components
  *      - "enter" when creating a new exercise component does weird stuff (should trim+enter)
  *      - color and theme workout page
- *      - delete workouts on long-press
- *      - tint of chips should be per bodypart
- *      - close delete-workout button on scroll
+ *      - DONE ~~delete workouts on long-press~~
+ *      ? right now its ordered by most frequent - tint of chips should be per bodypart
+ *      - DONE ~~close delete-workout button on scroll~~
+ *      - db.Exercise shoulds link to a workoutID and not a date to group exercises
+ *      ---- and delete should delete associated exerciseId and Set
  */
 
 

@@ -3,18 +3,10 @@ package com.itsabugnotafeature.fitocrazy
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.os.SystemClock
-import android.transition.Fade
-import android.transition.Slide
-import android.transition.TransitionManager
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.OnClickListener
 import android.view.ViewGroup
-import android.widget.AdapterView.OnItemClickListener
 import android.widget.Button
-import android.widget.Chronometer
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -29,22 +21,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
-import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
-import com.itsabugnotafeature.fitocrazy.common.Set
 import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity
-import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseListViewAdapter
-import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseListViewAdapter.ViewHolder
-import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseNotification
-import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseView
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
-import org.w3c.dom.Text
 import java.time.format.DateTimeFormatter
-import java.util.SortedMap
-import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -53,13 +34,34 @@ class MainActivity : AppCompatActivity() {
     private lateinit var workoutListViewAdapter: WorkoutListViewAdapter
 
     class WorkoutListViewAdapter(
-        var workoutList: List<Workout>,
+        var workoutList: MutableList<Workout>,
         private val workoutLauncher: ActivityResultLauncher<Intent>
     ) : RecyclerView.Adapter<WorkoutListViewAdapter.ViewHolder>() {
+        var lastOpened: ViewHolder? = null
+
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
+            private fun showDelete() {
+                itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.GONE
+                itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).visibility = TextView.GONE
+
+                val deleteFrame = itemView.findViewById<FrameLayout>(R.id.frame_deleteWorkout)
+                deleteFrame.alpha = 0f
+                deleteFrame.visibility = FrameLayout.VISIBLE
+                deleteFrame.animate().setDuration(200).alpha(1f)
+            }
+
+            private fun hideDelete() {
+                val deleteFrame = itemView.findViewById<FrameLayout>(R.id.frame_deleteWorkout)
+                deleteFrame.animate().setDuration(150).alpha(0f).withEndAction {
+                    deleteFrame.visibility = FrameLayout.GONE
+                    itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.VISIBLE
+                    itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).visibility = TextView.VISIBLE
+                }
+            }
+
             fun bind(
-                currentWorkout: Workout
+                currentWorkout: Workout,
             ) {
                 itemView.findViewById<TextView>(R.id.label_workoutDate).text =
                     currentWorkout.date.format(DateTimeFormatter.ofPattern("dd LLLL yyyy"))
@@ -100,12 +102,9 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 val deleteFrame = itemView.findViewById<FrameLayout>(R.id.frame_deleteWorkout)
-
                 itemView.setOnClickListener {
                     if (deleteFrame.visibility == FrameLayout.VISIBLE) {
-                        deleteFrame.visibility = FrameLayout.GONE
-                        itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.VISIBLE
-                        itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).visibility = TextView.VISIBLE
+                        hideDelete()
                         return@setOnClickListener
                     }
 
@@ -118,19 +117,23 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 itemView.setOnLongClickListener {
-                    // TODO move to onBindViewHolder actually
-                    // TODO made delete button better!
-                    /*val transition = Slide()
-                    transition.duration = 5000
-                    transition.addTarget(itemView)
-                    TransitionManager.beginDelayedTransition(itemView.parent, transition)*/
-                    deleteFrame.visibility = FrameLayout.VISIBLE
-                    itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.GONE
-                    itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).visibility = TextView.GONE
-                    /*itemView.postDelayed({
-                        deleteFrame.visibility = FrameLayout.GONE
-                    }, 10000)*/
+                    if (deleteFrame.visibility == FrameLayout.GONE) {
+                        lastOpened?.hideDelete()
+                        showDelete()
+                        lastOpened = this
+                    } else {
+                        hideDelete()
+                        lastOpened = null
+                    }
+
                     true
+                }
+
+                itemView.findViewById<Button>(R.id.btnDeleteWorkout).setOnClickListener {
+                    val db = ExerciseDatabase.getInstance(itemView.context)
+                    runBlocking { db.exerciseDao().deleteWorkout(workoutList[adapterPosition]) }
+                    workoutList.removeAt(adapterPosition)
+                    notifyItemRemoved(adapterPosition)
                 }
             }
         }
@@ -161,7 +164,7 @@ class MainActivity : AppCompatActivity() {
         val db = ExerciseDatabase.getInstance(applicationContext)
         val workoutList = runBlocking {
             db.exerciseDao().listWorkouts()
-        }.toMutableList()
+        }
 
         val goToWorkout =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->

@@ -194,7 +194,10 @@ interface ExerciseDao {
     suspend fun updateWorkout(workout: Workout)
 
     @Query("SELECT * FROM Workout ORDER BY date DESC")
-    suspend fun listWorkouts(): List<Workout>
+    suspend fun listWorkouts(): MutableList<Workout>
+
+    @Delete
+    suspend fun deleteWorkout(workout: Workout)
 }
 
 @Database(
