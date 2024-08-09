@@ -63,6 +63,8 @@ import kotlin.math.pow
  *      - DONE ~~close delete-workout button on scroll~~
  *      - db.Exercise shoulds link to a workoutID and not a date to group exercises
  *      ---- and delete should delete associated exerciseId and Set
+ *      - highlight good points totals
+ *      - profile statistics
  */
 
 

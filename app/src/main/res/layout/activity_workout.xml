@@ -5,6 +5,7 @@
     android:id="@+id/layout_currentWorkout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/blue_accent_light"
     tools:context=".workout.WorkoutActivity">
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -16,9 +17,10 @@
         android:clickable="true"
         android:contentDescription="End timing of workout"
         android:visibility="invisible"
+        app:backgroundTint="@color/orange_gradient1"
         app:layout_constraintBottom_toTopOf="@id/btn_addNewExerciseToCurrentWorkout"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+        app:srcCompat="@android:drawable/ic_menu_save" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_addNewExerciseToCurrentWorkout"
@@ -28,27 +30,28 @@
         android:layout_margin="16dp"
         android:clickable="true"
         android:contentDescription="Add new exercise"
+        app:backgroundTint="@color/orange_accent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:srcCompat="@android:drawable/ic_menu_add" />
 
     <LinearLayout
         android:id="@+id/layout_currentWorkoutMainArea"
-        android:layout_width="410dp"
-        android:layout_height="729dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/blue_accent_light"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5">
+        app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layout_currentWorkoutStats"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="4">
+            android:layout_weight="4"
+            android:background="@color/white">
 
             <LinearLayout
                 android:id="@+id/layout_workoutTimer"
@@ -92,6 +95,7 @@
                         android:layout_height="124dp"
                         android:gravity="center"
                         android:text="1:23"
+                        android:theme="@style/Layout.OrangeAccent"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
@@ -192,16 +196,23 @@
             android:text="@string/label_add_some_exercises"
             android:visibility="gone" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/list_exercisesInCurrentWorkout"
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="10dp"
             android:layout_weight="1"
-            android:background="#F2F2F2"
-            android:paddingHorizontal="2dp">
+            android:background="@color/blue_accent_light"
+            app:cardBackgroundColor="@color/blue_accent_light"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="2dp">
 
-        </androidx.recyclerview.widget.RecyclerView>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/list_exercisesInCurrentWorkout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="2dp">
+
+            </androidx.recyclerview.widget.RecyclerView>
+        </androidx.cardview.widget.CardView>
 
     </LinearLayout>
 

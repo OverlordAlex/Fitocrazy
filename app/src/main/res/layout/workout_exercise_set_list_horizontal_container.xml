@@ -9,9 +9,7 @@
     android:elevation="4dp"
     android:gravity="start"
     android:orientation="vertical"
-    android:paddingHorizontal="10dp"
-    android:paddingBottom="4dp"
-    app:barrierMargin="20dp">
+    android:paddingHorizontal="10dp">
 
     <TextView
         android:id="@+id/label_setDate"

@@ -2,6 +2,7 @@
 <resources>
     <color name="purple_main">#640D6B</color>
     <color name="purple_accent">#B51B75</color>
+
     <color name="orange_main">#E65C19</color>
     <color name="orange_accent">#F8D082</color>
     <color name="orange_accent_light">#F7F1E4</color>
@@ -14,6 +15,13 @@
     <color name="orange_gradient1">#FFBF78</color>
     <color name="orange_gradient2">#FFEEA9</color>
     <color name="orange_gradient3">#FEFFD2</color>
+
+    <color name="blue_main">#10439F</color>
+    <color name="blue_accent">#874CCC</color>
+    <color name="blue_secondary">#C65BCF</color>
+    <color name="blue_tertiary">#F27BBD</color>
+
+    <color name="blue_accent_light">#CCDEFF</color>
 
 
 </resources>
