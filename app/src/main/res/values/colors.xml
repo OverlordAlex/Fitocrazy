@@ -22,6 +22,7 @@
     <color name="blue_tertiary">#F27BBD</color>
 
     <color name="blue_accent_light">#CCDEFF</color>
+    <color name="blue_accent_lightest">#FAFCFF</color>
 
 
 </resources>

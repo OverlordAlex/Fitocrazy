@@ -5,10 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="2dp"
-    android:background="#FDFDFD"
+    android:background="@color/blue_accent_lightest"
     android:elevation="4dp"
     android:gravity="start"
     android:orientation="vertical"
+    android:outlineSpotShadowColor="@color/blue_main"
     android:paddingHorizontal="10dp">
 
     <TextView

@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
 
             private fun hideDelete() {
                 val deleteFrame = itemView.findViewById<FrameLayout>(R.id.frame_deleteWorkout)
+                //deleteFrame.clearAnimation()
                 deleteFrame.animate().setDuration(150).alpha(0f).withEndAction {
                     deleteFrame.visibility = FrameLayout.GONE
                     itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.VISIBLE
@@ -102,6 +103,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 val deleteFrame = itemView.findViewById<FrameLayout>(R.id.frame_deleteWorkout)
+                hideDelete()
                 itemView.setOnClickListener {
                     if (deleteFrame.visibility == FrameLayout.VISIBLE) {
                         hideDelete()
@@ -134,6 +136,7 @@ class MainActivity : AppCompatActivity() {
                     runBlocking { db.exerciseDao().deleteWorkout(workoutList[adapterPosition]) }
                     workoutList.removeAt(adapterPosition)
                     notifyItemRemoved(adapterPosition)
+                    lastOpened = null
                 }
             }
         }
@@ -170,15 +173,24 @@ class MainActivity : AppCompatActivity() {
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
                 if (result.resultCode == Activity.RESULT_OK) {
                     if (result.data?.getBooleanExtra("dataUpdated", false) == true) {
-                        val workoutId = result.data?.getLongExtra("workoutId", -1) ?: -1L
+                        val workoutId = result.data?.getLongExtra("workoutId", -1L) ?: -1L
                         val position = workoutList.indexOfFirst { it.workoutId == workoutId }
-                        runBlocking {
-                            workoutList[position] = db.exerciseDao().getWorkout(workoutId)!!
+                        if (position == -1) {
+                            runBlocking {
+                                workoutList.add(db.exerciseDao().getWorkout(workoutId)!!)
+                            }
+                            workoutListViewAdapter.notifyItemInserted(workoutList.size - 1)
+                        } else {
+                            runBlocking {
+                                workoutList[position] = db.exerciseDao().getWorkout(workoutId)!!
+                            }
+                            workoutListViewAdapter.notifyItemChanged(position)
                         }
-                        workoutListViewAdapter.notifyItemChanged(position)
+
                     }
                 }
             }
+        //val createNewWorkout
 
         workoutListViewAdapter = WorkoutListViewAdapter(workoutList, goToWorkout)
         val workoutListView = findViewById<RecyclerView>(R.id.list_allWorkoutsHomepage)
@@ -187,8 +199,7 @@ class MainActivity : AppCompatActivity() {
         workoutListView.adapter = workoutListViewAdapter
 
         findViewById<Button>(R.id.btn_AddNewWorkout).setOnClickListener {
-            //putExtra workoutID
-            startActivity(
+            goToWorkout.launch(
                 Intent(
                     applicationContext,
                     WorkoutActivity::class.java

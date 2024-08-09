@@ -8,7 +8,7 @@
     <string name="label_enterNewExerciseComponentText">Create a new %1$s:</string>
     <string name="kilograms">KG</string>
     <string name="btn_removeLastSet">-</string>
-    <string name="label_kilogramTimesSets">X</string>
+    <string name="label_kilogramTimesSets">kg X</string>
     <string name="repetitions">reps</string>
     <string name="label_add_some_exercises">Add some exercises…</string>
     <string name="total_points">Total Points:</string>

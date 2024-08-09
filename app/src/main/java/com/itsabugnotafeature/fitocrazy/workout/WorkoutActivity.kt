@@ -57,14 +57,18 @@ import kotlin.math.pow
  *      - handle background running and all on-resume stuff
  *      - allow editing of exercise components
  *      - "enter" when creating a new exercise component does weird stuff (should trim+enter)
- *      - color and theme workout page
+ *      - DONE ~~color and theme workout page~~
  *      - DONE ~~delete workouts on long-press~~
  *      ? right now its ordered by most frequent - tint of chips should be per bodypart
  *      - DONE ~~close delete-workout button on scroll~~
- *      - db.Exercise shoulds link to a workoutID and not a date to group exercises
+ *      - db.Exercise should link to a workoutID and not a date to group exercises
+ *      ---- remove "order" column
  *      ---- and delete should delete associated exerciseId and Set
  *      - highlight good points totals
  *      - profile statistics
+ *      - exercise PRs in the exercise card in workout?
+ *      - BUG: total_time timer resets when adding a new set on today
+ *      - DONE ~~BUG: delete button shows twice sometimes~~
  */
 
 
@@ -165,8 +169,8 @@ class WorkoutActivity : AppCompatActivity() {
                     currentExercise.tags.forEach { chipName ->
                         val newChip = Chip(itemView.context)
                         newChip.text = chipName
-                        /*newChip.setChipBackgroundColorResource(R.color.purple_500)
-                    newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.white) } ?: R.color.white)*/
+                        newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
+                        //newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.white) } ?: R.color.white)
                         chipGroup.addView(newChip)
                     }
                 }
@@ -356,20 +360,11 @@ class WorkoutActivity : AppCompatActivity() {
                     .toMutableList()
         }
 
-        /*exerciseList.forEach {
-            it.second.forEach { set ->
-                workout.totalWeight += set.weight * set.reps
-                workout.totalReps += set.reps
-                workout.totalPoints += calculatePoints(it.first.exerciseModelId, set.weight, set.reps)
-                workout.totalSets += 1
-            }
-        }*/
-
         val totalWeightLabel = findViewById<TextView>(R.id.totalWeightValue)
         val totalRepsLabel = findViewById<TextView>(R.id.totalRepsValue)
         val totalPointsLabel = findViewById<TextView>(R.id.totalPointsValue)
 
-        totalWeightLabel.text =  workout.totalWeight.toString()
+        totalWeightLabel.text = workout.totalWeight.toString()
         totalRepsLabel.text = workout.totalReps.toString()
         totalPointsLabel.text = workout.totalPoints.toString()
 
@@ -383,7 +378,7 @@ class WorkoutActivity : AppCompatActivity() {
                 workout.totalSets += 1
                 workout.totalPoints += calculatePoints(exerciseModelId, weight, reps)
 
-                totalWeightLabel.text =  workout.totalWeight.toString()
+                totalWeightLabel.text = workout.totalWeight.toString()
                 totalRepsLabel.text = workout.totalReps.toString()
                 totalPointsLabel.text = workout.totalPoints.toString()
 
@@ -402,7 +397,7 @@ class WorkoutActivity : AppCompatActivity() {
                 workout.totalSets -= 1
                 workout.totalPoints -= calculatePoints(exerciseModelId, weight, reps)
 
-                totalWeightLabel.text =  workout.totalWeight.toString()
+                totalWeightLabel.text = workout.totalWeight.toString()
                 totalRepsLabel.text = workout.totalReps.toString()
                 totalPointsLabel.text = workout.totalPoints.toString()
             }
@@ -436,7 +431,8 @@ class WorkoutActivity : AppCompatActivity() {
             runBlocking {
                 workout.topTags = exerciseList.fold(emptyList<String>()) { ongoing, item ->
                     ongoing + db.exerciseDao().getExerciseDetails(item.first.exerciseModelId)!!.exercise.getChips()
-                }.groupingBy { it }.eachCount().toSortedMap().asIterable().take(3).joinToString(" ") { it.key }.trim()
+                }.groupingBy { it }.eachCount().toSortedMap().asIterable().reversed().take(3)
+                    .joinToString(" ") { it.key }.trim()
 
                 db.exerciseDao().updateWorkout(workout)
             }
