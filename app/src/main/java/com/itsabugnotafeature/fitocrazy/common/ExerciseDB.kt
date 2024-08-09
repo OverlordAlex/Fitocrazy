@@ -18,7 +18,6 @@ import androidx.room.RoomDatabase
 import androidx.room.Transaction
 import androidx.room.TypeConverters
 import androidx.room.Update
-import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 enum class ExerciseComponentType {
@@ -80,6 +79,7 @@ data class Exercise(
     val exerciseModelId: Long,
     val date: LocalDate,
     val order: Int,
+    val workoutId: Long,
 ) : Comparable<Exercise> {
     override fun compareTo(other: Exercise): Int {
         return if (this.date == other.date) this.order.compareTo(other.order) else this.date.compareTo(other.date)
@@ -172,11 +172,17 @@ interface ExerciseDao {
     @Delete
     suspend fun deleteExercise(exercise: Exercise)
 
+    @Query("DELETE from Exercise WHERE workoutId = :workoutId")
+    suspend fun deleteExercisesInWorkout(workoutId: Long)
+
     @Query("SELECT * FROM `Set` s JOIN (SELECT * FROM Exercise ORDER BY date DESC LIMIT 1, :nSets) as E ON s.exerciseId=E.exerciseId WHERE E.exerciseModelId=:exerciseModelId AND E.date < :excludeDate")
     suspend fun getHistoricalSets(exerciseModelId: Long, nSets: Int, excludeDate: Long? = 0): Map<Exercise, List<Set>>
 
     @Query("SELECT * FROM Exercise WHERE date = :date")
     suspend fun getListOfExercise(date: LocalDate): List<Exercise>
+
+    @Query("SELECT * FROM Exercise WHERE workoutId = :workoutId")
+    suspend fun getListOfExerciseInWorkout(workoutId: Long): List<Exercise>
 
     @Query("SELECT * FROM `Set` WHERE exerciseId = :exerciseId")
     suspend fun getSets(exerciseId: Long): List<Set>
@@ -203,7 +209,7 @@ interface ExerciseDao {
 @Database(
     entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class],
     views = [SetRecordView::class],
-    version = 5
+    version = 6
 )
 @TypeConverters(Converters::class)
 abstract class ExerciseDatabase : RoomDatabase() {

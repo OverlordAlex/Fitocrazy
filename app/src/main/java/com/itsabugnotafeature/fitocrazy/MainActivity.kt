@@ -133,7 +133,10 @@ class MainActivity : AppCompatActivity() {
 
                 itemView.findViewById<Button>(R.id.btnDeleteWorkout).setOnClickListener {
                     val db = ExerciseDatabase.getInstance(itemView.context)
-                    runBlocking { db.exerciseDao().deleteWorkout(workoutList[adapterPosition]) }
+                    runBlocking {
+                        db.exerciseDao().deleteWorkout(workoutList[adapterPosition])
+                        db.exerciseDao().deleteExercisesInWorkout(workoutList[adapterPosition].workoutId)
+                    }
                     workoutList.removeAt(adapterPosition)
                     notifyItemRemoved(adapterPosition)
                     lastOpened = null

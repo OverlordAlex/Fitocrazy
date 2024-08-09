@@ -59,16 +59,16 @@ import kotlin.math.pow
  *      - "enter" when creating a new exercise component does weird stuff (should trim+enter)
  *      - DONE ~~color and theme workout page~~
  *      - DONE ~~delete workouts on long-press~~
- *      ? right now its ordered by most frequent - tint of chips should be per bodypart
+ *      ? tint of chips should be per bodypart - right now its ordered by most frequent
  *      - DONE ~~close delete-workout button on scroll~~
- *      - db.Exercise should link to a workoutID and not a date to group exercises
- *      ---- remove "order" column
- *      ---- and delete should delete associated exerciseId and Set
+ *      - DONE ~~db.Exercise should link to a workoutID and not a date to group exercises~~
+ *      ---- DONE ~~and delete should delete associated exerciseId and Set~~
  *      - highlight good points totals
  *      - profile statistics
  *      - exercise PRs in the exercise card in workout?
  *      - BUG: total_time timer resets when adding a new set on today
  *      - DONE ~~BUG: delete button shows twice sometimes~~
+ *      - reset DB
  */
 
 
@@ -354,7 +354,7 @@ class WorkoutActivity : AppCompatActivity() {
                 workout.workoutId = db.exerciseDao().addWorkout(workout)
             }
 
-            exercises = db.exerciseDao().getListOfExercise(workout.date)
+            exercises = db.exerciseDao().getListOfExerciseInWorkout(workout.workoutId)
             exerciseList =
                 exercises.map { Pair(it, db.exerciseDao().getSets(it.exerciseId).toMutableList()) }
                     .toMutableList()
@@ -473,7 +473,7 @@ class WorkoutActivity : AppCompatActivity() {
                 val exerciseModelId = bundle.getLong("exerciseID", -1L)
                 if (exerciseModelId == -1L) return@setFragmentResultListener
 
-                val exercise = Exercise(0, exerciseModelId, today, exerciseList.size)
+                val exercise = Exercise(0, exerciseModelId, today, exerciseList.size, workout.workoutId)
                 runBlocking {
                     exercise.exerciseId = db.exerciseDao().addExerciseSet(exercise)
                 }
