@@ -53,26 +53,33 @@ import kotlin.math.pow
  *      - DONE ~~chip group for body parts per exercise~~
  *      - DONE ~~total chip group per exercise~~
  *      - DONE ~~refresh DB workout list on result~~
+ *      - DONE ~~color and theme workout page~~
+ *      - DONE ~~delete workouts on long-press~~
+ *      - DONE ~~close delete-workout button on scroll~~
+ *      - DONE ~~db.Exercise should link to a workoutID and not a date to group exercises~~
+ *      ---- DONE ~~and delete should delete associated exerciseId and Set~~
+ *      - DONE ~~BUG: total_time timer resets when adding a new set on today (for saved workouts)~~
+ *      - DONE ~~BUG: delete button shows twice sometimes~~
+ *      - DONE ~~timer can be paused and restarted~~
+ *      - DONE ~~BUG: adding a new workout puts it at the bottom instead of the top~~
+ *
+ * TODO
  *      - bring points to the spinners on exercise type for more flexibility?
  *      - handle background running and all on-resume stuff
  *      - allow editing of exercise components
  *      - "enter" when creating a new exercise component does weird stuff (should trim+enter)
- *      - DONE ~~color and theme workout page~~
- *      - DONE ~~delete workouts on long-press~~
- *      ? tint of chips should be per bodypart - right now its ordered by most frequent
- *      - DONE ~~close delete-workout button on scroll~~
- *      - DONE ~~db.Exercise should link to a workoutID and not a date to group exercises~~
- *      ---- DONE ~~and delete should delete associated exerciseId and Set~~
  *      - highlight good points totals
  *      - profile statistics
  *      - exercise PRs in the exercise card in workout?
- *      - DONE ~~BUG: total_time timer resets when adding a new set on today (for saved workouts)~~
- *      - DONE ~~BUG: delete button shows twice sometimes~~
- *      - DONE ~~timer can be paused and restarted~~
  *      - BUG: points dont make sense when adding and removing - could be related to bonus? in fact all stats are not loaded correctly
  *      - reset DB
  *      - notification panel
  *      - better logo and splash screen
+ *      - style popups for adding exercises and components
+ *      - BUG: sets added to previous workouts show up as "today"
+ *
+ * TODO - never
+ *      ? tint of chips should be per bodypart - right now its ordered by most frequent
  */
 
 
@@ -348,6 +355,8 @@ class WorkoutActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_workout)
 
+
+
         db = ExerciseDatabase.getInstance(applicationContext)
 
         val today = LocalDate.now()
@@ -364,6 +373,7 @@ class WorkoutActivity : AppCompatActivity() {
                 exercises.map { Pair(it, db.exerciseDao().getSets(it.exerciseId).toMutableList()) }
                     .toMutableList()
         }
+        title = title.toString() + " " + workout.date
 
         val totalWeightLabel = findViewById<TextView>(R.id.totalWeightValue)
         val totalRepsLabel = findViewById<TextView>(R.id.totalRepsValue)

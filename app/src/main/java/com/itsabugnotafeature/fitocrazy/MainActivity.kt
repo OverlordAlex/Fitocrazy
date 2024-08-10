@@ -53,7 +53,6 @@ class MainActivity : AppCompatActivity() {
 
             private fun hideDelete() {
                 val deleteFrame = itemView.findViewById<FrameLayout>(R.id.frame_deleteWorkout)
-                //deleteFrame.clearAnimation()
                 deleteFrame.animate().setDuration(150).alpha(0f).withEndAction {
                     deleteFrame.visibility = FrameLayout.GONE
                     itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.VISIBLE
@@ -180,9 +179,9 @@ class MainActivity : AppCompatActivity() {
                         val position = workoutList.indexOfFirst { it.workoutId == workoutId }
                         if (position == -1) {
                             runBlocking {
-                                workoutList.add(db.exerciseDao().getWorkout(workoutId)!!)
+                                workoutList.add(0, db.exerciseDao().getWorkout(workoutId)!!)
                             }
-                            workoutListViewAdapter.notifyItemInserted(workoutList.size - 1)
+                            workoutListViewAdapter.notifyItemInserted(0)
                         } else {
                             runBlocking {
                                 workoutList[position] = db.exerciseDao().getWorkout(workoutId)!!
