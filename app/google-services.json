@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "105097709543",
+    "project_id": "fitocrazy-a64e7",
+    "storage_bucket": "fitocrazy-a64e7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:105097709543:android:26d9089db583f32c791f42",
+        "android_client_info": {
+          "package_name": "com.itsabugnotafeature.fitocrazy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGT6IruaddbjlhgluYxPTB481C7efjUFo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

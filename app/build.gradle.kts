@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
 
     id("com.google.devtools.ksp")
+    alias(libs.plugins.google.firebase.appdistribution)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -19,13 +21,35 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("../../fitocrazy_keystore.jks")
+            storePassword = System.getenv("apkSigningPassword")?.trim() ?: "no_password_provided"
+            keyAlias = "upload"
+            keyPassword = System.getenv("apkSigningPassword")?.trim()  ?: "no_password_provided"
+        }
+    }
+
     buildTypes {
         release {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("release")
+            firebaseAppDistribution {
+                //releaseNotes="Initial testing release"
+                //testers="me@itsabugnotafeature.com"
+            }
+        }
+        debug {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {

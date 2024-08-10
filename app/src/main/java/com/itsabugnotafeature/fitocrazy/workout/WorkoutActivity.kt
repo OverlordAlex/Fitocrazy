@@ -66,9 +66,13 @@ import kotlin.math.pow
  *      - highlight good points totals
  *      - profile statistics
  *      - exercise PRs in the exercise card in workout?
- *      - BUG: total_time timer resets when adding a new set on today
+ *      - DONE ~~BUG: total_time timer resets when adding a new set on today (for saved workouts)~~
  *      - DONE ~~BUG: delete button shows twice sometimes~~
+ *      - DONE ~~timer can be paused and restarted~~
+ *      - BUG: points dont make sense when adding and removing - could be related to bonus? in fact all stats are not loaded correctly
  *      - reset DB
+ *      - notification panel
+ *      - better logo and splash screen
  */
 
 
@@ -76,6 +80,7 @@ class WorkoutActivity : AppCompatActivity() {
 
     private lateinit var db: ExerciseDatabase
     private lateinit var workout: Workout
+    private var setTimerIsActive = false
 
     fun calculatePoints(exerciseModelId: Long, weight: Double, reps: Int): Int {
         // we will never calculate points for an exercise that doesn't exist
@@ -383,11 +388,10 @@ class WorkoutActivity : AppCompatActivity() {
                 totalPointsLabel.text = workout.totalPoints.toString()
 
                 if (today == workout.date) {
+                    // only do set timer if we're currently working out
                     setTimeTimer.base = SystemClock.elapsedRealtime()
                     setTimeTimer.start()
-
-                    totalTimeTimer.base = SystemClock.elapsedRealtime() - workout.totalTime
-                    totalTimeTimer.start()
+                    setTimerIsActive = true
                 }
             }
 
@@ -405,6 +409,21 @@ class WorkoutActivity : AppCompatActivity() {
 
         totalTimeTimer.base = SystemClock.elapsedRealtime() - workout.totalTime
         if (workout.date == today) totalTimeTimer.start()
+
+        var pausedTime = 0L
+        setTimeTimer.setOnClickListener {
+            if (setTimerIsActive) {
+                setTimeTimer.stop()
+                pausedTime = SystemClock.elapsedRealtime() - setTimeTimer.base
+                setTimeTimer.setTextColor(applicationContext.getColor(R.color.orange_main))
+            } else {
+                setTimeTimer.base = SystemClock.elapsedRealtime() - pausedTime
+                setTimeTimer.start()
+                setTimeTimer.setTextColor(applicationContext.getColor(R.color.black))
+
+            }
+            setTimerIsActive = !setTimerIsActive
+        }
 
         val labelForEmptyExerciseList = findViewById<TextView>(R.id.label_startWorkoutAddExercise)
         val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
@@ -438,6 +457,7 @@ class WorkoutActivity : AppCompatActivity() {
             }
 
             setTimeTimer.stop()  // needed?
+            setTimerIsActive = false
             totalTimeTimer.stop()  // needed?
 
             intent.putExtra("dataUpdated", true)
