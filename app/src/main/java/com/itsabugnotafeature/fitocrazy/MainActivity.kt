@@ -1,7 +1,10 @@
 package com.itsabugnotafeature.fitocrazy
 
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +18,8 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -31,6 +36,7 @@ import kotlin.time.toDuration
 
 class MainActivity : AppCompatActivity() {
 
+    private val CHANNEL_ID = "FitoCrazyCurrentExerciseChannel"
     private lateinit var workoutListViewAdapter: WorkoutListViewAdapter
 
     class WorkoutListViewAdapter(
@@ -208,5 +214,16 @@ class MainActivity : AppCompatActivity() {
                 ).setAction("newWorkoutStartedFromHome")
             )
         }
+
+        // Create the NotificationChannel.
+        val name = getString(R.string.channel_name)
+        val descriptionText = getString(R.string.channel_description)
+        val importance = NotificationManager.IMPORTANCE_LOW
+        val mChannel = NotificationChannel(CHANNEL_ID, name, importance)
+        mChannel.description = descriptionText
+        // Register the channel with the system. You can't change the importance
+        // or other notification behaviors after this.
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(mChannel)
     }
 }

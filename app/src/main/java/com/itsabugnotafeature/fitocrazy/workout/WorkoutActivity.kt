@@ -1,5 +1,11 @@
 package com.itsabugnotafeature.fitocrazy.workout
 
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.TaskStackBuilder
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.LayoutInflater
@@ -12,9 +18,11 @@ import android.widget.Chronometer
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
+import android.widget.RemoteViews
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
@@ -29,6 +37,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
+import com.itsabugnotafeature.fitocrazy.common.ExerciseWithComponentModel
 import com.itsabugnotafeature.fitocrazy.common.Set
 import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.workout.addExercise.AddNewExerciseToWorkoutFragment
@@ -40,6 +49,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.SortedMap
 import kotlin.math.pow
+
 
 /**
  * TODO
@@ -63,6 +73,7 @@ import kotlin.math.pow
  *      - DONE ~~timer can be paused and restarted~~
  *      - DONE ~~BUG: adding a new workout puts it at the bottom instead of the top~~
  *      - DONE ~~BUG: sets added to previous workouts show up as "today"~~
+ *      - DONE ~~style popups for adding exercises and components~~
  *
  * TODO
  *      - bring points to the spinners on exercise type for more flexibility?
@@ -76,7 +87,7 @@ import kotlin.math.pow
  *      - reset DB
  *      - notification panel
  *      - better logo and splash screen
- *      - style popups for adding exercises and components
+ *      -
  *      - better font
  *
  * TODO - never
@@ -86,6 +97,7 @@ import kotlin.math.pow
 
 class WorkoutActivity : AppCompatActivity() {
 
+    private val CHANNEL_ID = "FitoCrazyCurrentExerciseChannel"
     private lateinit var db: ExerciseDatabase
     private lateinit var workout: Workout
     private var setTimerIsActive = false
@@ -126,6 +138,7 @@ class WorkoutActivity : AppCompatActivity() {
     interface ExerciseNotification {
         fun setAdded(exerciseModelId: Long, weight: Double, reps: Int): Unit
         fun setRemoved(exerciseModelId: Long, weight: Double, reps: Int)
+        fun setDeleted()
     }
 
     // the parent list of exercises in a workout
@@ -264,17 +277,17 @@ class WorkoutActivity : AppCompatActivity() {
                                 db.exerciseDao().deleteExercise(currentExercise.exercise)
                             }
                             removeItem(adapterPosition)
+                            notifier.setDeleted()
                         } else {
+                            runBlocking {
+                                db.exerciseDao()
+                                    .deleteSetFromExercise(currentExercise.sets.removeLast())
+                            }
                             notifier.setRemoved(
                                 currentExercise.exercise.exerciseModelId,
                                 currentExercise.sets.last().weight,
                                 currentExercise.sets.last().reps
                             )
-                            runBlocking {
-                                db.exerciseDao()
-                                    .deleteSetFromExercise(currentExercise.sets.removeLast())
-                            }
-
                             notifyItemChanged(adapterPosition)
                         }
                     }
@@ -351,6 +364,77 @@ class WorkoutActivity : AppCompatActivity() {
 
     }
 
+    val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            TODO("Not yet implemented")
+        }
+    }
+
+    private fun removeNotification() {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(notificationId)
+    }
+    // TODO DONE ~~update when exercise added, set added, set removed~~
+    // TODO DONE ~~only show when workout is today!~~
+    // TODO DONE ~~only show on workout activity~~
+    // TODO pendingIntent on button press to trigger add set
+    // TODO pendingIntent to reopen app
+    // TODO only dismiss notification on workout saved, or back button (not home)
+    private fun showNotification(
+        totalExercises: Int,
+        date: LocalDate,
+        chronometerBase: Long,
+        chronometerRunning: Boolean,
+        displayName: String?,
+        set: Set?
+    ) {
+        if (date != LocalDate.now()) return
+
+        val title = "[$totalExercises] ${date.format(DateTimeFormatter.ofPattern("dd LLLL yyyy"))}"
+        var exerciseContent = displayName ?: ""
+        exerciseContent += if (set != null) ": ${set.weight}kg x ${set.reps}" else ""
+
+        //val pendingIntent = PendingIntent.getActivity(applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        val notificationLayout = RemoteViews(packageName, R.layout.notification_small)
+        notificationLayout.setTextViewText(R.id.label_notificationTitle, title)
+        notificationLayout.setChronometer(R.id.timer_notificationSetTime, chronometerBase, null, chronometerRunning)
+
+        val notificationLayoutExpanded = RemoteViews(packageName, R.layout.notification_large)
+        notificationLayoutExpanded.setTextViewText(R.id.label_notificationTitle, title)
+        notificationLayoutExpanded.setChronometer(
+            R.id.timer_notificationSetTime,
+            chronometerBase,
+            null,
+            chronometerRunning
+        )
+        notificationLayoutExpanded.setTextViewText(R.id.label_notificationContent, exerciseContent)
+        // TODO on click start a new set
+        //notificationLayoutExpanded.setOnClickPendingIntent()
+
+        /*val resultIntent = Intent(this, WorkoutActivity::class.java)
+        // Create the TaskStackBuilder.
+        val resultPendingIntent: PendingIntent? = TaskStackBuilder.create(this).run {
+            // Add the intent, which inflates the back stack.
+            addNextIntentWithParentStack(resultIntent)
+            // Get the PendingIntent containing the entire back stack.
+            getPendingIntent(0,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        }*/
+
+        //val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val customNotification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+            .setContentTitle(title)
+            .setSmallIcon(R.drawable.fitocrazy_logo) // TODO get this to work
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setCustomContentView(notificationLayout)
+            .setCustomBigContentView(notificationLayoutExpanded)
+            //.setContentIntent(resultPendingIntent)
+            .build()
+        notificationManager.notify(notificationId, customNotification)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -371,6 +455,19 @@ class WorkoutActivity : AppCompatActivity() {
             exerciseList =
                 exercises.map { Pair(it, db.exerciseDao().getSets(it.exerciseId).toMutableList()) }
                     .toMutableList()
+
+            val exerciseModel =
+                db.exerciseDao().getExerciseDetails(exerciseList.lastOrNull()?.first?.exerciseModelId ?: -1)
+
+            // TODO format exercise kg correctly?
+            showNotification(
+                workout.totalExercises,
+                workout.date,
+                SystemClock.elapsedRealtime(),
+                false,
+                exerciseModel?.exercise?.displayName,
+                exerciseList.lastOrNull()?.second?.lastOrNull()
+            )
         }
         title = title.toString() + " " + workout.date
 
@@ -402,6 +499,18 @@ class WorkoutActivity : AppCompatActivity() {
                     setTimeTimer.start()
                     setTimerIsActive = true
                 }
+
+                val exerciseModel = runBlocking {
+                    db.exerciseDao().getExerciseDetails(exerciseModelId)
+                }
+                showNotification(
+                    workout.totalExercises,
+                    workout.date,
+                    SystemClock.elapsedRealtime(),
+                    (today == workout.date),
+                    exerciseModel?.exercise?.displayName,
+                    exerciseList.lastOrNull()?.second?.lastOrNull()
+                )
             }
 
             override fun setRemoved(exerciseModelId: Long, weight: Double, reps: Int) {
@@ -413,6 +522,33 @@ class WorkoutActivity : AppCompatActivity() {
                 totalWeightLabel.text = workout.totalWeight.toString()
                 totalRepsLabel.text = workout.totalReps.toString()
                 totalPointsLabel.text = workout.totalPoints.toString()
+
+                val exerciseModel = runBlocking {
+                    db.exerciseDao().getExerciseDetails(exerciseModelId)
+                }
+                showNotification(
+                    workout.totalExercises,
+                    workout.date,
+                    SystemClock.elapsedRealtime(),
+                    false,
+                    exerciseModel?.exercise?.displayName,
+                    null
+                )
+            }
+
+            override fun setDeleted() {
+                val exerciseModel = runBlocking {
+                    db.exerciseDao().getExerciseDetails(exerciseList.lastOrNull()?.first?.exerciseModelId ?: -1)
+                }
+
+                showNotification(
+                    workout.totalExercises,
+                    workout.date,
+                    SystemClock.elapsedRealtime(),
+                    false,
+                    exerciseModel?.exercise?.displayName,
+                    null
+                )
             }
         }
 
@@ -448,9 +584,6 @@ class WorkoutActivity : AppCompatActivity() {
             labelForEmptyExerciseList.visibility = TextView.VISIBLE
         }
 
-        val addNewExerciseDialog: DialogFragment = AddNewExerciseToWorkoutFragment()
-        val addNewExerciseButton = findViewById<FloatingActionButton>(R.id.btn_addNewExerciseToCurrentWorkout)
-
         val endWorkoutBtn = findViewById<FloatingActionButton>(R.id.btn_endWorkout)
         endWorkoutBtn.setOnClickListener {
             workout.totalExercises = exerciseList.size
@@ -473,6 +606,9 @@ class WorkoutActivity : AppCompatActivity() {
             setResult(RESULT_OK, intent)
             finish()
         }
+
+        val addNewExerciseDialog: DialogFragment = AddNewExerciseToWorkoutFragment()
+        val addNewExerciseButton = findViewById<FloatingActionButton>(R.id.btn_addNewExerciseToCurrentWorkout)
 
         addNewExerciseButton.setOnLongClickListener {
             endWorkoutBtn.visibility = FloatingActionButton.VISIBLE
@@ -502,14 +638,25 @@ class WorkoutActivity : AppCompatActivity() {
                 if (exerciseModelId == -1L) return@setFragmentResultListener
 
                 val exercise = Exercise(0, exerciseModelId, workout.date, exerciseList.size, workout.workoutId)
+                var exerciseModel: ExerciseWithComponentModel?
                 runBlocking {
                     exercise.exerciseId = db.exerciseDao().addExerciseSet(exercise)
+                    exerciseModel = db.exerciseDao().getExerciseDetails(exercise.exerciseModelId)
                 }
                 exerciseList.add(Pair(exercise, mutableListOf()))
                 exerciseListViewAdapter.notifyItemInserted(exerciseList.size - 1)
                 exerciseListView.smoothScrollToPosition(exerciseList.size - 1)
                 exerciseListView.visibility = RecyclerView.VISIBLE
                 labelForEmptyExerciseList.visibility = TextView.GONE
+
+                showNotification(
+                    exerciseList.size,
+                    workout.date,
+                    SystemClock.elapsedRealtime(),
+                    false,
+                    exerciseModel?.exercise?.displayName,
+                    exerciseList.lastOrNull()?.second?.lastOrNull()
+                )
             }
         }
 
@@ -520,7 +667,14 @@ class WorkoutActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStop() {
+        removeNotification()
+        super.onStop()
+    }
+
     companion object {
+        private val notificationId = 123456
+
         private val decimalFormatter = DecimalFormat("###.##")
 
         init {
