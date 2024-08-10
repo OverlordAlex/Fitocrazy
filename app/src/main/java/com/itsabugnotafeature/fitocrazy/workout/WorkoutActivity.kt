@@ -62,6 +62,7 @@ import kotlin.math.pow
  *      - DONE ~~BUG: delete button shows twice sometimes~~
  *      - DONE ~~timer can be paused and restarted~~
  *      - DONE ~~BUG: adding a new workout puts it at the bottom instead of the top~~
+ *      - DONE ~~BUG: sets added to previous workouts show up as "today"~~
  *
  * TODO
  *      - bring points to the spinners on exercise type for more flexibility?
@@ -76,7 +77,7 @@ import kotlin.math.pow
  *      - notification panel
  *      - better logo and splash screen
  *      - style popups for adding exercises and components
- *      - BUG: sets added to previous workouts show up as "today"
+ *      - better font
  *
  * TODO - never
  *      ? tint of chips should be per bodypart - right now its ordered by most frequent
@@ -355,8 +356,6 @@ class WorkoutActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_workout)
 
-
-
         db = ExerciseDatabase.getInstance(applicationContext)
 
         val today = LocalDate.now()
@@ -439,8 +438,7 @@ class WorkoutActivity : AppCompatActivity() {
         val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
         val exerciseListViewAdapter = ExerciseListViewAdapter(exerciseList, db, exerciseListView, Notifier())
         exerciseListView.itemAnimator = null
-        exerciseListView.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        exerciseListView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         exerciseListView.adapter = exerciseListViewAdapter
         // do not scroll on first open
         //exerciseListView.scrollToPosition(exerciseList.size - 1)
@@ -503,7 +501,7 @@ class WorkoutActivity : AppCompatActivity() {
                 val exerciseModelId = bundle.getLong("exerciseID", -1L)
                 if (exerciseModelId == -1L) return@setFragmentResultListener
 
-                val exercise = Exercise(0, exerciseModelId, today, exerciseList.size, workout.workoutId)
+                val exercise = Exercise(0, exerciseModelId, workout.date, exerciseList.size, workout.workoutId)
                 runBlocking {
                     exercise.exerciseId = db.exerciseDao().addExerciseSet(exercise)
                 }

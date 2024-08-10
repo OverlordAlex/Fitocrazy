@@ -1,6 +1,9 @@
 package com.itsabugnotafeature.fitocrazy.workout.addExercise
 
+import android.animation.ObjectAnimator
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.RotateDrawable
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
@@ -8,7 +11,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.view.WindowManager.LayoutParams
+import android.view.animation.RotateAnimation
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
@@ -16,8 +21,10 @@ import android.widget.Button
 import android.widget.RadioButton
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.core.widget.doOnTextChanged
@@ -142,9 +149,10 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
         chipList.forEach { chipName ->
             val newChip = Chip(context)
             newChip.text = chipName
-            newChip.setChipBackgroundColorResource(R.color.orange_main)
+            newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
             newChip.isCheckable = true
-            newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.white) } ?: R.color.white)
+            newChip.setCheckedIconTintResource(R.color.blue_main)
+            newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.black) } ?: R.color.black)
 
             chipGroup.addView(newChip)
         }
@@ -153,14 +161,23 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
         val autocomplete = view.findViewById<AutoCompleteTextView>(R.id.autocomplete_addExercise)
 
         val detailLayout = view.findViewById<ConstraintLayout>(R.id.layout_addExerciseToWorkout)
-        view.findViewById<TextView>(R.id.label_ExpandNewExerciseGroup).setOnClickListener {
+        val labelExpandExerciseGroup = view.findViewById<TextView>(R.id.label_ExpandNewExerciseGroup)
+        val drawerOpened = AppCompatResources.getDrawable(requireContext(), R.drawable.drawer_opened)
+//        labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(drawerOpened, null, null, null)
+        labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(R.drawable.drawer_closed, 0, 0, 0)
+
+        labelExpandExerciseGroup.setOnClickListener {
             val visible: Int = if (detailLayout.visibility == View.GONE) {
                 autocomplete.isEnabled = false
                 addExerciseButton.isEnabled = true
+                labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(R.drawable.drawer_opened, 0, 0, 0)
+
                 View.VISIBLE
             } else {
                 autocomplete.isEnabled = true
                 autocomplete.requestFocus()
+                labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(R.drawable.drawer_closed, 0, 0, 0)
+
                 View.GONE
             }
 
@@ -290,6 +307,12 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
             }
             dismiss()
         }
+        dialog?.setCanceledOnTouchOutside(true)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setStyle(STYLE_NO_TITLE, R.style.Dialog_NewExercise)
     }
 
     override fun onCreateView(

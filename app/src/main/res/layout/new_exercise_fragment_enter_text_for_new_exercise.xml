@@ -3,18 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/frameLayout"
+    style="@style/Dialog.NewExercise"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/rounded_corner_dialog"
+    android:padding="4dp"
     tools:context=".workout.addExercise.EnterTextForNewExerciseFragment">
 
     <TextView
         android:id="@+id/label_enterNewExerciseComponentText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:labelFor="@+id/textEntry_newExerciseComponentText"
         android:text="@string/label_enterNewExerciseComponentText"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:labelFor="@+id/textEntry_newExerciseComponentText" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/textEntry_newExerciseComponentText"

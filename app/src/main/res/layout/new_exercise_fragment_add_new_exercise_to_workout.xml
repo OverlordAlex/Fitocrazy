@@ -5,13 +5,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layout_addNewExercise_parent"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:padding="4dp"
+    style="@style/Dialog.NewExercise"
+    android:background="@drawable/rounded_corner_dialog" >
+
 
     <TextView
         android:id="@+id/label_ExpandNewExerciseGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:drawableStart="@drawable/drawer_closed"
+        android:gravity="center_vertical"
         android:text="@string/label_ExpandNewExerciseGroup"
+        android:textColor="@color/slate_dark"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/autocomplete_addExercise" />
 
@@ -23,110 +31,130 @@
         android:padding="32dp"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@+id/label_ExpandNewExerciseGroup"
-        tools:context=".workout.addExercise.AddNewExerciseToWorkoutFragment">
+        tools:context=".workout.addExercise.AddNewExerciseToWorkoutFragment"
+        tools:layout_editor_absoluteX="4dp">
 
         <TextView
             android:id="@+id/label_addExercise"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/label_addExercise"
-            app:layout_constraintBottom_toTopOf="@id/spinner_equipment"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            tools:layout_editor_absoluteX="32dp"
+            tools:layout_editor_absoluteY="32dp" />
 
-        <Spinner
-            android:id="@+id/spinner_equipment"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minHeight="64dp"
-            android:spinnerMode="dropdown"
-            app:layout_constraintBottom_toTopOf="@id/spinner_position"
-            app:layout_constraintEnd_toEndOf="@+id/spinner_position"
-            app:layout_constraintEnd_toStartOf="@id/btn_addNewEquipment"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/label_addExercise" />
+        <LinearLayout
+            android:id="@+id/layout_itemComponentsGroup"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            tools:layout_editor_absoluteX="32dp"
+            tools:layout_editor_absoluteY="32dp">
 
-        <Button
-            android:id="@+id/btn_addNewEquipment"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="0dp"
-            android:text="@string/btn_addNewEquipment"
-            app:layout_constraintBottom_toBottomOf="@+id/spinner_equipment"
-            app:layout_constraintEnd_toEndOf="@+id/btn_addNewLocation"
-            app:layout_constraintTop_toTopOf="@+id/spinner_equipment" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
 
-        <Spinner
-            android:id="@+id/spinner_position"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minHeight="64dp"
-            android:spinnerMode="dropdown"
-            app:layout_constraintBottom_toBottomOf="@id/spinner_movement"
-            app:layout_constraintEnd_toEndOf="@+id/spinner_movement"
-            app:layout_constraintEnd_toStartOf="@id/btn_addNewLocation"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_equipment" />
+                <Spinner
+                    android:id="@+id/spinner_equipment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="64dp"
+                    android:spinnerMode="dropdown" />
 
-        <Button
-            android:id="@+id/btn_addNewLocation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="0dp"
-            android:text="@string/btn_addNewEquipment"
-            app:layout_constraintBottom_toBottomOf="@+id/spinner_position"
-            app:layout_constraintEnd_toEndOf="@+id/btn_addNewMovement"
-            app:layout_constraintTop_toTopOf="@+id/spinner_position" />
+                <Button
+                    android:id="@+id/btn_addNewEquipment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/blue_secondary"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="@string/btn_addNewEquipment"
+                    android:textColor="@color/white" />
+            </LinearLayout>
 
-        <Spinner
-            android:id="@+id/spinner_movement"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minHeight="64dp"
-            android:spinnerMode="dropdown"
-            app:layout_constraintEnd_toEndOf="@id/btn_addNewMovement"
-            app:layout_constraintEnd_toStartOf="@id/btn_addNewMovement"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_position" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btn_addNewMovement"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="0dp"
-            android:text="@string/btn_addNewEquipment"
-            app:layout_constraintBottom_toBottomOf="@+id/spinner_movement"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/spinner_movement"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_position" />
+                <Spinner
+                    android:id="@+id/spinner_position"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="64dp"
+                    android:spinnerMode="dropdown" />
+
+                <Button
+                    android:id="@+id/btn_addNewLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/blue_secondary"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="@string/btn_addNewEquipment"
+                    android:textColor="@color/white" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <Spinner
+                    android:id="@+id/spinner_movement"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="64dp"
+                    android:spinnerMode="dropdown" />
+
+                <Button
+                    android:id="@+id/btn_addNewMovement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/blue_secondary"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="@string/btn_addNewEquipment"
+                    android:textColor="@color/white" />
+            </LinearLayout>
+        </LinearLayout>
 
         <RadioGroup
             android:id="@+id/radioGroup_exerciseType"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
             app:layout_constraintBottom_toTopOf="@id/chipGroup_exerciseTags"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/spinner_movement">
+            app:layout_constraintTop_toBottomOf="@id/layout_itemComponentsGroup">
 
             <RadioButton
                 android:id="@+id/radio_isMachineExercise"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:buttonTint="@color/purple_main"
                 android:text="Machine" />
 
             <RadioButton
                 android:id="@+id/radio_isFreeWeightExercise"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:buttonTint="@color/purple_main"
                 android:text="Free Weight" />
 
             <RadioButton
                 android:id="@+id/radio_isCompoundExercise"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:buttonTint="@color/purple_main"
                 android:text="Compound" />
         </RadioGroup>
 
@@ -147,18 +175,20 @@
         android:id="@+id/autocomplete_addExercise"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:hint="@string/autocomplete_addExercise"
         android:saveEnabled="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:hint="@string/autocomplete_addExercise" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/btn_addExercise"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:backgroundTint="@color/purple_main"
         android:enabled="false"
         android:text="@string/btn_addExercise"
+        android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/layout_addExerciseToWorkout" />
 </androidx.constraintlayout.widget.ConstraintLayout>
