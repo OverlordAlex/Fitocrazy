@@ -178,9 +178,6 @@ interface ExerciseDao {
     @Query("SELECT * FROM `Set` s JOIN (SELECT * FROM Exercise ORDER BY date DESC LIMIT 1, :nSets) as E ON s.exerciseId=E.exerciseId WHERE E.exerciseModelId=:exerciseModelId AND E.date < :excludeDate")
     suspend fun getHistoricalSets(exerciseModelId: Long, nSets: Int, excludeDate: Long? = 0): Map<Exercise, List<Set>>
 
-    @Query("SELECT * FROM Exercise WHERE date = :date")
-    suspend fun getListOfExercise(date: LocalDate): List<Exercise>
-
     @Query("SELECT * FROM Exercise WHERE workoutId = :workoutId")
     suspend fun getListOfExerciseInWorkout(workoutId: Long): List<Exercise>
 
