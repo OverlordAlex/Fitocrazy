@@ -214,8 +214,7 @@
             android:layout_weight="1"
             android:background="@color/blue_accent_light"
             app:cardBackgroundColor="@color/blue_accent_light"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="2dp">
+            app:cardElevation="0dp">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/list_exercisesInCurrentWorkout"
