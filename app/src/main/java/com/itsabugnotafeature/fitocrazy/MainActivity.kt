@@ -1,5 +1,7 @@
 package com.itsabugnotafeature.fitocrazy
 
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -19,30 +21,32 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.Workout
+import com.itsabugnotafeature.fitocrazy.common.WorkoutRecordView
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.NOTIFICATION_ID
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.itsabugnotafeature.fitocrazy.workout.WorkoutStatsViewModel
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
+
 class MainActivity : AppCompatActivity() {
 
     private val CHANNEL_ID = "FitoCrazyCurrentExerciseChannel"
     private lateinit var workoutListViewAdapter: WorkoutListViewAdapter
+    private var workoutStats: WorkoutRecordView? = null
 
     class WorkoutListViewAdapter(
-        var workoutList: MutableList<Workout>, private val workoutLauncher: ActivityResultLauncher<Intent>
+        var workoutList: MutableList<Workout>, private val workoutLauncher: ActivityResultLauncher<Intent>,
+        val workoutStats: WorkoutRecordView?,
     ) : RecyclerView.Adapter<WorkoutListViewAdapter.ViewHolder>() {
         var lastOpened: ViewHolder? = null
 
@@ -70,15 +74,33 @@ class MainActivity : AppCompatActivity() {
             fun bind(
                 currentWorkout: Workout,
             ) {
-                itemView.findViewById<TextView>(R.id.label_workoutDate).text = if (LocalDate.now() == currentWorkout.date) {
-                    itemView.context.getString(R.string.today)
-                } else {
-                    currentWorkout.date.format(DateTimeFormatter.ofPattern("dd LLLL yyyy"))
-                }
+                itemView.findViewById<TextView>(R.id.label_workoutDate).text =
+                    if (LocalDate.now() == currentWorkout.date) {
+                        itemView.context.getString(R.string.today)
+                    } else {
+                        currentWorkout.date.format(DateTimeFormatter.ofPattern("dd LLLL yyyy"))
+                    }
 
                 itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).text =
                     itemView.context.getString(R.string.number_of_exercises_in_workout, currentWorkout.totalExercises)
-                itemView.findViewById<TextView>(R.id.label_workoutPoints).text =
+
+                val labelWorkoutPoints = itemView.findViewById<TextView>(R.id.label_workoutPoints)
+                // do a nice color animation on points more than the last 10 average
+                if (currentWorkout.totalPoints > (workoutStats?.avgTotalPoints ?: 0.0)) {
+                    val colorFrom: Int = itemView.context.getColor(R.color.blue_main)
+                    val colorTo: Int = itemView.context.getColor(R.color.blue_accent)
+
+                    val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo)
+                    colorAnimation.setDuration(1000) // milliseconds
+                    colorAnimation.repeatCount = ValueAnimator.INFINITE
+                    colorAnimation.repeatMode = ValueAnimator.REVERSE
+                    colorAnimation.addUpdateListener { animator -> labelWorkoutPoints.setTextColor(animator.animatedValue as Int) }
+                    colorAnimation.start()
+                } else {
+                    labelWorkoutPoints.clearAnimation()
+                }
+
+                labelWorkoutPoints.text =
                     itemView.context.getString(R.string.total_points_in_workout, currentWorkout.totalPoints)
 
                 itemView.findViewById<TextView>(R.id.label_workoutTotalWeightValue).text =
@@ -178,8 +200,10 @@ class MainActivity : AppCompatActivity() {
 
         val db = ExerciseDatabase.getInstance(applicationContext)
         val workoutList = runBlocking {
+            workoutStats = db.exerciseDao().getWorkoutStats()
             db.exerciseDao().listWorkouts()
         }
+
 
         val goToWorkout =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
@@ -198,7 +222,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-        workoutListViewAdapter = WorkoutListViewAdapter(workoutList, goToWorkout)
+        workoutListViewAdapter = WorkoutListViewAdapter(workoutList, goToWorkout, workoutStats)
         val workoutListView = findViewById<RecyclerView>(R.id.list_allWorkoutsHomepage)
         workoutListView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         workoutListView.adapter = workoutListViewAdapter

@@ -18,6 +18,37 @@
         android:background="#FFFFFF"
         android:padding="8dp">
 
+        <LinearLayout
+            android:id="@+id/layout_achievementsList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toStartOf="@id/label_exerciseNameOnCard"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/img_achievementMostMoved"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:srcCompat="@drawable/achievement_mostmoved" />
+
+            <ImageView
+                android:id="@+id/img_achievementMostReps"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:srcCompat="@drawable/achievement_mostreps" />
+
+            <ImageView
+                android:id="@+id/img_achievementMostWeight"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:srcCompat="@drawable/achievement_mostweight" />
+        </LinearLayout>
+
         <TextView
             android:id="@+id/label_exerciseNameOnCard"
             android:layout_width="wrap_content"
@@ -25,7 +56,7 @@
             android:textColor="@color/slate_dark"
             android:textSize="20sp"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/layout_achievementsList"
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.chip.ChipGroup

@@ -18,8 +18,12 @@ import androidx.room.RoomDatabase
 import androidx.room.Transaction
 import androidx.room.TypeConverters
 import androidx.room.Update
+import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.ExerciseRecord
+import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.PointsResult
+import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.RecordType
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseView
 import java.time.LocalDate
+import kotlin.math.pow
 
 enum class ExerciseComponentType {
     EQUIPMENT, LOCATION, MOVEMENT
@@ -108,6 +112,11 @@ data class SetRecordView(
     val mostWeightMoved: Double,
 )
 
+@DatabaseView("SELECT avg(totalPoints) AS avgTotalPoints FROM (SELECT totalPoints FROM Workout ORDER BY date DESC LIMIT 10)")
+data class WorkoutRecordView(
+    val avgTotalPoints: Double
+)
+
 @Entity
 data class Workout(
     @PrimaryKey(autoGenerate = true) var workoutId: Long,
@@ -123,13 +132,70 @@ data class Workout(
 
     var topTags: String = "",
 ) {
+    fun recalculateWorkoutTotals(exerciseList: List<ExerciseView>) {
+        totalWeight = 0.0
+        totalReps = 0
+        totalSets = 0
+        totalPoints = 0
+        totalExercises = exerciseList.size
 
-    /*fun recalculateWorkout(exerciseList: List<ExerciseView>) {
-        totalWeight += set.weight * set.reps
-        totalReps += exerciseList.fold(0) { acc: Int, ex: ExerciseView -> acc + ex.sets. }
-        totalSets += 1
-        totalPoints = exerciseList.fold(0) { acc: Int, ex: ExerciseView -> acc + calculatePoints(ex).points }
-    }*/
+        exerciseList.forEach { exercise ->
+            totalSets += exercise.sets.size
+            totalReps += exercise.sets.fold(0) {acc, set -> acc + set.reps}
+            totalWeight += exercise.sets.fold(0.0) {acc, set -> acc + (set.reps * set.weight)}
+            totalPoints += calculatePoints(exercise).points
+        }
+    }
+
+    // TODO save on recalculate
+    // TODO: when do we update the max records? end of workout right? exercise not populating records oncreate?
+    fun calculatePoints(exercise: ExerciseView): PointsResult {
+        if (exercise.sets.isEmpty()) return PointsResult(0, emptyList())
+
+        var points: Double = 0.0
+        val records: MutableList<ExerciseRecord> = mutableListOf()
+
+        val maxWeightThisSet = exercise.sets.maxOf { it.weight }
+        val maxRepsThisSet = exercise.sets.maxOf { it.reps }
+        val maxMovedThisSet = exercise.sets.maxOf { it.weight * it.reps }
+
+        var exerciseMaxWeight = exercise.record?.maxWeight ?: 0.0
+        val exerciseMaxReps = exercise.record?.maxReps ?: 0
+        val exerciseMaxMoved = exercise.record?.mostWeightMoved ?: 0.0
+
+        if (maxWeightThisSet > exerciseMaxWeight) {
+            points += 75
+            records.add(ExerciseRecord(exercise.record?.maxWeight ?: 0.0, maxWeightThisSet, RecordType.MAX_WEIGHT))
+            exerciseMaxWeight = maxWeightThisSet
+        }
+
+        if (maxRepsThisSet > exerciseMaxReps) {
+            points += 25
+            records.add(ExerciseRecord(exercise.record?.maxReps ?: 0.0, maxRepsThisSet, RecordType.MAX_REPS))
+        }
+
+        if (maxMovedThisSet > exerciseMaxMoved) {
+            points += 50
+            records.add(
+                ExerciseRecord(
+                    exercise.record?.mostWeightMoved ?: 0.0, maxMovedThisSet, RecordType.MAX_WEIGHT_MOVED
+                )
+            )
+        }
+
+        exercise.sets.forEach {
+            val repMultiplier: Double = when {
+                it.reps <= 4 -> 0.9
+                it.reps <= 8 -> 1.0
+                else -> 1.05
+            }
+
+            points += exercise.basePoints.toDouble()
+                .pow((it.weight / exerciseMaxWeight)) * (it.reps * repMultiplier)
+        }
+
+        return PointsResult(points.toInt(), records)
+    }
 }
 
 @Dao
@@ -210,12 +276,15 @@ interface ExerciseDao {
 
     @Delete
     suspend fun deleteWorkout(workout: Workout)
+
+    @Query("SELECT * FROM WorkoutRecordView LIMIT 1")
+    suspend fun getWorkoutStats(): WorkoutRecordView?
 }
 
 @Database(
     entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class],
-    views = [SetRecordView::class],
-    version = 7
+    views = [SetRecordView::class, WorkoutRecordView::class],
+    version = 8
 )
 @TypeConverters(Converters::class)
 abstract class ExerciseDatabase : RoomDatabase() {

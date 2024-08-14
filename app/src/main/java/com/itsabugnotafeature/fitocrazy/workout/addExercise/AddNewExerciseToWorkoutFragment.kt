@@ -1,19 +1,13 @@
 package com.itsabugnotafeature.fitocrazy.workout.addExercise
 
-import android.animation.ObjectAnimator
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.RotateDrawable
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.Window
 import android.view.WindowManager.LayoutParams
-import android.view.animation.RotateAnimation
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
@@ -24,9 +18,7 @@ import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.bundleOf
-import androidx.core.view.ViewCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
@@ -153,9 +145,27 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
             newChip.isCheckable = true
             newChip.setCheckedIconTintResource(R.color.blue_main)
             newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.black) } ?: R.color.black)
+            newChip.id = View.generateViewId()
+            newChip.setOnCheckedChangeListener { compoundButton, checked ->
+                if (checked) {
+                    if (chipGroup.checkedChipIds.size > 3) {
+                        val saved = chipGroup.checkedChipIds
+                        saved.remove(compoundButton.id)
+                        chipGroup.clearCheck()
+                        saved.forEach { chipGroup.check(it) } // seriously? this is the best way??
+                    }
+                }
+            }
 
             chipGroup.addView(newChip)
         }
+        //chipGroup.isSelectionRequired = true
+        /*chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
+            if (chipGroup.checkedChipIds.size > 3) {
+                //checkedIds.first()
+                chipGroup.
+            }
+        }*/
 
         val addExerciseButton: Button = view.findViewById(R.id.btn_addExercise)
         val autocomplete = view.findViewById<AutoCompleteTextView>(R.id.autocomplete_addExercise)
