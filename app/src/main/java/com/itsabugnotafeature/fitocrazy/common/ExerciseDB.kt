@@ -77,7 +77,7 @@ data class ExerciseAndExerciseModelCrossRef(
 @Entity
 data class Exercise(
     @PrimaryKey(autoGenerate = true) var exerciseId: Long,
-    val exerciseModelId: ExerciseModel,
+    val exerciseModelId: Long,
     val date: LocalDate,
     val order: Int,
     val workoutId: Long,
