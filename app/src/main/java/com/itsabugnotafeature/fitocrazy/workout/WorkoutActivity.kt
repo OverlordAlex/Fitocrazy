@@ -41,6 +41,7 @@ import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseWithComponentModel
 import com.itsabugnotafeature.fitocrazy.common.Set
+import com.itsabugnotafeature.fitocrazy.common.SetRecordView
 import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.workout.addExercise.AddNewExerciseToWorkoutFragment
 import kotlinx.coroutines.coroutineScope
@@ -101,6 +102,10 @@ import kotlin.math.pow
  *      - fix points on loading old workouts (points are read from DB instead of calculating
  *      - number of sets in notifcation should be the number at the current weight
  *      - the weight + reps enters should have more strict validation provded by android itself?
+ *      BUG: when too many body-part chips are assigned to an exercise it causes the remove-set button to hide
+ *      - points should be wholistic across all sets in an exercise
+ *      - toast/floating up emoji on adding points
+ *      - points per exercise in chip next to exercise name
  *
  * TODO notification
  *     - DONE ~~update when exercise added, set added, set removed~~
@@ -112,6 +117,16 @@ import kotlin.math.pow
  *     - DONE ~~ enhance set data with the number of sets at this weight~~
  *     - BUG: null pointer on notification trying to set exercise?
  *     - better text for the action
+ *
+ * TODO from actual workout
+ *      - notification action doesnt work if app backgrounded for a long time (either no workout added, or duplicate empty workouts created)
+ *      - need to be able to delete components (wants to put "seated" first on "seated dumbbell arnold press"
+ *      - go back to adding from the top - the new exercise button becomes confusing otherwise
+ *      - (scroll to bottom on open, or not if adding from top)
+ *      - add average weight per set ajd rep in the workout overview page
+ *      - the workout overview should format date as "today" when appropriate
+ *      - basic weight tracking
+ *      - changes for suspend/resume already identified
  *
  * TODO - never
  *      ? tint of chips should be per bodypart - right now its ordered by most frequent
@@ -127,8 +142,8 @@ class WorkoutActivity : AppCompatActivity() {
     lateinit var exerciseList: MutableList<ExerciseView>
 
     interface ExerciseNotification {
-        fun setAdded(exercise: ExerciseView, weight: Double, reps: Int): Unit
-        fun setRemoved(exerciseModelId: Long, weight: Double, reps: Int)
+        fun setAdded(exercise: ExerciseView, set: Set): Unit
+        fun setRemoved(exercise: ExerciseView, set: Set)
         fun exerciseDeleted()
     }
 
@@ -137,36 +152,11 @@ class WorkoutActivity : AppCompatActivity() {
         val tags: List<String>,
         val exercise: Exercise,
         val sets: MutableList<Set>,
+        val record: SetRecordView?,
+        val historicalSets: List<Pair<LocalDate, List<Set>>>,
     )
 
-    /**
-     * Requires exerciseID and basePoints from exerciseModelID
-     */
-    fun calculatePoints(exerciseModelId: Long, weight: Double, reps: Int): Int {
-        // we will never calculate points for an exercise that doesn't exist
-        var points: Double
-        runBlocking {
-            val exercise = db.exerciseDao().getExerciseDetails(exerciseModelId)!!
-            val record = db.exerciseDao().getRecord(exercise.exercise.exerciseId)
 
-            val basePoints = exercise.exercise.basePoints
-            val maxWeight = record?.maxWeight ?: weight
-            val maxReps = record?.maxReps ?: reps
-            val maxMoved = record?.mostWeightMoved ?: (weight * reps)
-
-            val repMultiplier: Double = when {
-                reps <= 4 -> 0.9
-                reps <= 8 -> 1.0
-                else -> 1.05
-            }
-
-            points = basePoints.toDouble().pow((weight / maxWeight)) * (reps * repMultiplier)
-            if (weight > maxWeight) points += 50
-            if (reps > maxReps) points += 50
-            if ((weight * reps) > maxMoved) points += 50
-        }
-        return points.toInt()
-    }
 
     // the parent list of exercises in a workout
     class ExerciseListViewAdapter(
@@ -178,7 +168,6 @@ class WorkoutActivity : AppCompatActivity() {
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             fun bind(
                 currentExercise: ExerciseView,
-                exerciseHistory: SortedMap<Exercise, List<Set>>,
             ) {
                 val weightEditText = itemView.findViewById<EditText>(R.id.numberEntry_addKilogramsToThisExercise)
                 val lastSet = currentExercise.sets.lastOrNull()
@@ -221,17 +210,19 @@ class WorkoutActivity : AppCompatActivity() {
                 val exerciseSetsScrollLayout = itemView.findViewById<LinearLayout>(R.id.layout_listOfSetsOnExerciseCard)
                 exerciseSetsScrollLayout.removeAllViews()
 
-                exerciseHistory.forEach { (workout, sets) ->
+                // TODO
+
+                currentExercise.historicalSets.forEach { (workoutDate, setList) ->
                     val setListView = LayoutInflater.from(parent.context).inflate(
                         R.layout.workout_exercise_set_list_horizontal_container,
                         parent,
                         false
                     )
-                    setListView.findViewById<TextView>(R.id.label_setDate).text = workout.date.format(dateFormatter)
+                    setListView.findViewById<TextView>(R.id.label_setDate).text = workoutDate.format(dateFormatter)
 
                     val setWeightString = StringBuilder()
                     val setRepsString = StringBuilder()
-                    for (set in sets) {
+                    for (set in setList) {
                         setWeightString.appendLine("${formatDoubleWeight(set.weight)} x")
                         setRepsString.appendLine(set.reps)
                     }
@@ -283,14 +274,11 @@ class WorkoutActivity : AppCompatActivity() {
                         notifier.exerciseDeleted()
                         notifyItemRemoved(adapterPosition)
                     } else {
+                        val removedSet = currentExercise.sets.removeLast()
                         runBlocking {
-                            db.exerciseDao().deleteSetFromExercise(currentExercise.sets.removeLast())
+                            db.exerciseDao().deleteSetFromExercise(removedSet)
                         }
-                        notifier.setRemoved(
-                            currentExercise.exercise.exerciseModelId,
-                            currentExercise.sets.last().weight,
-                            currentExercise.sets.last().reps
-                        )
+                        notifier.setRemoved(currentExercise, removedSet)
                         notifyItemChanged(adapterPosition)
                     }
                 }
@@ -312,7 +300,7 @@ class WorkoutActivity : AppCompatActivity() {
                     )
                     runBlocking { set.setID = db.exerciseDao().addSetToExercise(set) }
                     currentExercise.sets.add(set)
-                    notifier.setAdded(currentExercise, set.weight, set.reps)
+                    notifier.setAdded(currentExercise, set)
                     notifyItemChanged(adapterPosition)
                 }
             }
@@ -328,13 +316,9 @@ class WorkoutActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             if (exerciseList.isEmpty()) return
             val currentExercise = exerciseList[position]
+            holder.bind(currentExercise)
 
-            runBlocking {
-                val historicalSets = db.exerciseDao().getHistoricalSets(
-                    currentExercise.exercise.exerciseModelId,
-                    3,
-                    currentExercise.exercise.toTimeStamp()
-                ).toSortedMap()
+            /*runBlocking {
                 val exerciseModel = db.exerciseDao().getExerciseDetails(currentExercise.exercise.exerciseModelId)!!
                 val displayName = exerciseModel.exercise.displayName
                 val chips = exerciseModel.exercise.getChips()
@@ -344,9 +328,11 @@ class WorkoutActivity : AppCompatActivity() {
                         tags = chips,
                         exercise = currentExercise.exercise,
                         sets = currentExercise.sets,
-                    ), historicalSets
+                        record = currentExercise.record,
+                        historicalSets = currentExercise.historicalSets
+                    ),
                 )
-            }
+            }*/
         }
 
     }
@@ -480,15 +466,19 @@ class WorkoutActivity : AppCompatActivity() {
 
             exercises = db.exerciseDao().getListOfExerciseInWorkout(workout.workoutId)
             exerciseList =
-                exercises.map {
+                exercises.map { exercise ->
+                    val exerciseModel = db.exerciseDao().getExerciseDetails(exercise.exerciseModelId)!!
                     ExerciseView(
-                        displayName = "",
-                        tags = emptyList(),
-                        exercise = it,
-                        sets = db.exerciseDao().getSets(it.exerciseId).toMutableList(),
+                        displayName = exerciseModel.exercise.displayName,
+                        tags = exerciseModel.exercise.getChips(),
+                        exercise = exercise,
+                        sets = db.exerciseDao().getSets(exercise.exerciseId).toMutableList(),
+                        record = db.exerciseDao().getRecord(exercise.exerciseId),
+                        historicalSets = db.exerciseDao()
+                            .getHistoricalSets(exercise.exerciseModelId, 3, exercise.toTimeStamp())
+                            .toSortedMap().map { Pair(it.key.date, it.value) }
                     )
                 }.toMutableList()
-            //                exercises.map { Pair(it, db.exerciseDao().getSets(it.exerciseId).toMutableList()) }.toMutableList()
 
             val latestExercise = exerciseList.lastOrNull()
             val exerciseModel = db.exerciseDao().getExerciseDetails(latestExercise?.exercise?.exerciseModelId ?: -1)
@@ -502,7 +492,8 @@ class WorkoutActivity : AppCompatActivity() {
                 exerciseId = latestExercise?.exercise?.exerciseId,
                 displayName = exerciseModel?.exercise?.displayName,
                 set = latestExercise?.sets?.lastOrNull(),
-                numPrevSets = latestExercise?.sets?.takeLastWhile { it.weight == latestExercise.sets.last().weight }?.count(),
+                numPrevSets = latestExercise?.sets?.takeLastWhile { it.weight == latestExercise.sets.last().weight }
+                    ?.count(),
                 totalSets = latestExercise?.sets?.size
             )
         }
@@ -521,11 +512,8 @@ class WorkoutActivity : AppCompatActivity() {
         val setTimeTimer = findViewById<Chronometer>(R.id.timer_timeAfterLastSet)
 
         class Notifier : ExerciseNotification {
-            override fun setAdded(exercise: ExerciseView, weight: Double, reps: Int) {
-                workout.totalWeight += weight * reps
-                workout.totalReps += reps
-                workout.totalSets += 1
-                workout.totalPoints += calculatePoints(exercise.exercise.exerciseModelId, weight, reps)
+            override fun setAdded(exercise: ExerciseView, set: Set) {
+
 
                 totalWeightLabel.text = workout.totalWeight.toString()
                 totalRepsLabel.text = workout.totalReps.toString()
@@ -538,10 +526,6 @@ class WorkoutActivity : AppCompatActivity() {
                     setTimerIsActive = true
                 }
 
-                val exerciseModel = runBlocking {
-                    db.exerciseDao().getExerciseDetails(exercise.exercise.exerciseModelId)
-                }
-
                 showNotification(
                     parentActivityIntent = parentActivityIntent,
                     totalExercises = workout.totalExercises,
@@ -549,24 +533,22 @@ class WorkoutActivity : AppCompatActivity() {
                     chronometerBase = SystemClock.elapsedRealtime(),
                     chronometerRunning = (today == workout.date),
                     exerciseId = exercise.exercise.exerciseId,
-                    displayName = exerciseModel?.exercise?.displayName,
+                    displayName = exercise.displayName,
                     set = exercise.sets.lastOrNull(),
                     numPrevSets = exercise.sets.takeLastWhile { it.weight == exercise.sets.last().weight }.count(),
                     totalSets = exercise.sets.size
                 )
             }
 
-            override fun setRemoved(exerciseModelId: Long, weight: Double, reps: Int) {
-                workout.totalWeight -= weight * reps
-                workout.totalReps -= reps
+            override fun setRemoved(exercise: ExerciseView, set: Set) {
+                workout.totalWeight -= set.weight * set.reps
+                workout.totalReps -= set.reps
                 workout.totalSets -= 1
-                workout.totalPoints -= calculatePoints(exerciseModelId, weight, reps)
+                workout.totalPoints = exerciseList.fold(0) { acc: Int, ex: ExerciseView -> acc + calculatePoints(ex).points }
 
                 totalWeightLabel.text = workout.totalWeight.toString()
                 totalRepsLabel.text = workout.totalReps.toString()
                 totalPointsLabel.text = workout.totalPoints.toString()
-
-                val exerciseModel = runBlocking { db.exerciseDao().getExerciseDetails(exerciseModelId) }
 
                 showNotification(
                     parentActivityIntent = parentActivityIntent,
@@ -575,7 +557,7 @@ class WorkoutActivity : AppCompatActivity() {
                     chronometerBase = SystemClock.elapsedRealtime(),
                     chronometerRunning = false,
                     exerciseId = null,
-                    displayName = exerciseModel?.exercise?.displayName,
+                    displayName = exercise.displayName,
                     set = null,
                     numPrevSets = null,
                     totalSets = null
@@ -628,7 +610,7 @@ class WorkoutActivity : AppCompatActivity() {
                     val exercise = exerciseList.find { it.exercise.exerciseId == exerciseId }!!
                     exercise.sets.add(set)
 
-                    notifier.setAdded(exercise, set.weight, set.reps)
+                    notifier.setAdded(exercise, set)
                     exerciseListViewAdapter.notifyItemChanged(exerciseList.indexOf(exercise))
                 }
             }
@@ -724,9 +706,15 @@ class WorkoutActivity : AppCompatActivity() {
 
                 val exercise = Exercise(0, exerciseModelId, workout.date, exerciseList.size, workout.workoutId)
                 var exerciseModel: ExerciseWithComponentModel?
+                val record: SetRecordView?
+                val historicalSets: List<Pair<LocalDate, List<Set>>>
                 runBlocking {
                     exercise.exerciseId = db.exerciseDao().addExerciseSet(exercise)
                     exerciseModel = db.exerciseDao().getExerciseDetails(exercise.exerciseModelId)
+                    record = db.exerciseDao().getRecord(exercise.exerciseId)
+                    historicalSets =
+                        db.exerciseDao().getHistoricalSets(exercise.exerciseModelId, 3, exercise.toTimeStamp())
+                            .toSortedMap().toList().map { Pair(it.first.date, it.second) }
                 }
                 exerciseList.add(
                     ExerciseView(
@@ -734,6 +722,8 @@ class WorkoutActivity : AppCompatActivity() {
                         tags = exerciseModel?.exercise?.getChips() ?: emptyList(),
                         exercise = exercise,
                         sets = mutableListOf(),
+                        record = record,
+                        historicalSets = historicalSets,
                     )
                 )
                 exerciseListViewAdapter.notifyItemInserted(exerciseList.size - 1)
@@ -780,6 +770,60 @@ class WorkoutActivity : AppCompatActivity() {
                 String.format(Locale.US, "%.2f", (weight * 100).toInt() / 100.0)
             }
         }
+
+        enum class RecordType { MAX_WEIGHT, MAX_REPS, MAX_WEIGHT_MOVED }
+        data class ExerciseRecord(val oldBest: Number, val newBest:Number, val recordType: RecordType)
+        data class PointsResult(val points: Int, val records: List<ExerciseRecord>)
+
+        // TODO: when do we update the max records? end of workout right? exercise not populating records oncreate?
+        fun calculatePoints(exercise: ExerciseView): PointsResult {
+            if (exercise.sets.isEmpty()) return PointsResult(0, emptyList())
+
+            var points: Double = 0.0
+            val records: MutableList<ExerciseRecord> = mutableListOf()
+
+            val basePoints = runBlocking {
+                // we will never calculate points for an exercise that doesn't exist
+                ExerciseDatabase.getInstance(context).exerciseDao().getExerciseDetails(exercise.exercise.exerciseModelId)!!.exercise.basePoints
+            }
+
+            val maxWeightThisSet = exercise.sets.maxOf { it.weight }
+            val maxRepsThisSet = exercise.sets.maxOf { it.reps }
+            val maxMovedThisSet = exercise.sets.maxOf { it.weight * it.reps }
+
+            var exerciseMaxWeight = exercise.record?.maxWeight ?: 0.0
+            val exerciseMaxReps = exercise.record?.maxReps?: 0
+            val exerciseMaxMoved = exercise.record?.mostWeightMoved ?: 0.0
+
+            if (maxWeightThisSet > exerciseMaxWeight) {
+                points += 75
+                records.add(ExerciseRecord(exercise.record?.maxWeight ?: 0.0, maxWeightThisSet, RecordType.MAX_WEIGHT))
+                exerciseMaxWeight = maxWeightThisSet
+            }
+
+            if (maxRepsThisSet > exerciseMaxReps) {
+                points += 25
+                records.add(ExerciseRecord(exercise.record?.maxReps ?: 0.0, maxRepsThisSet, RecordType.MAX_REPS))
+            }
+
+            if (maxMovedThisSet > exerciseMaxMoved) {
+                points += 50
+                records.add(ExerciseRecord(exercise.record?.mostWeightMoved ?: 0.0, maxMovedThisSet, RecordType.MAX_WEIGHT_MOVED))
+            }
+
+            exercise.sets.forEach {
+                val repMultiplier: Double = when {
+                    it.reps <= 4 -> 0.9
+                    it.reps <= 8 -> 1.0
+                    else -> 1.05
+                }
+
+                points += basePoints.toDouble().pow((it.weight / exerciseMaxWeight)) * (it.reps * repMultiplier)
+            }
+
+            return PointsResult(points.toInt(), records)
+        }
+
 
         init {
             decimalFormatter.roundingMode = RoundingMode.FLOOR

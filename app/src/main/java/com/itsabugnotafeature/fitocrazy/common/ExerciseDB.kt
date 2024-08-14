@@ -18,6 +18,7 @@ import androidx.room.RoomDatabase
 import androidx.room.Transaction
 import androidx.room.TypeConverters
 import androidx.room.Update
+import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseView
 import java.time.LocalDate
 
 enum class ExerciseComponentType {
@@ -76,7 +77,7 @@ data class ExerciseAndExerciseModelCrossRef(
 @Entity
 data class Exercise(
     @PrimaryKey(autoGenerate = true) var exerciseId: Long,
-    val exerciseModelId: Long,
+    val exerciseModelId: ExerciseModel,
     val date: LocalDate,
     val order: Int,
     val workoutId: Long,
@@ -121,7 +122,15 @@ data class Workout(
     var totalTime: Long = 0,
 
     var topTags: String = "",
-)
+) {
+
+    /*fun recalculateWorkout(exerciseList: List<ExerciseView>) {
+        totalWeight += set.weight * set.reps
+        totalReps += exerciseList.fold(0) { acc: Int, ex: ExerciseView -> acc + ex.sets. }
+        totalSets += 1
+        totalPoints = exerciseList.fold(0) { acc: Int, ex: ExerciseView -> acc + calculatePoints(ex).points }
+    }*/
+}
 
 @Dao
 interface ExerciseDao {
@@ -206,7 +215,7 @@ interface ExerciseDao {
 @Database(
     entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class],
     views = [SetRecordView::class],
-    version = 6
+    version = 7
 )
 @TypeConverters(Converters::class)
 abstract class ExerciseDatabase : RoomDatabase() {

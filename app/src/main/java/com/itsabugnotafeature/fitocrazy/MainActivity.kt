@@ -19,6 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
@@ -27,7 +28,10 @@ import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.NOTIFICATION_ID
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -38,8 +42,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var workoutListViewAdapter: WorkoutListViewAdapter
 
     class WorkoutListViewAdapter(
-        var workoutList: MutableList<Workout>,
-        private val workoutLauncher: ActivityResultLauncher<Intent>
+        var workoutList: MutableList<Workout>, private val workoutLauncher: ActivityResultLauncher<Intent>
     ) : RecyclerView.Adapter<WorkoutListViewAdapter.ViewHolder>() {
         var lastOpened: ViewHolder? = null
 
@@ -67,8 +70,12 @@ class MainActivity : AppCompatActivity() {
             fun bind(
                 currentWorkout: Workout,
             ) {
-                itemView.findViewById<TextView>(R.id.label_workoutDate).text =
+                itemView.findViewById<TextView>(R.id.label_workoutDate).text = if (LocalDate.now() == currentWorkout.date) {
+                    itemView.context.getString(R.string.today)
+                } else {
                     currentWorkout.date.format(DateTimeFormatter.ofPattern("dd LLLL yyyy"))
+                }
+
                 itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).text =
                     itemView.context.getString(R.string.number_of_exercises_in_workout, currentWorkout.totalExercises)
                 itemView.findViewById<TextView>(R.id.label_workoutPoints).text =
@@ -115,8 +122,7 @@ class MainActivity : AppCompatActivity() {
 
                     workoutLauncher.launch(
                         Intent(
-                            itemView.context.applicationContext,
-                            WorkoutActivity::class.java
+                            itemView.context.applicationContext, WorkoutActivity::class.java
                         ).setAction("oldWorkoutStartedFromHome").putExtra("workoutId", currentWorkout.workoutId)
                     )
                 }
@@ -150,8 +156,7 @@ class MainActivity : AppCompatActivity() {
         override fun getItemCount() = workoutList.size
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WorkoutListViewAdapter.ViewHolder {
-            val view: View = LayoutInflater.from(parent.context)
-                .inflate(R.layout.workout_row, parent, false)
+            val view: View = LayoutInflater.from(parent.context).inflate(R.layout.workout_row, parent, false)
             return ViewHolder(view)
         }
 
@@ -165,9 +170,9 @@ class MainActivity : AppCompatActivity() {
 
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.layout_currentWorkout)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.layout_currentWorkout)) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
@@ -183,34 +188,24 @@ class MainActivity : AppCompatActivity() {
                         val workoutId = result.data?.getLongExtra("workoutId", -1L) ?: -1L
                         val position = workoutList.indexOfFirst { it.workoutId == workoutId }
                         if (position == -1) {
-                            runBlocking {
-                                workoutList.add(0, db.exerciseDao().getWorkout(workoutId)!!)
-                            }
+                            runBlocking { workoutList.add(0, db.exerciseDao().getWorkout(workoutId)!!) }
                             workoutListViewAdapter.notifyItemInserted(0)
                         } else {
-                            runBlocking {
-                                workoutList[position] = db.exerciseDao().getWorkout(workoutId)!!
-                            }
+                            runBlocking { workoutList[position] = db.exerciseDao().getWorkout(workoutId)!! }
                             workoutListViewAdapter.notifyItemChanged(position)
                         }
-
                     }
                 }
             }
-        //val createNewWorkout
 
         workoutListViewAdapter = WorkoutListViewAdapter(workoutList, goToWorkout)
         val workoutListView = findViewById<RecyclerView>(R.id.list_allWorkoutsHomepage)
-        workoutListView.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        workoutListView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         workoutListView.adapter = workoutListViewAdapter
 
         findViewById<Button>(R.id.btn_AddNewWorkout).setOnClickListener {
             goToWorkout.launch(
-                Intent(
-                    applicationContext,
-                    WorkoutActivity::class.java
-                ).setAction("newWorkoutStartedFromHome")
+                Intent(applicationContext, WorkoutActivity::class.java).setAction("newWorkoutStartedFromHome")
             )
         }
 
@@ -220,8 +215,7 @@ class MainActivity : AppCompatActivity() {
         val importance = NotificationManager.IMPORTANCE_LOW
         val mChannel = NotificationChannel(CHANNEL_ID, name, importance)
         mChannel.description = descriptionText
-        // Register the channel with the system. You can't change the importance
-        // or other notification behaviors after this.
+        // Register the channel with the system.
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(mChannel)
     }
@@ -229,6 +223,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        // no workouts may be running on this screen
         notificationManager.cancel(NOTIFICATION_ID)
     }
 }
