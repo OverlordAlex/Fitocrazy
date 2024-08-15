@@ -8,6 +8,7 @@ import androidx.room.DatabaseView
 import androidx.room.Delete
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.Insert
 import androidx.room.Junction
 import androidx.room.PrimaryKey
@@ -133,6 +134,8 @@ data class Workout(
 
     var topTags: String = "",
 ) {
+    @Ignore var currentSetTime: Long = 0
+
     fun recalculateWorkoutTotals(exerciseList: List<ExerciseView>) {
         totalWeight = 0.0
         totalReps = 0
@@ -273,7 +276,7 @@ interface ExerciseDao {
     suspend fun updateWorkout(workout: Workout)
 
     @Query("SELECT * FROM Workout ORDER BY date DESC")
-    fun listWorkouts(): Flow<List<Workout>>
+    suspend fun listWorkouts(): List<Workout>
 
     @Delete
     suspend fun deleteWorkout(workout: Workout)
@@ -311,7 +314,8 @@ abstract class ExerciseDatabase : RoomDatabase() {
                         context.applicationContext,
                         ExerciseDatabase::class.java,
                         DATABASE_NAME
-                    ).fallbackToDestructiveMigration().build()
+                    )//.fallbackToDestructiveMigration()
+                        .build()
 
                     INSTANCE = instance
                 }
