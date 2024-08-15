@@ -22,6 +22,7 @@ import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.Exerci
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.PointsResult
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.RecordType
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseView
+import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import kotlin.math.pow
 
@@ -272,7 +273,7 @@ interface ExerciseDao {
     suspend fun updateWorkout(workout: Workout)
 
     @Query("SELECT * FROM Workout ORDER BY date DESC")
-    suspend fun listWorkouts(): MutableList<Workout>
+    fun listWorkouts(): Flow<List<Workout>>
 
     @Delete
     suspend fun deleteWorkout(workout: Workout)

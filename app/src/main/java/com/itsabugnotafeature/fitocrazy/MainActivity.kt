@@ -31,6 +31,10 @@ import com.itsabugnotafeature.fitocrazy.common.WorkoutRecordView
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.NOTIFICATION_ID
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutStatsViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -45,7 +49,7 @@ class MainActivity : AppCompatActivity() {
     private var workoutStats: WorkoutRecordView? = null
 
     class WorkoutListViewAdapter(
-        var workoutList: MutableList<Workout>, private val workoutLauncher: ActivityResultLauncher<Intent>,
+        var workoutList: Flow<Workout>, private val workoutLauncher: ActivityResultLauncher<Intent>,
         val workoutStats: WorkoutRecordView?,
     ) : RecyclerView.Adapter<WorkoutListViewAdapter.ViewHolder>() {
         var lastOpened: ViewHolder? = null
@@ -183,6 +187,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onBindViewHolder(holder: WorkoutListViewAdapter.ViewHolder, position: Int) {
+
             holder.bind(workoutList[position])
         }
     }
@@ -199,18 +204,21 @@ class MainActivity : AppCompatActivity() {
         }
 
         val db = ExerciseDatabase.getInstance(applicationContext)
-        val workoutList = runBlocking {
+        /*val workoutList = runBlocking {
             workoutStats = db.exerciseDao().getWorkoutStats()
-            db.exerciseDao().listWorkouts()
+            db.exerciseDao().listWorkouts().distinctUntilChanged().withIndex()
+        }*/
+        runBlocking {
+            workoutStats = db.exerciseDao().getWorkoutStats()
         }
-
+        val workoutList = db.exerciseDao().listWorkouts().distinctUntilChanged().withIndex()
 
         val goToWorkout =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-                if (result.resultCode == Activity.RESULT_OK) {
+                /*if (result.resultCode == Activity.RESULT_OK) {
                     if (result.data?.getBooleanExtra("dataUpdated", false) == true) {
                         val workoutId = result.data?.getLongExtra("workoutId", -1L) ?: -1L
-                        val position = workoutList.indexOfFirst { it.workoutId == workoutId }
+                        val position = workoutList. { it.workoutId == workoutId }
                         if (position == -1) {
                             runBlocking { workoutList.add(0, db.exerciseDao().getWorkout(workoutId)!!) }
                             workoutListViewAdapter.notifyItemInserted(0)
@@ -219,7 +227,7 @@ class MainActivity : AppCompatActivity() {
                             workoutListViewAdapter.notifyItemChanged(position)
                         }
                     }
-                }
+                }*/
             }
 
         workoutListViewAdapter = WorkoutListViewAdapter(workoutList, goToWorkout, workoutStats)

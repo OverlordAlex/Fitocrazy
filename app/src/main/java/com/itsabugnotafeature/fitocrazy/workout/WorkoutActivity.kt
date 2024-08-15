@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -22,6 +23,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RemoteViews
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
@@ -89,15 +91,19 @@ import java.util.Locale
  *      - DONE ~~BUG: when too many body-part chips are assigned to an exercise it causes the remove-set button to hide
  *                 ~~- max 3 chips selectable?~~
  *      - DONE ~~exercise PRs in the exercise card in workout?~~
+ *      - DONE ~~highlight good points totals~~
+ *      - DONE ~~BUG: points dont make sense when adding and removing - could be related to bonus? in fact all stats are not loaded correctly~~
+ *      - DONE ~~BUG records are not updated when set is removed?~~ <- its a view? shouldnt be possible
+ *      - DONE ~~the workout overview should format date as "today" when appropriate~~
+ *      - DONE ~~toast/floating up emoji on adding points~~
  *
  * TODO
- *      - bring points to the spinners on exercise type for more flexibility?
  *      - handle background running and all on-resume stuff
  *      - allow editing of exercise components
+ *      - full navigation over haul
+ *      - add graphs for exercise history
  *      - "enter" when creating a new exercise component does weird stuff (should trim+enter)
- *      - highlight good points totals
  *      - profile statistics
- *      - BUG: points dont make sense when adding and removing - could be related to bonus? in fact all stats are not loaded correctly
  *      - reset DB
  *      - better logo and splash screen
  *      - fix icon (lighter background, missing shine on second stickout on F)
@@ -106,14 +112,14 @@ import java.util.Locale
  *      - fix points on loading old workouts (points are read from DB instead of calculating
  *      - the weight + reps enters should have more strict validation provided by android itself?
  *      - better icons for achievements
- *      - records are not updated when set is removed?
- *      - toast/floating up emoji on adding points
- *      - points per exercise in chip next to exercise name (floating popups?)
- *      - icon to indiate time can be paused
+ *      - total points per exercise in chip next to exercise name (floating popups enough?)
+ *      - icon to indicate time can be paused
  *      - number of sets at current weight in notification should be displayed better (closer to the weight?)
  *      - dont show achievements on first instance of that exercise ever (no history)
  *              should achievements be per-row? or at least on the set card itself?
 *       - records should live with their exercises forever
+ *      - BUG adding a new set when teh timer is paused does not set the color correctly
+ *      - dont show toast if activity is in the background
  *
  * TODO notification
  *     - DONE ~~update when exercise added, set added, set removed~~
@@ -130,12 +136,12 @@ import java.util.Locale
  *      - notification action doesnt work if app backgrounded for a long time (either no workout added, or duplicate empty workouts created)
  *      - need to be able to delete components (wants to put "seated" first on "seated dumbbell arnold press"
  *      - add average weight per set ajd rep in the workout overview page
- *      - the workout overview should format date as "today" when appropriate
  *      - basic weight tracking
  *      - changes for suspend/resume already identified
  *
  * TODO - never
  *      ? tint of chips should be per bodypart - right now its ordered by most frequent
+ *      ? bring points to the spinners on exercise type for more flexibility?
  */
 
 
@@ -143,6 +149,8 @@ class WorkoutActivity : AppCompatActivity() {
 
     private lateinit var db: ExerciseDatabase
     private lateinit var workout: Workout
+    private var lastToast: Toast? = null
+
     private var setTimerIsActive = false
     lateinit var exerciseListViewAdapter: ExerciseListViewAdapter
     lateinit var exerciseList: MutableList<ExerciseView>
@@ -525,7 +533,11 @@ class WorkoutActivity : AppCompatActivity() {
 
         class Notifier : ExerciseNotification {
             override fun setAdded(exercise: ExerciseView, set: Set): List<ExerciseRecord> {
+                val oldTotal = workout.totalPoints
                 workout.recalculateWorkoutTotals(exerciseList)
+                lastToast?.cancel()
+                lastToast = Toast.makeText(applicationContext, "${workout.totalPoints - oldTotal} ★ pts", Toast.LENGTH_SHORT)
+                lastToast?.show()
 
                 runBlocking {
                     db.exerciseDao().updateWorkout(workout)
