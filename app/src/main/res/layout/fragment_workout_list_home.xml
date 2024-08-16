@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/orange_accent_light"
-    tools:context=".MainActivity">
+    tools:context=".ui.home.WorkoutListFragment">
 
     <Button
         android:id="@+id/btn_AddNewWorkout"

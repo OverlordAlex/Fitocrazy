@@ -1,10 +1,10 @@
-package com.itsabugnotafeature.fitocrazy
+package com.itsabugnotafeature.fitocrazy.ui.home
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
-import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -15,24 +15,18 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.common.WorkoutRecordView
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity
 import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.NOTIFICATION_ID
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -40,7 +34,7 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 
-class MainActivity : AppCompatActivity() {
+class WorkoutListFragment : Fragment() {
 
     private val channelId = "FitocrazyCurrentExerciseChannel"
     private lateinit var workoutList: MutableList<Workout>
@@ -67,6 +61,8 @@ class MainActivity : AppCompatActivity() {
 
             private fun hideDelete() {
                 val deleteFrame = itemView.findViewById<FrameLayout>(R.id.frame_deleteWorkout)
+                if (deleteFrame.visibility == FrameLayout.GONE) return
+
                 deleteFrame.animate().setDuration(150).alpha(0f).withEndAction {
                     deleteFrame.visibility = FrameLayout.GONE
                     itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.VISIBLE
@@ -180,27 +176,21 @@ class MainActivity : AppCompatActivity() {
 
         override fun getItemCount() = workoutList.size
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WorkoutListViewAdapter.ViewHolder {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view: View = LayoutInflater.from(parent.context).inflate(R.layout.workout_row, parent, false)
             return ViewHolder(view)
         }
 
-        override fun onBindViewHolder(holder: WorkoutListViewAdapter.ViewHolder, position: Int) {
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             holder.bind(workoutList[position])
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.fragment_workout_list_home, container, false)
+    }
 
-        setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.layout_currentWorkout)) { view, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         // Create the NotificationChannel.
         val name = getString(R.string.channel_name)
         val descriptionText = getString(R.string.channel_description)
@@ -208,28 +198,30 @@ class MainActivity : AppCompatActivity() {
         val mChannel = NotificationChannel(channelId, name, importance)
         mChannel.description = descriptionText
         // Register the channel with the system.
-        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(mChannel)
+        (requireActivity().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(mChannel)
+
+        super.onViewCreated(view, savedInstanceState)
     }
 
     override fun onResume() {
         super.onResume()
         // no workouts may be running on this screen
-        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).cancel(NOTIFICATION_ID)
+        (requireActivity().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(NOTIFICATION_ID)
 
-        val db = ExerciseDatabase.getInstance(applicationContext)
+        val db = ExerciseDatabase.getInstance(requireContext())
         workoutList = runBlocking {
             workoutStats = db.exerciseDao().getWorkoutStats()
             db.exerciseDao().listWorkouts().toMutableList()
         }
-        val workoutListView = findViewById<RecyclerView>(R.id.list_allWorkoutsHomepage)
+        val workoutListView = requireView().findViewById<RecyclerView>(R.id.list_allWorkoutsHomepage)
         workoutListViewAdapter = WorkoutListViewAdapter(workoutList, workoutStats)
         workoutListView.adapter = workoutListViewAdapter
-        workoutListView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        workoutListView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
-        findViewById<Button>(R.id.btn_AddNewWorkout).setOnClickListener {
+        requireView().findViewById<Button>(R.id.btn_AddNewWorkout)?.setOnClickListener {
             startActivity(
                 Intent(
-                    applicationContext, WorkoutActivity::class.java
+                    requireActivity(), WorkoutActivity::class.java
                 ).setAction("newWorkoutStartedFromHome")
             )
         }

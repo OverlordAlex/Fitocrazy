@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -30,7 +29,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.marginStart
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
@@ -56,99 +54,6 @@ import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-
-
-/**
- * TODO
- *      - DONE ~~workout list on main page~~
- *      - DONE ~~workout selection on main page~~
- *      - DONE ~~resumable timers~~
- *      - DONE ~~ensure timers don't start if adding sets to historical exercises~~
- *      - DONE ~~verify that historical exercises show their "today" sets appropriately~~
- *      - DONE ~~style main page strings~~
- *      - DONE ~~color and theme main page~~
- *      - DONE ~~chip group for body parts per exercise~~
- *      - DONE ~~total chip group per exercise~~
- *      - DONE ~~refresh DB workout list on result~~
- *      - DONE ~~color and theme workout page~~
- *      - DONE ~~delete workouts on long-press~~
- *      - DONE ~~close delete-workout button on scroll~~
- *      - DONE ~~db.Exercise should link to a workoutID and not a date to group exercises~~
- *      ---- DONE ~~and delete should delete associated exerciseId and Set~~
- *      - DONE ~~BUG: total_time timer resets when adding a new set on today (for saved workouts)~~
- *      - DONE ~~BUG: delete button shows twice sometimes~~
- *      - DONE ~~timer can be paused and restarted~~
- *      - DONE ~~BUG: adding a new workout puts it at the bottom instead of the top~~
- *      - DONE ~~BUG: sets added to previous workouts show up as "today"~~
- *      - DONE ~~style popups for adding exercises and components~~
- *      - DONE ~~refactor ExerciseList to use ExerciseView instead of Pair~~
- *      - DONE ~~notification panel~~
- *      - DONE ~~make the "add exercises" text visible again~~
- *      - DONE ~~don't round corners on list views~~
- *      - DONE ~~points should be wholistic across all sets in an exercise~~
- *      - DONE ~~historical sets should be eager-loaded when exercise added to workout (and not in bind viewholder)~~
- *      - DONE ~~number of sets in notifcation should be the number at the current weight~~
- *      - DONE ~~move calculation of points from companion object to on workout itself as general update~~
- *      - DOME ~~go back to adding from the top - the new exercise button becomes confusing otherwise~~
- *      - DONE ~~BUG: when too many body-part chips are assigned to an exercise it causes the remove-set button to hide
- *                 ~~- max 3 chips selectable?~~
- *      - DONE ~~exercise PRs in the exercise card in workout?~~
- *      - DONE ~~highlight good points totals~~
- *      - DONE ~~BUG: points dont make sense when adding and removing - could be related to bonus? in fact all stats are not loaded correctly~~
- *      - DONE ~~BUG records are not updated when set is removed?~~ <- its a view? shouldnt be possible
- *      - DONE ~~the workout overview should format date as "today" when appropriate~~
- *      - DONE ~~toast/floating up emoji on adding points~~
- *      - DONE ~~handle background running and all on-resume stuff~~
- *      - DONE? ~~BUG: null pointer on notification trying to set exercise?~~
- *      - DONE ~~BUG adding sets when activity is in background is broken (notification received twice?)~~
- *      - DONE ~~BUG adding sets doesnt refresh view (should detect if foreground?)~~
- *      - DONE ~~changes for suspend/resume already identified~~
- *      - DONE? ~~notification action doesnt work if app backgrounded for a long time (either no workout added, or duplicate empty workouts created)~~
- *      - DONE ~~dont show toast if activity is in the background~~
- *      - DONE ~~fix points on loading old workouts (points are read from DB instead of calculating~~
- *
- * TODO
- *      - allow editing of exercise components
- *      - full navigation over haul
- *      - add graphs for exercise history
- *      - profile statistics
- *      - reset DB
- *      - better logo and splash screen
- *      - fix icon (lighter background, missing shine on second stickout on F)
- *          add a dumbbell in bottom right of logo
- *      - better font
- *      - the weight + reps enters should have more strict validation provided by android itself?
- *      - better icons for achievements
- *      - total points per exercise in chip next to exercise name (floating popups enough?)
- *      - icon to indicate time can be paused
- *      - number of sets at current weight in notification should be displayed better (closer to the weight?)
- *      - dont show achievements on first instance of that exercise ever (no history)
- *              should achievements be per-row? or at least on the set card itself?
- *       - records should live with their exercises forever
- *
- * TODO notification
- *     - DONE ~~update when exercise added, set added, set removed~~
- *     - DONE ~~only show when workout is today!~~
- *     - DONE ~~only show on workout activity~~
- *     - DONE ~~pendingIntent on button press to trigger add set~~
- *     - DONE ~~pendingIntent to reopen app~~
- *     - DONE ~~only dismiss notification on workout saved, or back button (not home)~~
- *     - DONE ~~ enhance set data with the number of sets at this weight~~
- *     - better text for the action
- *
- * TODO from actual workout
- *      - need to be able to delete components (wants to put "seated" first on "seated dumbbell arnold press"
- *      - add average weight per set ajd rep in the workout overview page
- *      - basic weight tracking
- *
- * TODO BUGS
- *      - BUG: "enter" when creating a new exercise component does weird stuff (should trim+enter)
- *      - BUG adding a new set when teh timer is paused does not set the color correctly
- *
- * TODO - never
- *      ? tint of chips should be per bodypart - right now its ordered by most frequent
- *      ? bring points to the spinners on exercise type for more flexibility?
- */
 
 
 class WorkoutActivity : AppCompatActivity() {
@@ -395,7 +300,6 @@ class WorkoutActivity : AppCompatActivity() {
     }
 
     fun showNotification(
-        parentActivityIntent: Intent?,
         totalExercises: Int,
         date: LocalDate,
         chronometerBase: Long,
@@ -442,7 +346,7 @@ class WorkoutActivity : AppCompatActivity() {
         )
 
         val contentIntent: PendingIntent =
-            PendingIntent.getActivity(applicationContext, 0, parentActivityIntent, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getActivity(applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         val customNotification = NotificationCompat.Builder(applicationContext, CHANNEL_ID).setContentTitle(title)
             .setSmallIcon(R.drawable.fitocrazy_logo) // TODO get this to work
@@ -487,7 +391,7 @@ class WorkoutActivity : AppCompatActivity() {
         }
         exerciseListViewAdapter.exerciseList = exerciseList
 
-        showNotification(parentActivityIntent = parentActivityIntent,
+        showNotification(
             totalExercises = workout.totalExercises,
             date = workout.date,
             chronometerBase = SystemClock.elapsedRealtime(),
@@ -588,7 +492,6 @@ class WorkoutActivity : AppCompatActivity() {
                 }
 
                 showNotification(
-                    parentActivityIntent = parentActivityIntent,
                     totalExercises = workout.totalExercises,
                     date = workout.date,
                     chronometerBase = SystemClock.elapsedRealtime(),
@@ -614,7 +517,6 @@ class WorkoutActivity : AppCompatActivity() {
                 totalPointsLabel.text = workout.totalPoints.toString()
 
                 showNotification(
-                    parentActivityIntent = parentActivityIntent,
                     totalExercises = workout.totalExercises,
                     date = workout.date,
                     chronometerBase = SystemClock.elapsedRealtime(),
@@ -639,7 +541,6 @@ class WorkoutActivity : AppCompatActivity() {
                 if (exerciseList.isEmpty()) labelForEmptyExerciseList.visibility = TextView.VISIBLE
 
                 showNotification(
-                    parentActivityIntent = parentActivityIntent,
                     totalExercises = workout.totalExercises,
                     date = workout.date,
                     chronometerBase = SystemClock.elapsedRealtime(),
@@ -796,7 +697,6 @@ class WorkoutActivity : AppCompatActivity() {
                 labelForEmptyExerciseList.visibility = TextView.GONE
 
                 showNotification(
-                    parentActivityIntent = parentActivityIntent,
                     totalExercises = exerciseList.size,
                     date = workout.date,
                     chronometerBase = SystemClock.elapsedRealtime(),
