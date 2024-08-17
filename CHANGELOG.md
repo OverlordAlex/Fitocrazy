@@ -1,11 +1,15 @@
+# 17 AUG 2024
+- BUG: Ordering of component frequency is wrong on workout list
+- BUG: Layout shifted up on resume - could be from keyboard focus on edit text causing keyboard to show and shift (fixed layout to shift correctly)
+- moved Add new exercise to its activity 
+
+
 # 16 AUG 2024 (Navigation)
------------
 - Added three pane navigation
 - Created CHANGELOG.md and README.md
 
 
 # 15 AUG 2024 (Suspend/Resume)
------------
 - highlight good points totals
 - BUG: points dont make sense when adding and removing - could be related to bonus? in fact all stats are not loaded correctly
 - BUG records are not updated when set is removed?~~ <- its a view? shouldnt be possible
@@ -22,7 +26,6 @@
 
 
 # 14 AUG 2024 (Points)
------------
 - points should be wholistic across all sets in an exercise
 - historical sets should be eager-loaded when exercise added to workout (and not in bind viewholder)
 - number of sets in notifcation should be the number at the current weight
@@ -34,7 +37,6 @@
 
 
 # 12 AUG 2024 (Notification)
------------
 - make the "add exercises" text visible again
 - don't round corners on list views
 - update when exercise added, set added, set removed
@@ -47,13 +49,11 @@
 
 
 # 11 AUG 2024
------------
 - refactor ExerciseList to use ExerciseView instead of Pair
 - notification panel
 
 
 # 10 AUG 2024 (Bug hunt)
------------
 - BUG: total_time timer resets when adding a new set on today (for saved workouts)
 - timer can be paused and restarted
 - BUG: adding a new workout puts it at the bottom instead of the top
@@ -62,7 +62,6 @@
 
 
 # 09 AUG 2024 (Theming)
------------
 - color and theme main page
 - color and theme workout page
 - delete workouts on long-press
@@ -73,12 +72,10 @@
 
 
 # 08 AUG 2024
------------
 - refresh DB workout list on result
 
 
 # 07 AUG 2024 (Start of recording changes)
------------
 - workout list on main page
 - workout selection on main page
 - resumable timers

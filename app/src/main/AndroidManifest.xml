@@ -17,7 +17,7 @@
         <activity
             android:name=".HomepageActivity"
             android:exported="true"
-            android:label="@string/title_activity_homepage" >
+            android:label="@string/title_activity_homepage">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -29,6 +29,10 @@
             android:name=".workout.WorkoutActivity"
             android:exported="true"
             android:parentActivityName=".HomepageActivity" />
+        <activity
+            android:name=".workout.addExercise.AddNewExerciseToWorkoutActivity"
+            android:exported="false"
+            android:parentActivityName=".workout.WorkoutActivity" />
     </application>
 
 </manifest>

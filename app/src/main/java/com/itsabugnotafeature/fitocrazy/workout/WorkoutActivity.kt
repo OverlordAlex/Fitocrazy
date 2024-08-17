@@ -1,5 +1,6 @@
 package com.itsabugnotafeature.fitocrazy.workout
 
+import android.app.Activity
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -24,15 +25,13 @@ import android.widget.RemoteViews
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
-import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.Lifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -47,7 +46,7 @@ import com.itsabugnotafeature.fitocrazy.common.ExerciseWithComponentModel
 import com.itsabugnotafeature.fitocrazy.common.Set
 import com.itsabugnotafeature.fitocrazy.common.SetRecordView
 import com.itsabugnotafeature.fitocrazy.common.Workout
-import com.itsabugnotafeature.fitocrazy.workout.addExercise.AddNewExerciseToWorkoutFragment
+import com.itsabugnotafeature.fitocrazy.workout.addExercise.AddNewExerciseToWorkoutActivity
 import kotlinx.coroutines.runBlocking
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -287,7 +286,7 @@ class WorkoutActivity : AppCompatActivity() {
             workout.currentSetTime = SystemClock.elapsedRealtime() - setTimeTimer.base
         }
 
-        val db = ExerciseDatabase.getInstance(applicationContext)
+        val db = ExerciseDatabase.getInstance(this)
         runBlocking {
             db.exerciseDao().updateWorkout(workout)
         }
@@ -339,16 +338,16 @@ class WorkoutActivity : AppCompatActivity() {
         }
 
         val addAnotherSetPendingIntent = PendingIntent.getBroadcast(
-            applicationContext,
+            this,
             0,
             Intent(addAnotherSetIntent),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         val contentIntent: PendingIntent =
-            PendingIntent.getActivity(applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
-        val customNotification = NotificationCompat.Builder(applicationContext, CHANNEL_ID).setContentTitle(title)
+        val customNotification = NotificationCompat.Builder(this, CHANNEL_ID).setContentTitle(title)
             .setSmallIcon(R.drawable.fitocrazy_logo) // TODO get this to work
             .setStyle(NotificationCompat.DecoratedCustomViewStyle()).setCustomContentView(notificationLayout)
             .setCustomBigContentView(notificationLayoutExpanded).setContentIntent(contentIntent)
@@ -361,16 +360,17 @@ class WorkoutActivity : AppCompatActivity() {
         }
 
         val notificationManager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID, customNotification.build())
     }
 
     override fun onResume() {
         super.onResume()
+
         LocalBroadcastManager.getInstance(this)
             .registerReceiver(broadcastReceiver!!, IntentFilter(NOTIFICATION_ACTION_COMPLETE_SET))
 
-        val db = ExerciseDatabase.getInstance(applicationContext)
+        val db = ExerciseDatabase.getInstance(this)
         val latestExerciseModel = runBlocking {
             exerciseList = db.exerciseDao().getListOfExerciseInWorkout(workout.workoutId).map { exercise ->
                 val thisExerciseModel = db.exerciseDao().getExerciseDetails(exercise.exerciseModelId)!!
@@ -427,6 +427,7 @@ class WorkoutActivity : AppCompatActivity() {
         }
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -434,7 +435,7 @@ class WorkoutActivity : AppCompatActivity() {
 
         val today = LocalDate.now()
 
-        val db = ExerciseDatabase.getInstance(applicationContext)
+        val db = ExerciseDatabase.getInstance(this)
         runBlocking {
             workout = db.exerciseDao().getWorkout(intent.getLongExtra("workoutId", -1)) ?: Workout(0, today)
             if (workout.workoutId == 0L) {
@@ -569,7 +570,7 @@ class WorkoutActivity : AppCompatActivity() {
                 if (exerciseId == -1L) return
 
                 runBlocking {
-                    //val db = ExerciseDatabase.getInstance(applicationContext)
+                    //val db = ExerciseDatabase.getInstance(this)
                     val sets = db.exerciseDao().getSets(exerciseId)
 
                     val set = Set(
@@ -596,11 +597,11 @@ class WorkoutActivity : AppCompatActivity() {
             if (setTimerIsActive) {
                 setTimeTimer.stop()
                 pausedTime = SystemClock.elapsedRealtime() - setTimeTimer.base
-                setTimeTimer.setTextColor(applicationContext.getColor(R.color.orange_main))
+                setTimeTimer.setTextColor(this.getColor(R.color.orange_main))
             } else {
                 setTimeTimer.base = SystemClock.elapsedRealtime() - pausedTime
                 setTimeTimer.start()
-                setTimeTimer.setTextColor(applicationContext.getColor(R.color.black))
+                setTimeTimer.setTextColor(this.getColor(R.color.black))
 
             }
             setTimerIsActive = !setTimerIsActive
@@ -613,7 +614,7 @@ class WorkoutActivity : AppCompatActivity() {
             runBlocking {
                 workout.topTags = exerciseList.fold(emptyList<String>()) { ongoing, item ->
                     ongoing + db.exerciseDao().getExerciseDetails(item.exercise.exerciseModelId)!!.exercise.getChips()
-                }.groupingBy { it }.eachCount().toSortedMap().asIterable().reversed().take(3)
+                }.groupingBy { it }.eachCount().asIterable().sortedBy { it.value }.reversed().take(3)
                     .joinToString(" ") { it.key }.trim()
 
                 db.exerciseDao().updateWorkout(workout)
@@ -629,7 +630,6 @@ class WorkoutActivity : AppCompatActivity() {
             finish()
         }
 
-        val addNewExerciseDialog: DialogFragment = AddNewExerciseToWorkoutFragment()
         val addNewExerciseButton = findViewById<FloatingActionButton>(R.id.btn_addNewExerciseToCurrentWorkout)
 
         addNewExerciseButton.setOnLongClickListener {
@@ -645,69 +645,69 @@ class WorkoutActivity : AppCompatActivity() {
             true
         }
 
-        addNewExerciseButton.setOnClickListener {
-            val ft: FragmentTransaction = supportFragmentManager.beginTransaction()
-            val prev: Fragment? = supportFragmentManager.findFragmentByTag(addNewExerciseDialog.tag)
-            if (prev != null) {
-                ft.remove(prev)
-            }
-            ft.addToBackStack(null)
+        val addExerciseResult =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val exerciseModelId = result.data?.extras?.getLong("exerciseID", -1L) ?: -1
+                    if (exerciseModelId == -1L) return@registerForActivityResult
 
-            // Create and show the dialog.
-            addNewExerciseDialog.show(ft, addNewExerciseDialog.tag)
-            addNewExerciseDialog.setFragmentResultListener("exerciseAdded") { _, bundle ->
-                val exerciseModelId = bundle.getLong("exerciseID", -1L)
-                if (exerciseModelId == -1L) return@setFragmentResultListener
+                    val exercise = Exercise(0, exerciseModelId, workout.date, exerciseList.size, workout.workoutId)
+                    var exerciseModel: ExerciseWithComponentModel?
+                    val record: SetRecordView?
+                    val historicalSets: List<Pair<LocalDate, List<Set>>>
 
-                val exercise = Exercise(0, exerciseModelId, workout.date, exerciseList.size, workout.workoutId)
-                var exerciseModel: ExerciseWithComponentModel?
-                val record: SetRecordView?
-                val historicalSets: List<Pair<LocalDate, List<Set>>>
+                    runBlocking {
+                        exercise.exerciseId = db.exerciseDao().addExerciseSet(exercise)
+                        exerciseModel = db.exerciseDao().getExerciseDetails(exercise.exerciseModelId)
+                        record = db.exerciseDao().getRecord(exercise.exerciseModelId)
+                        historicalSets =
+                            db.exerciseDao().getHistoricalSets(exercise.exerciseModelId, 3, exercise.toTimeStamp())
+                                .toSortedMap().toList().map { Pair(it.first.date, it.second) }
 
-                runBlocking {
-                    exercise.exerciseId = db.exerciseDao().addExerciseSet(exercise)
-                    exerciseModel = db.exerciseDao().getExerciseDetails(exercise.exerciseModelId)
-                    record = db.exerciseDao().getRecord(exercise.exerciseModelId)
-                    historicalSets =
-                        db.exerciseDao().getHistoricalSets(exercise.exerciseModelId, 3, exercise.toTimeStamp())
-                            .toSortedMap().toList().map { Pair(it.first.date, it.second) }
-
-                    workout.totalExercises = exerciseList.size
-                    workout.topTags = exerciseList.fold(emptyList<String>()) { ongoing, item ->
-                        ongoing + db.exerciseDao()
-                            .getExerciseDetails(item.exercise.exerciseModelId)!!.exercise.getChips()
-                    }.groupingBy { it }.eachCount().toSortedMap().asIterable().reversed().take(3)
-                        .joinToString(" ") { it.key }.trim()
-                    db.exerciseDao().updateWorkout(workout)
-                }
-                exerciseList.add(
-                    ExerciseView(
-                        displayName = exerciseModel?.exercise?.displayName,
-                        tags = exerciseModel?.exercise?.getChips() ?: emptyList(),
-                        exercise = exercise,
-                        sets = mutableListOf(),
-                        record = record,
-                        historicalSets = historicalSets,
-                        basePoints = exerciseModel?.exercise?.basePoints ?: 10,
+                        workout.totalExercises = exerciseList.size
+                        workout.topTags = exerciseList.fold(emptyList<String>()) { ongoing, item ->
+                            ongoing + db.exerciseDao()
+                                .getExerciseDetails(item.exercise.exerciseModelId)!!.exercise.getChips()
+                        }.groupingBy { it }.eachCount().asIterable().sortedBy { it.value }.reversed().take(3)
+                            .joinToString(" ") { it.key }.trim()
+                        db.exerciseDao().updateWorkout(workout)
+                    }
+                    exerciseList.add(
+                        ExerciseView(
+                            displayName = exerciseModel?.exercise?.displayName,
+                            tags = exerciseModel?.exercise?.getChips() ?: emptyList(),
+                            exercise = exercise,
+                            sets = mutableListOf(),
+                            record = record,
+                            historicalSets = historicalSets,
+                            basePoints = exerciseModel?.exercise?.basePoints ?: 10,
+                        )
                     )
-                )
-                exerciseListViewAdapter.notifyItemInserted(exerciseList.size - 1)
-                exerciseListView.smoothScrollToPosition(exerciseList.size - 1)
-                exerciseListView.visibility = RecyclerView.VISIBLE
-                labelForEmptyExerciseList.visibility = TextView.GONE
+                    exerciseListViewAdapter.notifyItemInserted(exerciseList.size - 1)
+                    exerciseListView.smoothScrollToPosition(exerciseList.size - 1)
+                    exerciseListView.visibility = RecyclerView.VISIBLE
+                    labelForEmptyExerciseList.visibility = TextView.GONE
 
-                showNotification(
-                    totalExercises = exerciseList.size,
-                    date = workout.date,
-                    chronometerBase = SystemClock.elapsedRealtime(),
-                    chronometerRunning = false,
-                    exerciseId = exercise.exerciseId,
-                    displayName = exerciseModel?.exercise?.displayName,
-                    set = null,
-                    numPrevSets = null,
-                    totalSets = null,
-                )
+                    showNotification(
+                        totalExercises = exerciseList.size,
+                        date = workout.date,
+                        chronometerBase = SystemClock.elapsedRealtime(),
+                        chronometerRunning = false,
+                        exerciseId = exercise.exerciseId,
+                        displayName = exerciseModel?.exercise?.displayName,
+                        set = null,
+                        numPrevSets = null,
+                        totalSets = null,
+                    )
+                }
             }
+
+        addNewExerciseButton.setOnClickListener {
+            addExerciseResult.launch(
+                Intent(
+                    this, AddNewExerciseToWorkoutActivity::class.java
+                ).setAction("addNewExerciseFromWorkout")
+            )
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.layout_currentWorkout)) { v, insets ->

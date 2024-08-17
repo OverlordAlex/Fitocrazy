@@ -1,8 +1,16 @@
 # Known Bugs
 BUG: "enter" when creating a new exercise component does weird stuff (should trim+enter)
 BUG: adding a new set when teh timer is paused does not set the color correctly
+BUG: can add exercise without tags
+BUG: workouts being created like crazy
 
 # TODO
+- Completion drop down should instead drop "up"
+- Clear edit text focus on new set added
+- Bodyweight - what kg to enter?
+- Touch target on exercise list too small
+- Touch target on components too small
+- Show suggested exercises at top of add new exercise
 - need to be able to delete components (wants to put "seated" first on "seated dumbbell arnold press"
 - add average weight per set ajd rep in the workout overview page
 - basic weight tracking

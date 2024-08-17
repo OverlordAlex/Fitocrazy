@@ -4,10 +4,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager.LayoutParams
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
@@ -15,15 +12,15 @@ import android.widget.Button
 import android.widget.RadioButton
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.os.bundleOf
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -37,7 +34,7 @@ import com.itsabugnotafeature.fitocrazy.common.ExerciseWithComponentModel
 import kotlinx.coroutines.runBlocking
 
 
-class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSelectedListener {
+class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     private var selectedEquipment: Long = -1
     private var selectedLocation: Long = -1
@@ -77,8 +74,8 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
             EnterTextForNewExerciseFragment(exerciseComponentType.toString())
 
         btn.setOnClickListener {
-            val ft: FragmentTransaction = childFragmentManager.beginTransaction()
-            val prev: Fragment? = childFragmentManager.findFragmentByTag(textFrag.tag)
+            val ft: FragmentTransaction = supportFragmentManager.beginTransaction()
+            val prev: Fragment? = supportFragmentManager.findFragmentByTag(textFrag.tag)
             if (prev != null) {
                 ft.remove(prev)
             }
@@ -89,7 +86,7 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
                 val enteredText: String? = bundle.getString("userInputtedString")
                 if (!enteredText.isNullOrBlank()) {
                     runBlocking {
-                        val db = ExerciseDatabase.getInstance(requireContext())
+                        val db = ExerciseDatabase.getInstance(applicationContext)
                         val existing = db.exerciseDao()
                             .getExerciseComponent(enteredText, exerciseComponentType)
                         if (existing == null) {
@@ -116,7 +113,7 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
     }
 
     private suspend fun updateSpinnerData() {
-        val db = ExerciseDatabase.getInstance(requireContext())
+        val db = ExerciseDatabase.getInstance(this)
         equipmentAdapter.clear()
         equipmentAdapter.addAll(
             db.exerciseDao().getExerciseComponent(ExerciseComponentType.EQUIPMENT)
@@ -131,20 +128,20 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
         )
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        // make it always show full-screen, not sure why it's not working via the xml
-        dialog?.window?.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        //enableEdgeToEdge()
+        setContentView(R.layout.new_exercise_fragment_add_new_exercise_to_workout)
 
-        val chipGroup = view.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
+        val chipGroup = findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
         val chipList = resources.getStringArray(R.array.arrayOfExerciseTagChips)
         chipList.forEach { chipName ->
-            val newChip = Chip(context)
+            val newChip = Chip(this)
             newChip.text = chipName
             newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
             newChip.isCheckable = true
             newChip.setCheckedIconTintResource(R.color.blue_main)
-            newChip.setTextColor(context?.let { ContextCompat.getColor(it, R.color.black) } ?: R.color.black)
+            newChip.setTextColor(ContextCompat.getColor(this, R.color.black))
             newChip.id = View.generateViewId()
             newChip.setOnCheckedChangeListener { compoundButton, checked ->
                 if (checked) {
@@ -167,12 +164,12 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
             }
         }*/
 
-        val addExerciseButton: Button = view.findViewById(R.id.btn_addExercise)
-        val autocomplete = view.findViewById<AutoCompleteTextView>(R.id.autocomplete_addExercise)
+        val addExerciseButton: Button = findViewById(R.id.btn_addExercise)
+        val autocomplete = findViewById<AutoCompleteTextView>(R.id.autocomplete_addExercise)
 
-        val detailLayout = view.findViewById<ConstraintLayout>(R.id.layout_addExerciseToWorkout)
-        val labelExpandExerciseGroup = view.findViewById<TextView>(R.id.label_ExpandNewExerciseGroup)
-        val drawerOpened = AppCompatResources.getDrawable(requireContext(), R.drawable.drawer_opened)
+        val detailLayout = findViewById<ConstraintLayout>(R.id.layout_addExerciseToWorkout)
+        val labelExpandExerciseGroup = findViewById<TextView>(R.id.label_ExpandNewExerciseGroup)
+        val drawerOpened = AppCompatResources.getDrawable(this, R.drawable.drawer_opened)
 //        labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(drawerOpened, null, null, null)
         labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(R.drawable.drawer_closed, 0, 0, 0)
 
@@ -197,23 +194,23 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
             detailLayout.visibility = visible
         }
 
-        val equipmentSpinner = view.findViewById<Spinner>(R.id.spinner_equipment)
-        val positionSpinner = view.findViewById<Spinner>(R.id.spinner_position)
-        val movementSpinner = view.findViewById<Spinner>(R.id.spinner_movement)
+        val equipmentSpinner = findViewById<Spinner>(R.id.spinner_equipment)
+        val positionSpinner = findViewById<Spinner>(R.id.spinner_position)
+        val movementSpinner = findViewById<Spinner>(R.id.spinner_movement)
 
         runBlocking {
-            equipmentAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item)
-            locationAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item)
-            movementAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item)
+            equipmentAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_spinner_item)
+            locationAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_spinner_item)
+            movementAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_spinner_item)
             updateSpinnerData()
             equipmentSpinner.adapter = equipmentAdapter
             positionSpinner.adapter = locationAdapter
             movementSpinner.adapter = movementAdapter
 
             autocompleteAdapter = ArrayAdapter<ExerciseWithComponentModel>(
-                requireContext(),
+                applicationContext,
                 android.R.layout.simple_dropdown_item_1line,
-                ExerciseDatabase.getInstance(requireContext()).exerciseDao().getAllExercises()
+                ExerciseDatabase.getInstance(applicationContext).exerciseDao().getAllExercises()
             )
             autocomplete.setAdapter(autocompleteAdapter)
             autocomplete.threshold = 1
@@ -244,32 +241,32 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
 
         setupEnterCustomTextDialog(
             ExerciseComponentType.EQUIPMENT,
-            view.findViewById(R.id.btn_addNewEquipment),
+            findViewById(R.id.btn_addNewEquipment),
             equipmentSpinner
         )
         setupEnterCustomTextDialog(
             ExerciseComponentType.LOCATION,
-            view.findViewById(R.id.btn_addNewLocation),
+            findViewById(R.id.btn_addNewLocation),
             positionSpinner
         )
         setupEnterCustomTextDialog(
             ExerciseComponentType.MOVEMENT,
-            view.findViewById(R.id.btn_addNewMovement),
+            findViewById(R.id.btn_addNewMovement),
             movementSpinner
         )
 
-        view.findViewById<RadioButton>(R.id.radio_isCompoundExercise)
+        findViewById<RadioButton>(R.id.radio_isCompoundExercise)
             .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 15 }
-        view.findViewById<RadioButton>(R.id.radio_isFreeWeightExercise)
+        findViewById<RadioButton>(R.id.radio_isFreeWeightExercise)
             .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 10 }
-        view.findViewById<RadioButton>(R.id.radio_isMachineExercise)
+        findViewById<RadioButton>(R.id.radio_isMachineExercise)
             .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 8 }
 
         addExerciseButton.setOnClickListener {
             if (detailLayout.visibility == View.VISIBLE) {
                 // if adding a new activity
                 runBlocking {
-                    val db = ExerciseDatabase.getInstance(requireContext()).exerciseDao()
+                    val db = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
                     val exercise: ExerciseExerciseComponentCrossRef? =
                         db.getExercise(selectedEquipment, selectedLocation, selectedMovement)
                     if (exercise == null) {
@@ -278,7 +275,7 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
                             db.getExercise(selectedLocation)?.name,
                             db.getExercise(selectedMovement)?.name
                         ).joinToString(" ")
-                        val chips = chipGroup.checkedChipIds.joinToString(" ") { view.findViewById<Chip>(it).text }
+                        val chips = chipGroup.checkedChipIds.joinToString(" ") { findViewById<Chip>(it).text }
                         val newExerciseId = db.addExercise(
                             ExerciseModel(0, displayName, selectedBasePoints, chips)
                         )
@@ -300,44 +297,19 @@ class AddNewExerciseToWorkoutFragment : DialogFragment(), AdapterView.OnItemSele
                                 newExerciseId
                             )
                         )
-                        setFragmentResult("exerciseAdded", bundleOf("exerciseID" to newExerciseId))
+                        intent.putExtra("exerciseID", newExerciseId)
                     } else {
-                        setFragmentResult(
-                            "exerciseAdded",
-                            bundleOf("exerciseID" to exercise.exerciseId)
-                        )
+                        intent.putExtra("exerciseID", exercise.exerciseId)
                     }
                 }
             } else {
                 // selected something from autocomplete
-                setFragmentResult(
-                    "exerciseAdded",
-                    bundleOf("exerciseID" to selectedItem?.exercise?.exerciseId)
-                )
+                intent.putExtra("exerciseID", selectedItem?.exercise?.exerciseId)
             }
-            dismiss()
+
+            setResult(RESULT_OK, intent)
+            finish()
         }
-        dialog?.setCanceledOnTouchOutside(true)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setStyle(STYLE_NO_TITLE, R.style.Dialog_NewExercise)
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        return inflater.inflate(
-            R.layout.new_exercise_fragment_add_new_exercise_to_workout,
-            container,
-            false
-        )
-    }
-
-    companion object {
-        const val TAG = "AddNewExerciseToWorkoutFragment_dialog"
     }
 
 }

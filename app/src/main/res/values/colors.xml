@@ -21,6 +21,8 @@
     <color name="blue_secondary">#C65BCF</color>
     <color name="blue_tertiary">#F27BBD</color>
 
+    <color name="blue_main_light">#588DEE</color>
+
     <color name="blue_accent_light">#CCDEFF</color>
     <color name="blue_accent_lightest">#FAFCFF</color>
 
