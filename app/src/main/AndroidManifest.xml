@@ -28,11 +28,13 @@
         <activity
             android:name=".workout.WorkoutActivity"
             android:exported="true"
-            android:parentActivityName=".HomepageActivity" />
+            android:parentActivityName=".HomepageActivity"
+            android:launchMode="singleInstance"/>
         <activity
             android:name=".workout.addExercise.AddNewExerciseToWorkoutActivity"
-            android:exported="false"
-            android:parentActivityName=".workout.WorkoutActivity" />
+            android:exported="true"
+            android:parentActivityName=".workout.WorkoutActivity"
+            android:launchMode="singleTop" />
     </application>
 
 </manifest>

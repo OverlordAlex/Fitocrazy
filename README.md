@@ -2,7 +2,6 @@
 BUG: "enter" when creating a new exercise component does weird stuff (should trim+enter)
 BUG: adding a new set when teh timer is paused does not set the color correctly
 BUG: can add exercise without tags
-BUG: workouts being created like crazy
 
 # TODO
 - Completion drop down should instead drop "up"

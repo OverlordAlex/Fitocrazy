@@ -1,5 +1,7 @@
 package com.itsabugnotafeature.fitocrazy.workout.addExercise
 
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.graphics.Color
 import android.os.Bundle
 import android.transition.AutoTransition
@@ -10,8 +12,10 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.Spinner
 import android.widget.TextView
+import android.window.OnBackInvokedDispatcher
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
@@ -32,6 +36,7 @@ import com.itsabugnotafeature.fitocrazy.common.ExerciseExerciseComponentCrossRef
 import com.itsabugnotafeature.fitocrazy.common.ExerciseModel
 import com.itsabugnotafeature.fitocrazy.common.ExerciseWithComponentModel
 import kotlinx.coroutines.runBlocking
+import kotlin.properties.Delegates
 
 
 class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
@@ -130,8 +135,9 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
         setContentView(R.layout.new_exercise_fragment_add_new_exercise_to_workout)
+
+        val addExerciseButton: Button = findViewById(R.id.btn_addExercise)
 
         val chipGroup = findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
         val chipList = resources.getStringArray(R.array.arrayOfExerciseTagChips)
@@ -152,6 +158,8 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
                         saved.forEach { chipGroup.check(it) } // seriously? this is the best way??
                     }
                 }
+
+                if (chipGroup.checkedChipIds.size == 0) addExerciseButton.isEnabled = true
             }
 
             chipGroup.addView(newChip)
@@ -164,7 +172,6 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
             }
         }*/
 
-        val addExerciseButton: Button = findViewById(R.id.btn_addExercise)
         val autocomplete = findViewById<AutoCompleteTextView>(R.id.autocomplete_addExercise)
 
         val detailLayout = findViewById<ConstraintLayout>(R.id.layout_addExerciseToWorkout)
@@ -263,6 +270,28 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
             .setOnCheckedChangeListener { _, isChecked -> if (isChecked) selectedBasePoints = 8 }
 
         addExerciseButton.setOnClickListener {
+            val radioGroup = findViewById<RadioGroup>(R.id.radioGroup_exerciseType)
+            if (selectedBasePoints < 0) {
+                val colorFrom: Int = applicationContext.getColor(R.color.blue_tertiary)
+                val colorTo: Int = applicationContext.getColor(R.color.white)
+
+                val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo)
+                colorAnimation.setDuration(500)
+                colorAnimation.addUpdateListener { animator -> radioGroup.setBackgroundColor(animator.animatedValue as Int) }
+                colorAnimation.start()
+                return@setOnClickListener
+            }
+            if (chipGroup.checkedChipIds.isEmpty()) {
+                val colorFrom: Int = applicationContext.getColor(R.color.blue_tertiary)
+                val colorTo: Int = applicationContext.getColor(R.color.white)
+
+                val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo)
+                colorAnimation.setDuration(500)
+                colorAnimation.addUpdateListener { animator -> chipGroup.setBackgroundColor(animator.animatedValue as Int) }
+                colorAnimation.start()
+                return@setOnClickListener
+            }
+
             if (detailLayout.visibility == View.VISIBLE) {
                 // if adding a new activity
                 runBlocking {

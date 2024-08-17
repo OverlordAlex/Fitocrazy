@@ -2,6 +2,8 @@
 - BUG: Ordering of component frequency is wrong on workout list
 - BUG: Layout shifted up on resume - could be from keyboard focus on edit text causing keyboard to show and shift (fixed layout to shift correctly)
 - moved Add new exercise to its activity 
+- BUG: workouts being created like crazy due to bad launch options (fixed with singles in manifest)
+- highlight when something is missing when trying to create a new exercise
 
 
 # 16 AUG 2024 (Navigation)

@@ -427,7 +427,6 @@ class WorkoutActivity : AppCompatActivity() {
         }
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -706,7 +705,7 @@ class WorkoutActivity : AppCompatActivity() {
             addExerciseResult.launch(
                 Intent(
                     this, AddNewExerciseToWorkoutActivity::class.java
-                ).setAction("addNewExerciseFromWorkout")
+                ).setAction("addNewExerciseFromWorkout").putExtra("workoutId", workout.workoutId)
             )
         }
 
