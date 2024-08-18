@@ -1,10 +1,9 @@
 # Known Bugs
 BUG: "enter" when creating a new exercise component does weird stuff (should trim+enter)
-BUG: adding a new set when teh timer is paused does not set the color correctly
 
 # TODO
+- be able to edit date on workout
 - auto migrate DB / reset DB
-- Clear edit text focus on new set added
 - Bodyweight - what kg to enter?
 - need to be able to delete components (wants to put "seated" first on "seated dumbbell arnold press"
 - add average weight per set and rep in the workout overview page

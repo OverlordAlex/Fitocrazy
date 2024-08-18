@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/rounded_corner_dialog"
     android:padding="4dp"
-    tools:context=".workout.addExercise.EnterTextForNewExerciseFragment">
+    tools:context=".ui.home.workout.addExercise.EnterTextForNewExerciseFragment">
 
     <TextView
         android:id="@+id/label_enterNewExerciseComponentText"

@@ -1,4 +1,4 @@
-package com.itsabugnotafeature.fitocrazy.workout
+package com.itsabugnotafeature.fitocrazy.ui.home.workout
 
 import android.app.Activity
 import android.app.NotificationManager
@@ -47,7 +47,7 @@ import com.itsabugnotafeature.fitocrazy.common.ExerciseWithComponentModel
 import com.itsabugnotafeature.fitocrazy.common.Set
 import com.itsabugnotafeature.fitocrazy.common.SetRecordView
 import com.itsabugnotafeature.fitocrazy.common.Workout
-import com.itsabugnotafeature.fitocrazy.workout.addExercise.AddNewExerciseToWorkoutActivity
+import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity
 import kotlinx.coroutines.runBlocking
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -231,6 +231,7 @@ class WorkoutActivity : AppCompatActivity() {
                 itemView.findViewById<Button>(R.id.btn_addSetToThisExercise).setOnClickListener {
                     val imm = parent.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                     imm.hideSoftInputFromWindow(parent.windowToken, 0)
+                    itemView.clearFocus()
 
                     val weight: Double? = weightEditText.text.toString().toDoubleOrNull()
                     val reps: Int? = repsEditText.text.toString().toIntOrNull()
@@ -489,6 +490,7 @@ class WorkoutActivity : AppCompatActivity() {
                 if (today == workout.date) {
                     // only do set timer if we're currently working out
                     setTimeTimer.base = SystemClock.elapsedRealtime()
+                    setTimeTimer.setTextColor(applicationContext.getColor(R.color.black))
                     setTimeTimer.start()
                     setTimerIsActive = true
                 }

@@ -26,14 +26,14 @@
         </activity>
 
         <activity
-            android:name=".workout.WorkoutActivity"
+            android:name=".ui.home.workout.WorkoutActivity"
             android:exported="true"
             android:parentActivityName=".HomepageActivity"
             android:launchMode="singleInstance"/>
         <activity
-            android:name=".workout.addExercise.AddNewExerciseToWorkoutActivity"
+            android:name=".ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity"
             android:exported="true"
-            android:parentActivityName=".workout.WorkoutActivity"
+            android:parentActivityName=".ui.home.workout.WorkoutActivity"
             android:launchMode="singleTop" />
     </application>
 

@@ -1,21 +1,14 @@
 package com.itsabugnotafeature.fitocrazy
 
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
-import android.view.MenuItem
-import android.view.View
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.children
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.itsabugnotafeature.fitocrazy.databinding.ActivityHomepageBinding
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 class HomepageActivity : AppCompatActivity() {
 
@@ -35,7 +28,7 @@ class HomepageActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.navigation_workoutList, R.id.navigation_dashboard, R.id.navigation_notifications
+                R.id.navigation_workoutList, R.id.navigation_exerciseAndComponents, R.id.navigation_notifications
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)

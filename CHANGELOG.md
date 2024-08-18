@@ -8,6 +8,9 @@
 - style selected exercise element
 - add all selected exercises to the current workout
 - include exercises never done before
+- Clear edit text focus on new set added
+- BUG: adding a new set when teh timer is paused does not set the color correctly
+- Added component lists
 
 
 # 17 AUG 2024

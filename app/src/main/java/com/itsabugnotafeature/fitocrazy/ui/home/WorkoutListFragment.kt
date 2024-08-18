@@ -25,8 +25,8 @@ import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.common.WorkoutRecordView
-import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity
-import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.NOTIFICATION_ID
+import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity
+import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.Companion.NOTIFICATION_ID
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

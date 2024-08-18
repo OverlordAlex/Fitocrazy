@@ -1,4 +1,4 @@
-package com.itsabugnotafeature.fitocrazy.workout.addExercise
+package com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise
 
 import android.os.Bundle
 import android.view.LayoutInflater

@@ -20,10 +20,10 @@ import androidx.room.RoomDatabase
 import androidx.room.Transaction
 import androidx.room.TypeConverters
 import androidx.room.Update
-import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.ExerciseRecord
-import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.PointsResult
-import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.Companion.RecordType
-import com.itsabugnotafeature.fitocrazy.workout.WorkoutActivity.ExerciseView
+import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.Companion.ExerciseRecord
+import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.Companion.PointsResult
+import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.Companion.RecordType
+import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.ExerciseView
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import kotlin.math.pow

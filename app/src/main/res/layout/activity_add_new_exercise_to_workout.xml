@@ -14,14 +14,14 @@
         android:id="@+id/list_addExerciseSuggestions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@id/autocomplete_addExercise"
+        app:layout_constraintBottom_toTopOf="@id/search_addExercise"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintEnd_toStartOf="parent"
         app:layout_constraintHeight_max="180dp"
         app:layout_constraintTop_toTopOf="parent" />
 
     <SearchView
-        android:id="@+id/autocomplete_addExercise"
+        android:id="@+id/search_addExercise"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:saveEnabled="false"
@@ -38,7 +38,7 @@
         android:text="@string/label_ExpandNewExerciseGroup"
         android:textColor="@color/slate_dark"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/autocomplete_addExercise" />
+        app:layout_constraintTop_toBottomOf="@+id/search_addExercise" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_addExerciseToWorkout"
@@ -48,7 +48,7 @@
         android:padding="32dp"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@+id/label_ExpandNewExerciseGroup"
-        tools:context=".workout.addExercise.AddNewExerciseToWorkoutActivity"
+        tools:context=".ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity"
         tools:layout_editor_absoluteX="4dp">
 
         <TextView
@@ -179,6 +179,7 @@
             android:id="@+id/chipGroup_exerciseTags"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:padding="4dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

@@ -1,11 +1,9 @@
-package com.itsabugnotafeature.fitocrazy.workout.addExercise
+package com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
-import android.content.res.ColorStateList
 import android.os.Bundle
-import android.text.InputType
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.view.LayoutInflater
@@ -20,7 +18,6 @@ import android.widget.SearchView
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
@@ -38,7 +35,6 @@ import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseExerciseComponentCrossRef
 import com.itsabugnotafeature.fitocrazy.common.ExerciseModel
-import com.itsabugnotafeature.fitocrazy.common.ExerciseWithComponentModel
 import com.itsabugnotafeature.fitocrazy.common.MostCommonExerciseView
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
@@ -234,7 +230,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
         labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(R.drawable.drawer_closed, 0, 0, 0)
 
         val listExerciseSuggestions = findViewById<RecyclerView>(R.id.list_addExerciseSuggestions)
-        val autoComplete = findViewById<SearchView>(R.id.autocomplete_addExercise)
+        val autoComplete = findViewById<SearchView>(R.id.search_addExercise)
 
         labelExpandExerciseGroup.setOnClickListener {
             val visible: Int = if (detailLayout.visibility == View.GONE) {

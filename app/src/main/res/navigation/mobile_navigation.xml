@@ -8,13 +8,13 @@
     <fragment
         android:id="@+id/navigation_workoutList"
         android:name="com.itsabugnotafeature.fitocrazy.ui.home.WorkoutListFragment"
-        android:label="@string/navigation_workoutList" />
+        android:label="@string/navigation_workout_list" />
 
     <fragment
-        android:id="@+id/navigation_dashboard"
-        android:name="com.itsabugnotafeature.fitocrazy.ui.dashboard.DashboardFragment"
-        android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        android:id="@+id/navigation_exerciseAndComponents"
+        android:name="com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.ExerciseAndComponents"
+        android:label="@string/navigation_exercise_and_components"
+        tools:layout="@layout/fragment_exercise_and_components" />
 
     <fragment
         android:id="@+id/navigation_notifications"
