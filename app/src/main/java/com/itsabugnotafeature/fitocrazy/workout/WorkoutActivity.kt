@@ -40,6 +40,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.itsabugnotafeature.fitocrazy.R
+import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseWithComponentModel
@@ -143,7 +144,8 @@ class WorkoutActivity : AppCompatActivity() {
                     val setListView = LayoutInflater.from(parent.context).inflate(
                         R.layout.workout_exercise_set_list_horizontal_container, parent, false
                     )
-                    setListView.findViewById<TextView>(R.id.label_setDate).text = workoutDate.format(dateFormatter)
+                    setListView.findViewById<TextView>(R.id.label_setDate).text =
+                        workoutDate.format(Converters.dateFormatter)
 
                     val setWeightString = StringBuilder()
                     val setRepsString = StringBuilder()
@@ -647,57 +649,60 @@ class WorkoutActivity : AppCompatActivity() {
         val addExerciseResult =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
                 if (result.resultCode == Activity.RESULT_OK) {
-                    val exerciseModelId = result.data?.extras?.getLong("exerciseID", -1L) ?: -1
-                    if (exerciseModelId == -1L) return@registerForActivityResult
+                    val exerciseModelIds = result.data?.extras?.getLongArray("exerciseIDs") ?: longArrayOf()
+                    if (exerciseModelIds.isEmpty()) return@registerForActivityResult
 
-                    val exercise = Exercise(0, exerciseModelId, workout.date, exerciseList.size, workout.workoutId)
-                    var exerciseModel: ExerciseWithComponentModel?
-                    val record: SetRecordView?
-                    val historicalSets: List<Pair<LocalDate, List<Set>>>
+                    for (exerciseModelId in exerciseModelIds.reversed()) {
+                        val exercise = Exercise(0, exerciseModelId, workout.date, exerciseList.size, workout.workoutId)
+                        var exerciseModel: ExerciseWithComponentModel?
+                        val record: SetRecordView?
+                        val historicalSets: List<Pair<LocalDate, List<Set>>>
 
-                    runBlocking {
-                        exercise.exerciseId = db.exerciseDao().addExerciseSet(exercise)
-                        exerciseModel = db.exerciseDao().getExerciseDetails(exercise.exerciseModelId)
-                        record = db.exerciseDao().getRecord(exercise.exerciseModelId)
-                        historicalSets =
-                            db.exerciseDao().getHistoricalSets(exercise.exerciseModelId, 3, exercise.toTimeStamp())
-                                .toSortedMap().toList().map { Pair(it.first.date, it.second) }
+                        runBlocking {
+                            exercise.exerciseId = db.exerciseDao().addExerciseSet(exercise)
+                            exerciseModel = db.exerciseDao().getExerciseDetails(exercise.exerciseModelId)
+                            record = db.exerciseDao().getRecord(exercise.exerciseModelId)
+                            historicalSets =
+                                db.exerciseDao().getHistoricalSets(exercise.exerciseModelId, 3, exercise.toTimeStamp())
+                                    .toSortedMap().toList().map { Pair(it.first.date, it.second) }
 
-                        workout.totalExercises = exerciseList.size
-                        workout.topTags = exerciseList.fold(emptyList<String>()) { ongoing, item ->
-                            ongoing + db.exerciseDao()
-                                .getExerciseDetails(item.exercise.exerciseModelId)!!.exercise.getChips()
-                        }.groupingBy { it }.eachCount().asIterable().sortedBy { it.value }.reversed().take(3)
-                            .joinToString(" ") { it.key }.trim()
-                        db.exerciseDao().updateWorkout(workout)
-                    }
-                    exerciseList.add(
-                        ExerciseView(
-                            displayName = exerciseModel?.exercise?.displayName,
-                            tags = exerciseModel?.exercise?.getChips() ?: emptyList(),
-                            exercise = exercise,
-                            sets = mutableListOf(),
-                            record = record,
-                            historicalSets = historicalSets,
-                            basePoints = exerciseModel?.exercise?.basePoints ?: 10,
+                            workout.totalExercises = exerciseList.size
+                            workout.topTags = exerciseList.fold(emptyList<String>()) { ongoing, item ->
+                                ongoing + db.exerciseDao()
+                                    .getExerciseDetails(item.exercise.exerciseModelId)!!.exercise.getChips()
+                            }.groupingBy { it }.eachCount().asIterable().sortedBy { it.value }.reversed().take(3)
+                                .joinToString(" ") { it.key }.trim()
+                            db.exerciseDao().updateWorkout(workout)
+                        }
+                        exerciseList.add(
+                            ExerciseView(
+                                displayName = exerciseModel?.exercise?.displayName,
+                                tags = exerciseModel?.exercise?.getChips() ?: emptyList(),
+                                exercise = exercise,
+                                sets = mutableListOf(),
+                                record = record,
+                                historicalSets = historicalSets,
+                                basePoints = exerciseModel?.exercise?.basePoints ?: 10,
+                            )
                         )
-                    )
-                    exerciseListViewAdapter.notifyItemInserted(exerciseList.size - 1)
+                        exerciseListViewAdapter.notifyItemInserted(exerciseList.size - 1)
+
+                        showNotification(
+                            totalExercises = exerciseList.size,
+                            date = workout.date,
+                            chronometerBase = SystemClock.elapsedRealtime(),
+                            chronometerRunning = false,
+                            exerciseId = exercise.exerciseId,
+                            displayName = exerciseModel?.exercise?.displayName,
+                            set = null,
+                            numPrevSets = null,
+                            totalSets = null,
+                        )
+                    }
+
                     exerciseListView.smoothScrollToPosition(exerciseList.size - 1)
                     exerciseListView.visibility = RecyclerView.VISIBLE
                     labelForEmptyExerciseList.visibility = TextView.GONE
-
-                    showNotification(
-                        totalExercises = exerciseList.size,
-                        date = workout.date,
-                        chronometerBase = SystemClock.elapsedRealtime(),
-                        chronometerRunning = false,
-                        exerciseId = exercise.exerciseId,
-                        displayName = exerciseModel?.exercise?.displayName,
-                        set = null,
-                        numPrevSets = null,
-                        totalSets = null,
-                    )
                 }
             }
 
@@ -705,7 +710,12 @@ class WorkoutActivity : AppCompatActivity() {
             addExerciseResult.launch(
                 Intent(
                     this, AddNewExerciseToWorkoutActivity::class.java
-                ).setAction("addNewExerciseFromWorkout").putExtra("workoutId", workout.workoutId)
+                ).setAction("addNewExerciseFromWorkout")
+                    .putExtra("workoutId", workout.workoutId)
+                    .putExtra(
+                        "currentExercisesInWorkout",
+                        exerciseList.map { it.exercise.exerciseModelId }.toLongArray()
+                    )
             )
         }
 
@@ -722,7 +732,6 @@ class WorkoutActivity : AppCompatActivity() {
         private const val CHANNEL_ID = "FitocrazyCurrentExerciseChannel"
 
         private val decimalFormatter = DecimalFormat("###.##")
-        private val dateFormatter = DateTimeFormatter.ofPattern("dd LLL yy")
 
         private fun formatDoubleWeight(weight: Double): String {
             return if (weight % 1 == 0.0) {

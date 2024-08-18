@@ -1,13 +1,28 @@
+# 18 Aug 2024
+- Show suggested exercises at top of add new exercise
+- Completion drop down should instead drop "up"
+- Added a list of exercise suggestions based on frequency
+  - Touch target on exercise list too small
+- Exclude exercises already in current workout
+- Show when the exercise was last done
+- style selected exercise element
+- add all selected exercises to the current workout
+- include exercises never done before
+
+
 # 17 AUG 2024
 - BUG: Ordering of component frequency is wrong on workout list
 - BUG: Layout shifted up on resume - could be from keyboard focus on edit text causing keyboard to show and shift (fixed layout to shift correctly)
 - moved Add new exercise to its activity 
 - BUG: workouts being created like crazy due to bad launch options (fixed with singles in manifest)
-- highlight when something is missing when trying to create a new exercise
+- BUG: can add exercise without tags
+  - highlight when something is missing when trying to create a new exercise
+- Touch target on components too small
 
 
 # 16 AUG 2024 (Navigation)
 - Added three pane navigation
+  - full navigation over haul
 - Created CHANGELOG.md and README.md
 
 

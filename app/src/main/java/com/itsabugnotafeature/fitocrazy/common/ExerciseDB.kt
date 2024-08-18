@@ -1,6 +1,7 @@
 package com.itsabugnotafeature.fitocrazy.common
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
@@ -119,6 +120,14 @@ data class WorkoutRecordView(
     val avgTotalPoints: Double
 )
 
+@DatabaseView("SELECT E.exerciseId AS exerciseModelId, displayName, date, COUNT(DISTINCT workoutId) AS count FROM (SELECT * FROM ExerciseModel) AS E  LEFT JOIN Exercise on Exercise.exerciseModelId=E.exerciseId GROUP BY E.exerciseId ORDER BY count DESC, date DESC")
+data class MostCommonExerciseView(
+    val exerciseModelId: Long,
+    val displayName: String,
+    val date: LocalDate?,
+    val count: Int,
+)
+
 @Entity
 data class Workout(
     @PrimaryKey(autoGenerate = true) var workoutId: Long,
@@ -134,7 +143,8 @@ data class Workout(
 
     var topTags: String = "",
 ) {
-    @Ignore var currentSetTime: Long = 0
+    @Ignore
+    var currentSetTime: Long = 0
 
     fun recalculateWorkoutTotals(exerciseList: List<ExerciseView>) {
         totalWeight = 0.0
@@ -145,8 +155,8 @@ data class Workout(
 
         exerciseList.forEach { exercise ->
             totalSets += exercise.sets.size
-            totalReps += exercise.sets.fold(0) {acc, set -> acc + set.reps}
-            totalWeight += exercise.sets.fold(0.0) {acc, set -> acc + (set.reps * set.weight)}
+            totalReps += exercise.sets.fold(0) { acc, set -> acc + set.reps }
+            totalWeight += exercise.sets.fold(0.0) { acc, set -> acc + (set.reps * set.weight) }
             totalPoints += calculatePoints(exercise).points
         }
     }
@@ -283,12 +293,15 @@ interface ExerciseDao {
 
     @Query("SELECT * FROM WorkoutRecordView LIMIT 1")
     suspend fun getWorkoutStats(): WorkoutRecordView?
+
+    @Query("SELECT * FROM MostCommonExerciseView WHERE (date < :today OR date IS NULL) AND exerciseModelId NOT IN (:existingExercises) ORDER BY date DESC LIMIT 5")
+    suspend fun getMostCommonExercises(today: LocalDate, existingExercises: List<Long> = emptyList()): List<MostCommonExerciseView>
 }
 
 @Database(
     entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class],
-    views = [SetRecordView::class, WorkoutRecordView::class],
-    version = 8
+    views = [SetRecordView::class, WorkoutRecordView::class, MostCommonExerciseView::class],
+    version = 13
 )
 @TypeConverters(Converters::class)
 abstract class ExerciseDatabase : RoomDatabase() {
@@ -314,7 +327,8 @@ abstract class ExerciseDatabase : RoomDatabase() {
                         context.applicationContext,
                         ExerciseDatabase::class.java,
                         DATABASE_NAME
-                    )//.fallbackToDestructiveMigration()
+                    )
+                        .fallbackToDestructiveMigration()
                         .build()
 
                     INSTANCE = instance

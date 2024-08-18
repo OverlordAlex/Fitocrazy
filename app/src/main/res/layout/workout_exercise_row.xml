@@ -155,7 +155,7 @@
             android:maxHeight="48dp"
             android:minWidth="48dp"
             android:minHeight="48dp"
-            android:text="@string/btn_addNewEquipment"
+            android:text="@string/btn_add"
             android:textColor="@color/white"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@id/numberEntry_addKilogramsToThisExercise"

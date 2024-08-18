@@ -6,6 +6,7 @@ import org.json.JSONObject
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
 
 class Converters {
@@ -23,5 +24,8 @@ class Converters {
         fun dateToTimestamp(date: LocalDate): Long? {
             return date.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
         }
+
+        val dateFormatter = DateTimeFormatter.ofPattern("dd LLL yy")
     }
+
 }
