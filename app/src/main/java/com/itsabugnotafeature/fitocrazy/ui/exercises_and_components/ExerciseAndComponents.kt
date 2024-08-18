@@ -5,19 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import com.itsabugnotafeature.fitocrazy.R
-import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentModel
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseModel
 import kotlinx.coroutines.runBlocking
+import org.w3c.dom.Text
 
 class ExerciseAndComponents : Fragment() {
 
@@ -41,6 +41,13 @@ class ExerciseAndComponents : Fragment() {
             inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                 fun bind(component: ComponentView) {
                     itemView.findViewById<TextView>(R.id.label_componentName).text = component.name
+
+                    val exerciseList = itemView.findViewById<LinearLayout>(R.id.layout_listExercisesUsingComponent)
+                    component.exercises.forEach {
+                        val exercise = TextView(itemView.context)
+                        exercise.text = it.displayName
+                        exerciseList.addView(exercise)
+                    }
                 }
             }
 
@@ -60,7 +67,7 @@ class ExerciseAndComponents : Fragment() {
 
         override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
             val view = inflater.inflate(R.layout.fragment_exercise_component, container, false)
-            view.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+            //view.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
 
             view.findViewById<TextView>(R.id.label_componentType).text = type?.name ?: "Unknown Type"
 
@@ -71,7 +78,12 @@ class ExerciseAndComponents : Fragment() {
             val listOfComponentsOfThisType: List<ComponentView>
             runBlocking {
                 val db = ExerciseDatabase.getInstance(requireContext())
-                listOfComponentsOfThisType = db.exerciseDao().getExerciseComponent(type).map { ComponentView(it.name, emptyList()) }
+                listOfComponentsOfThisType = db.exerciseDao().getExerciseComponent(type).map {
+                    ComponentView(
+                        it.name,
+                        db.exerciseDao().getExerciseDetailsWithComponent(it.componentId)
+                    )
+                }
             }
 
             listOfComponents.adapter = ComponentListAdapter(listOfComponentsOfThisType)

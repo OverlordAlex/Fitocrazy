@@ -218,6 +218,9 @@ interface ExerciseDao {
     @Query("SELECT * FROM ExerciseModel")
     suspend fun getAllExercises(): List<ExerciseWithComponentModel>
 
+    @Query("SELECT EM.exerciseId, displayName, basePoints, bodyPartChips FROM exerciseexercisecomponentcrossref CR JOIN exercisemodel EM ON EM.exerciseId=CR.exerciseId WHERE CR.componentId = :componentId")
+    suspend fun getExerciseDetailsWithComponent(componentId: Long): List<ExerciseModel>
+
     @Query("SELECT * FROM ExerciseModel WHERE exerciseId = :id")
     suspend fun getExerciseDetails(id: Long): ExerciseWithComponentModel?
 
