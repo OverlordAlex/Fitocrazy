@@ -3,7 +3,10 @@
 - Add ability to rename components, including exercises
 - BUG: app crashes on resuming tabbed fragment
 - workout date now says "today" on the workout itself
-
+- BUG: add component, delete immediately, navigate away and navigate back shows element still there
+- need to be able to delete components (wants to put "seated" first on "seated dumbbell arnold press"
+- exercise + component editor
+- allow editing of exercise components
 
 # 18 Aug 2024 (Adding Exercise Overhaul)
 - Show suggested exercises at top of add new exercise

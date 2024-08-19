@@ -277,7 +277,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
         listExerciseSuggestions.adapter = suggestedExerciseAdapter
         listExerciseSuggestions.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
-        class QueryTextChangedListener() : SearchView.OnQueryTextListener {
+        class QueryTextChangedListener : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
