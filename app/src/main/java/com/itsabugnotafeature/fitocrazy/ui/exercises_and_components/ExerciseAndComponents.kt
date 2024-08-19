@@ -1,23 +1,34 @@
 package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.fragment.app.setFragmentResultListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import com.itsabugnotafeature.fitocrazy.R
+import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentModel
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseModel
+import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.EnterTextForNewExerciseFragment
 import kotlinx.coroutines.runBlocking
 import org.w3c.dom.Text
+import kotlin.math.abs
+import kotlin.math.min
 
 class ExerciseAndComponents : Fragment() {
 
@@ -30,13 +41,19 @@ class ExerciseAndComponents : Fragment() {
     }
 
     data class ComponentView(
-        val name: String,
-        val exercises: List<ExerciseModel>,
-    )
+        val id: Long,
+        var name: String,
+        var exercises: List<ExerciseModel>,
+    ) : Comparable<ComponentView> {
+        override fun compareTo(other: ComponentView) = this.name.compareTo(other.name)
+    }
 
-    class ComponentFragment(val type: ExerciseComponentType?) : Fragment() {
+    class ComponentFragment(private val type: ExerciseComponentType?) : Fragment() {
+        constructor() : this(null)
+
         class ComponentListAdapter(
-            private var componentList: List<ComponentView>
+            var componentList: MutableList<ComponentView>,
+            val type: ExerciseComponentType,
         ) : RecyclerView.Adapter<ComponentListAdapter.ViewHolder>() {
             inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                 fun bind(component: ComponentView) {
@@ -47,6 +64,64 @@ class ExerciseAndComponents : Fragment() {
                         val exercise = TextView(itemView.context)
                         exercise.text = it.displayName
                         exerciseList.addView(exercise)
+                    }
+
+                    val actionButton = itemView.findViewById<Button>(R.id.btn_deleteComponent)
+                    if (component.exercises.isEmpty()) {
+                        actionButton.text = itemView.context.getString(R.string.btn_minus)
+                        actionButton.setOnClickListener {
+                            runBlocking {
+                                ExerciseDatabase.getInstance(itemView.context).exerciseDao().deleteExerciseComponent(component.id)
+                            }
+                            componentList.remove(component)
+                            notifyItemRemoved(adapterPosition)
+                        }
+                    } else {
+                        actionButton.setOnClickListener {
+                            val application = itemView.context as AppCompatActivity
+                            val textFrag: DialogFragment = EnterTextForNewExerciseFragment(type.toString(), component.name)
+                            val ft: FragmentTransaction = application.supportFragmentManager.beginTransaction()
+                            val prev: Fragment? = application.supportFragmentManager.findFragmentByTag(textFrag.tag)
+                            if (prev != null) {
+                                ft.remove(prev)
+                            }
+                            ft.addToBackStack(null)
+
+                            textFrag.show(ft, textFrag.tag)
+                            textFrag.setFragmentResultListener("exerciseTextEntered") { _, bundle ->
+                                val enteredText: String? = bundle.getString("userInputtedString")
+                                if (!enteredText.isNullOrBlank() && enteredText != component.name) {
+                                    runBlocking {
+                                        val newComponent = ExerciseComponentModel(component.id, enteredText, type)
+                                        val db = ExerciseDatabase.getInstance(itemView.context).exerciseDao()
+                                        db.updateExerciseComponent(newComponent)
+                                        val exercises = db.getExercisesUsingComponent(component.id)
+                                        for (exerciseId in exercises) {
+                                            val newDisplayName =
+                                                db.getExerciseDetails(exerciseId)!!.components.joinToString(" ") {
+                                                    if (it.type == type) enteredText else it.name
+                                                }
+                                            db.updateExerciseDisplayName(exerciseId, newDisplayName)
+                                        }
+
+                                        component.name = enteredText
+                                        component.exercises = db.getExerciseDetailsWithComponent(component.id)
+
+                                        val idx = componentList.sorted().indexOf(component)
+                                        if (idx != adapterPosition) {
+                                            // have to reload view if things are resorted
+                                            componentList.sort()
+                                            //notifyItemRangeChanged(min(idx, adapterPosition), abs(adapterPosition-idx))
+                                            //
+                                            notifyDataSetChanged()
+                                        } else {
+                                            notifyItemChanged(adapterPosition)
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -67,27 +142,66 @@ class ExerciseAndComponents : Fragment() {
 
         override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
             val view = inflater.inflate(R.layout.fragment_exercise_component, container, false)
-            //view.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
 
             view.findViewById<TextView>(R.id.label_componentType).text = type?.name ?: "Unknown Type"
-
             if (type == null) return view
 
             val listOfComponents = view.findViewById<RecyclerView>(R.id.list_exerciseComponents)
 
-            val listOfComponentsOfThisType: List<ComponentView>
+            val listOfComponentsOfThisType: MutableList<ComponentView>
             runBlocking {
                 val db = ExerciseDatabase.getInstance(requireContext())
                 listOfComponentsOfThisType = db.exerciseDao().getExerciseComponent(type).map {
                     ComponentView(
+                        it.componentId,
                         it.name,
                         db.exerciseDao().getExerciseDetailsWithComponent(it.componentId)
                     )
-                }
+                }.sorted().toMutableList()
             }
 
-            listOfComponents.adapter = ComponentListAdapter(listOfComponentsOfThisType)
+            val componentListAdapter = ComponentListAdapter(listOfComponentsOfThisType, type)
+            listOfComponents.adapter = componentListAdapter
             listOfComponents.layoutManager =  LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+
+            val newComponentButton = view.findViewById<Button>(R.id.btn_addNewComponent)
+            newComponentButton.setOnClickListener {
+                val textFrag: DialogFragment =
+                    EnterTextForNewExerciseFragment(type.toString())
+                val ft: FragmentTransaction = childFragmentManager.beginTransaction()
+                val prev: Fragment? = childFragmentManager.findFragmentByTag(textFrag.tag)
+                if (prev != null) {
+                    ft.remove(prev)
+                }
+                ft.addToBackStack(null)
+
+                textFrag.show(ft, textFrag.tag)
+                textFrag.setFragmentResultListener("exerciseTextEntered") { _, bundle ->
+                    val enteredText: String? = bundle.getString("userInputtedString")
+                    if (!enteredText.isNullOrBlank()) {
+                        var component: ExerciseComponentModel?
+                        runBlocking {
+                            val db = ExerciseDatabase.getInstance(requireContext())
+                            component = db.exerciseDao().getExerciseComponent(enteredText, type)
+                            if (component == null) {
+                                component = ExerciseComponentModel(
+                                    0,
+                                    enteredText,
+                                    type
+                                )
+                                db.exerciseDao().addExerciseComponent(component!!)
+                            } else {
+                                Toast.makeText(requireContext(), "$component already exists", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        val componentView = ComponentView(component!!.componentId, component!!.name, emptyList())
+                        componentListAdapter.componentList.add(componentView)
+                        componentListAdapter.componentList.sort()
+                        componentListAdapter.notifyItemInserted(componentListAdapter.componentList.indexOf(componentView))
+                    }
+                }
+                ft.commit()
+            }
 
 
             return view
@@ -128,5 +242,6 @@ class ExerciseAndComponents : Fragment() {
         }
 
         tabs.addOnTabSelectedListener(TabSelectedListener())
+        tabs.selectTab(tabs.getTabAt(0))
     }
 }

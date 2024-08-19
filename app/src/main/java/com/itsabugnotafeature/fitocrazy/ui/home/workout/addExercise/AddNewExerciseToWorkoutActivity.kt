@@ -95,8 +95,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
                 if (!enteredText.isNullOrBlank()) {
                     runBlocking {
                         val db = ExerciseDatabase.getInstance(applicationContext)
-                        val existing = db.exerciseDao()
-                            .getExerciseComponent(enteredText, exerciseComponentType)
+                        val existing = db.exerciseDao().getExerciseComponent(enteredText, exerciseComponentType)
                         if (existing == null) {
                             db.exerciseDao().addExerciseComponent(
                                 ExerciseComponentModel(

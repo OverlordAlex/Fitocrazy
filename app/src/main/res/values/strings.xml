@@ -24,7 +24,7 @@
     <string name="channel_description">Add a new set to the current exercise</string>
 
     <string name="add_exercise_days_ago">%1$s (%2$d days ago)</string>
-
+    <string name="btn_rename">Rename</string>
 
     <string name="navigation_workout_list">Workouts</string>
     <string name="navigation_exercise_and_components">Exercises</string>

@@ -214,9 +214,8 @@ data class Workout(
 
 @Dao
 interface ExerciseDao {
-    @Transaction
-    @Query("SELECT * FROM ExerciseModel")
-    suspend fun getAllExercises(): List<ExerciseWithComponentModel>
+// do joins need @Transaction ?
+// E.exerciseId, group_concat(CM.name, " ")
 
     @Query("SELECT EM.exerciseId, displayName, basePoints, bodyPartChips FROM exerciseexercisecomponentcrossref CR JOIN exercisemodel EM ON EM.exerciseId=CR.exerciseId WHERE CR.componentId = :componentId")
     suspend fun getExerciseDetailsWithComponent(componentId: Long): List<ExerciseModel>
@@ -226,6 +225,15 @@ interface ExerciseDao {
 
     @Query("SELECT * FROM ExerciseComponentModel WHERE componentId = :id")
     suspend fun getExercise(id: Long): ExerciseComponentModel?
+
+    @Update
+    suspend fun updateExerciseComponent(exerciseComponent: ExerciseComponentModel)
+
+    @Query("SELECT exerciseId FROM ExerciseExerciseComponentCrossRef WHERE componentId = :exerciseComponentId")
+    suspend fun getExercisesUsingComponent(exerciseComponentId: Long): List<Long>
+
+    @Query("UPDATE ExerciseModel SET displayName = :displayName WHERE exerciseId = :exerciseId")
+    suspend fun updateExerciseDisplayName(exerciseId: Long, displayName: String)
 
     @Query("SELECT * FROM ExerciseExerciseComponentCrossRef WHERE componentId IN (:firstComponentId, :secondComponentId, :thirdComponentId) GROUP BY exerciseId HAVING COUNT(exerciseId) = 3 LIMIT 1")
     suspend fun getExercise(
@@ -242,6 +250,9 @@ interface ExerciseDao {
 
     @Query("SELECT * FROM ExerciseComponentModel WHERE type = :type")
     suspend fun getExerciseComponent(type: ExerciseComponentType): List<ExerciseComponentModel>
+
+    @Query("DELETE FROM ExerciseComponentModel WHERE componentId = :exerciseComponentId")
+    suspend fun deleteExerciseComponent(exerciseComponentId: Long)
 
     @Insert
     suspend fun addExercise(exercise: ExerciseModel): Long

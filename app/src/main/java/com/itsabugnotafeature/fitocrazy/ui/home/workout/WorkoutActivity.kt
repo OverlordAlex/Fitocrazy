@@ -407,7 +407,8 @@ class WorkoutActivity : AppCompatActivity() {
             totalSets = exerciseList.lastOrNull()?.sets?.size)
 
         val today = LocalDate.now()
-        title = title.toString() + " " + workout.date // TODO: format to "today" ?
+
+        title = title.toString() + " - " + (if (today == workout.date) getString(R.string.today) else workout.date)
 
         val totalWeightLabel = findViewById<TextView>(R.id.totalWeightValue)
         val totalRepsLabel = findViewById<TextView>(R.id.totalRepsValue)

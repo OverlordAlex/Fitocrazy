@@ -2,6 +2,7 @@
 BUG: "enter" when creating a new exercise component does weird stuff (should trim+enter)
 
 # TODO
+- when editing a component that causes the list of components of that type to be reordered, that refresh should refresh a range and not entire dataset
 - be able to edit date on workout
 - auto migrate DB / reset DB
 - Bodyweight - what kg to enter?

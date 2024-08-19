@@ -1,4 +1,11 @@
-# 18 Aug 2024
+# 19 Aug 2024 (Editing Components)
+- Add ability to delete components
+- Add ability to rename components, including exercises
+- BUG: app crashes on resuming tabbed fragment
+- workout date now says "today" on the workout itself
+
+
+# 18 Aug 2024 (Adding Exercise Overhaul)
 - Show suggested exercises at top of add new exercise
 - Completion drop down should instead drop "up"
 - Added a list of exercise suggestions based on frequency
