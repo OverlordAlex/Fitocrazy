@@ -223,6 +223,9 @@ interface ExerciseDao {
     @Query("SELECT * FROM ExerciseModel WHERE exerciseId = :id")
     suspend fun getExerciseDetails(id: Long): ExerciseWithComponentModel?
 
+    @Query("SELECT * FROM ExerciseModel")
+    suspend fun getExercises(): List<ExerciseWithComponentModel>
+
     @Query("SELECT * FROM ExerciseComponentModel WHERE componentId = :id")
     suspend fun getExercise(id: Long): ExerciseComponentModel?
 
@@ -254,6 +257,7 @@ interface ExerciseDao {
     @Query("DELETE FROM ExerciseComponentModel WHERE componentId = :exerciseComponentId")
     suspend fun deleteExerciseComponent(exerciseComponentId: Long)
 
+
     @Insert
     suspend fun addExercise(exercise: ExerciseModel): Long
 
@@ -262,6 +266,9 @@ interface ExerciseDao {
 
     @Insert
     suspend fun addExerciseExerciseComponentCrossRef(crossRef: ExerciseExerciseComponentCrossRef): Long
+
+    @Query("SELECT * FROM Exercise WHERE exerciseId = :exerciseId ORDER BY date DESC")
+    suspend fun getWorkoutsWithExercise(exerciseId: Long): List<Exercise>
 
     @Insert
     suspend fun addExerciseSet(exercise: Exercise): Long

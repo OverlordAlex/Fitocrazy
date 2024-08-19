@@ -7,6 +7,8 @@
 - need to be able to delete components (wants to put "seated" first on "seated dumbbell arnold press"
 - exercise + component editor
 - allow editing of exercise components
+- added list of exercises
+
 
 # 18 Aug 2024 (Adding Exercise Overhaul)
 - Show suggested exercises at top of add new exercise

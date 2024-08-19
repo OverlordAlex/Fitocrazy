@@ -23,10 +23,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import com.itsabugnotafeature.fitocrazy.R
+import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentModel
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseModel
+import com.itsabugnotafeature.fitocrazy.common.SetRecordView
+import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.EnterTextForNewExerciseFragment
 import kotlinx.coroutines.runBlocking
 import org.w3c.dom.Text
@@ -42,6 +45,78 @@ class ExerciseAndComponents : Fragment() {
     ): View? {
         return inflater.inflate(R.layout.fragment_exercise_and_components, container, false)
     }
+
+    data class ExerciseView(
+        val exercise: ExerciseModel,
+        var workouts: List<Exercise>,
+        val record: SetRecordView?,
+    ) : Comparable<ExerciseView> {
+        override fun compareTo(other: ExerciseView) = this.exercise.displayName.compareTo(other.exercise.displayName)
+        override fun equals(other: Any?): Boolean {
+            if (other is ExerciseView) return this.exercise.exerciseId == other.exercise.exerciseId
+            return super.equals(other)
+        }
+
+        override fun hashCode(): Int {
+            return this.exercise.exerciseId.hashCode()
+        }
+    }
+
+    class ExerciseFragment() : Fragment() {
+        lateinit var listOfExercises: MutableList<ExerciseView>
+
+        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+            val view = inflater.inflate(R.layout.fragment_exercise_component, container, false)
+
+            view.findViewById<TextView>(R.id.label_componentType).text = "EXERCISES"
+
+            val exerciseListView = view.findViewById<RecyclerView>(R.id.list_exerciseComponents)
+
+            runBlocking {
+                val db = ExerciseDatabase.getInstance(requireContext())
+                listOfExercises = db.exerciseDao().getExercises().map {
+                    ExerciseView(
+                        it.exercise,
+                        db.exerciseDao().getWorkoutsWithExercise(it.exercise.exerciseId),
+                        db.exerciseDao().getRecord(it.exercise.exerciseId)
+                    )
+                }.sorted().toMutableList()
+            }
+
+            class ExerciseListAdapter(
+                var exerciseList: MutableList<ExerciseView>
+            ): RecyclerView.Adapter<ExerciseListAdapter.ViewHolder>() {
+                inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+                    fun bind(exerciseView: ExerciseView) {
+                        itemView.findViewById<TextView>(R.id.label_exerciseName).text = exerciseView.exercise.displayName
+                        itemView.findViewById<TextView>(R.id.label_exerciseMaxWeight).text = exerciseView.record?.maxWeight.toString() // TODO FORMAT
+                        itemView.findViewById<TextView>(R.id.label_exerciseMaxReps).text = exerciseView.record?.maxReps.toString()
+                        itemView.findViewById<TextView>(R.id.label_exerciseWeightMoved).text = exerciseView.record?.mostWeightMoved.toString()
+                    }
+                }
+
+                override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+                    val row: View =
+                        LayoutInflater.from(parent.context).inflate(R.layout.fragment_exercise_component_exerciserow, parent, false)
+                    return ViewHolder(row)
+                }
+
+                override fun getItemCount() = exerciseList.size
+
+                override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+                    holder.bind(exerciseList[position])
+                }
+            }
+
+            val exerciseListAdapter = ExerciseListAdapter(listOfExercises)
+            exerciseListView.adapter = exerciseListAdapter
+            exerciseListView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+
+            return view
+        }
+    }
+
+
 
     data class ComponentView(
         val id: Long,
@@ -292,16 +367,17 @@ class ExerciseAndComponents : Fragment() {
 
         class TabSelectedListener : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                val fragmentType: ExerciseComponentType? = when (tab?.position) {
-                    0 -> null // Exercises
-                    1 -> ExerciseComponentType.EQUIPMENT // Equipment
-                    2 -> ExerciseComponentType.LOCATION// Location
-                    3 -> ExerciseComponentType.MOVEMENT// Movement
+                val fragmentTransaction = childFragmentManager.beginTransaction()
+
+                val fragmentType: Fragment? = when (tab?.position) {
+                    0 -> ExerciseFragment() // Exercises
+                    1 -> ComponentFragment(ExerciseComponentType.EQUIPMENT)
+                    2 -> ComponentFragment(ExerciseComponentType.LOCATION)
+                    3 -> ComponentFragment(ExerciseComponentType.MOVEMENT)
                     else -> null
                 }
 
-                val fragmentTransaction = childFragmentManager.beginTransaction()
-                fragmentTransaction.replace(frame.id, ComponentFragment(fragmentType))
+                fragmentTransaction.replace(frame.id, fragmentType!!)
                 fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                 fragmentTransaction.commit()
             }
@@ -317,5 +393,10 @@ class ExerciseAndComponents : Fragment() {
 
         tabs.addOnTabSelectedListener(TabSelectedListener())
         tabs.selectTab(tabs.getTabAt(0))
+
+        val fragmentTransaction = childFragmentManager.beginTransaction()
+        fragmentTransaction.replace(frame.id, ExerciseFragment())
+        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+        fragmentTransaction.commit()
     }
 }
