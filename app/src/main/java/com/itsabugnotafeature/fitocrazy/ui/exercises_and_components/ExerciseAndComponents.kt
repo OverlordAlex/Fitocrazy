@@ -1,9 +1,13 @@
 package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
@@ -14,6 +18,8 @@ import android.widget.LinearLayout
 import android.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
@@ -21,8 +27,11 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.setFragmentResultListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.tabs.TabLayout
 import com.itsabugnotafeature.fitocrazy.R
+import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentModel
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
@@ -30,9 +39,11 @@ import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseModel
 import com.itsabugnotafeature.fitocrazy.common.SetRecordView
 import com.itsabugnotafeature.fitocrazy.common.Workout
+import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.EnterTextForNewExerciseFragment
 import kotlinx.coroutines.runBlocking
 import org.w3c.dom.Text
+import java.time.LocalDate
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -48,7 +59,7 @@ class ExerciseAndComponents : Fragment() {
 
     data class ExerciseView(
         val exercise: ExerciseModel,
-        var workouts: List<Exercise>,
+        var lastWorkout: LocalDate?,
         val record: SetRecordView?,
     ) : Comparable<ExerciseView> {
         override fun compareTo(other: ExerciseView) = this.exercise.displayName.compareTo(other.exercise.displayName)
@@ -65,6 +76,11 @@ class ExerciseAndComponents : Fragment() {
     class ExerciseFragment() : Fragment() {
         lateinit var listOfExercises: MutableList<ExerciseView>
 
+        interface ExerciseChangeNotifier {
+            fun exerciseRemoved(exercise: ExerciseView)
+            fun exerciseEdited(exercise: ExerciseView)
+        }
+
         override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
             val view = inflater.inflate(R.layout.fragment_exercise_component, container, false)
 
@@ -77,27 +93,94 @@ class ExerciseAndComponents : Fragment() {
                 listOfExercises = db.exerciseDao().getExercises().map {
                     ExerciseView(
                         it.exercise,
-                        db.exerciseDao().getWorkoutsWithExercise(it.exercise.exerciseId),
+                        db.exerciseDao().getLastExerciseOccurrence(it.exercise.exerciseId)?.date,
                         db.exerciseDao().getRecord(it.exercise.exerciseId)
                     )
                 }.sorted().toMutableList()
             }
 
             class ExerciseListAdapter(
-                var exerciseList: MutableList<ExerciseView>
-            ): RecyclerView.Adapter<ExerciseListAdapter.ViewHolder>() {
+                var exerciseList: MutableList<ExerciseView>,
+                val changeNotifier: ExerciseChangeNotifier,
+            ) : RecyclerView.Adapter<ExerciseListAdapter.ViewHolder>() {
                 inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                     fun bind(exerciseView: ExerciseView) {
-                        itemView.findViewById<TextView>(R.id.label_exerciseName).text = exerciseView.exercise.displayName
-                        itemView.findViewById<TextView>(R.id.label_exerciseMaxWeight).text = exerciseView.record?.maxWeight.toString() // TODO FORMAT
-                        itemView.findViewById<TextView>(R.id.label_exerciseMaxReps).text = exerciseView.record?.maxReps.toString()
-                        itemView.findViewById<TextView>(R.id.label_exerciseWeightMoved).text = exerciseView.record?.mostWeightMoved.toString()
+                        itemView.findViewById<TextView>(R.id.label_exerciseName).text =
+                            exerciseView.exercise.displayName
+
+                        val maxWeight = itemView.findViewById<TextView>(R.id.label_exerciseMaxWeight)
+                        if (exerciseView.record?.maxWeight == null) {
+                            maxWeight.visibility = TextView.GONE
+                        } else {
+                            maxWeight.text = getString(R.string.exercise_max_weight, exerciseView.record.maxWeight)
+                        }
+
+                        val maxReps = itemView.findViewById<TextView>(R.id.label_exerciseMaxReps)
+                        if (exerciseView.record?.maxReps == null) {
+                            maxReps.visibility = TextView.GONE
+                        } else {
+                            maxReps.text = getString(R.string.exercise_max_reps, exerciseView.record.maxReps)
+                        }
+
+                        val maxMoved = itemView.findViewById<TextView>(R.id.label_exerciseWeightMoved)
+                        if (exerciseView.record?.mostWeightMoved == null) {
+                            maxMoved.visibility = TextView.GONE
+                        } else {
+                            maxMoved.text = getString(R.string.exercise_max_moved, exerciseView.record?.mostWeightMoved)
+                        }
+
+                        val actionButton = itemView.findViewById<Button>(R.id.btn_deleteExercise)
+                        val lastSeen = itemView.findViewById<TextView>(R.id.label_exerciseLastOccurrence)
+                        if (exerciseView.lastWorkout == null) {
+                            lastSeen.text = getString(R.string.exercise_last_seen_never)
+                        } else {
+                            actionButton.text = getString(R.string.btn_edit)
+                            val today =  LocalDate.now()
+                            lastSeen.text = if (today == exerciseView.lastWorkout) {
+                                getString(
+                                    R.string.exercise_last_seen_today,
+                                    exerciseView.lastWorkout!!.format(Converters.dateFormatter)
+                                )
+                            } else {
+                                getString(
+                                    R.string.exercise_last_seen,
+                                    exerciseView.lastWorkout!!.format(Converters.dateFormatter),
+                                    today.toEpochDay() - exerciseView.lastWorkout!!.toEpochDay()
+                                )
+                            }
+                        }
+
+                        val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipgroup_Bodyparts)
+                        chipGroup.removeAllViews()
+                        chipGroup.visibility = ChipGroup.VISIBLE
+                        exerciseView.exercise.bodyPartChips?.split(" ")?.forEach { chipName ->
+                            val newChip = Chip(itemView.context)
+                            newChip.text = chipName
+                            newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
+                            chipGroup.addView(newChip)
+                        }
+
+
+                        actionButton.setOnClickListener {
+                            if (exerciseView.lastWorkout == null) {
+                                runBlocking {
+                                    ExerciseDatabase.getInstance(itemView.context).exerciseDao()
+                                        .deleteExerciseModel(exerciseView.exercise.exerciseId)
+                                    ExerciseDatabase.getInstance(itemView.context).exerciseDao()
+                                        .deleteExerciseComponentCrossRefByExerciseId(exerciseView.exercise.exerciseId)
+                                }
+                                exerciseList.remove(exerciseView)
+                                changeNotifier.exerciseRemoved(exerciseView)
+                                notifyItemRemoved(adapterPosition)
+                            }
+                        }
                     }
                 }
 
                 override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
                     val row: View =
-                        LayoutInflater.from(parent.context).inflate(R.layout.fragment_exercise_component_exerciserow, parent, false)
+                        LayoutInflater.from(parent.context)
+                            .inflate(R.layout.fragment_exercise_component_exerciserow, parent, false)
                     return ViewHolder(row)
                 }
 
@@ -108,14 +191,62 @@ class ExerciseAndComponents : Fragment() {
                 }
             }
 
-            val exerciseListAdapter = ExerciseListAdapter(listOfExercises)
+            class ExerciseNotifier : ExerciseChangeNotifier {
+                override fun exerciseRemoved(exercise: ExerciseView) {
+                    listOfExercises.remove(exercise)
+                }
+
+                override fun exerciseEdited(exercise: ExerciseView) {
+                    listOfExercises.replaceAll { if (it.exercise.exerciseId == exercise.exercise.exerciseId) exercise else it }
+                }
+
+            }
+
+            val exerciseListAdapter = ExerciseListAdapter(listOfExercises, ExerciseNotifier())
             exerciseListView.adapter = exerciseListAdapter
             exerciseListView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+
+            val addExerciseResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {}
+
+            val newExerciseBtn = view.findViewById<Button>(R.id.btn_addNewComponent)
+            newExerciseBtn.setOnClickListener {
+                addExerciseResult.launch(
+                    Intent(
+                        requireContext(), AddNewExerciseToWorkoutActivity::class.java
+                    ).setAction("addNewExerciseFromWorkout")
+                )
+            }
+
+
+            class QueryTextChangedListener : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    return false
+                }
+
+                // could change any number of items on filter, could be more efficient with SortedListAdapter
+                //          https://stackoverflow.com/questions/30398247/how-to-filter-a-recyclerview-with-a-searchview
+                @SuppressLint("NotifyDataSetChanged")
+                override fun onQueryTextChange(query: String?): Boolean {
+                    if (query != null) {
+                        val upperQ = query.uppercase()
+                        exerciseListAdapter.exerciseList = listOfExercises.filter { exerciseView ->
+                            exerciseView.exercise.displayName.contains(upperQ) || (exerciseView.exercise.bodyPartChips?.uppercase()?.contains(upperQ) == true)
+                        }.toMutableList()
+                        exerciseListAdapter.notifyDataSetChanged()
+                        exerciseListView.scrollToPosition(0)
+                        return true
+                    }
+
+                    return false
+                }
+
+            }
+            val autoComplete = view.findViewById<SearchView>(R.id.search_componentList)
+            autoComplete.setOnQueryTextListener(QueryTextChangedListener())
 
             return view
         }
     }
-
 
 
     data class ComponentView(
@@ -140,7 +271,6 @@ class ExerciseAndComponents : Fragment() {
         constructor() : this(null)
 
         interface ComponentChangeNotifier {
-            fun componentAdded(component: ComponentView)
             fun componentRemoved(component: ComponentView)
             fun componentRenamed(component: ComponentView)
         }
@@ -259,17 +389,13 @@ class ExerciseAndComponents : Fragment() {
                 }.sorted().toMutableList()
             }
 
-            class ChangeNotifier: ComponentChangeNotifier {
-                override fun componentAdded(component: ComponentView) {
-                    listOfComponentsOfThisType.add(component)
-                }
-
+            class ChangeNotifier : ComponentChangeNotifier {
                 override fun componentRemoved(component: ComponentView) {
                     listOfComponentsOfThisType.remove(component)
                 }
 
                 override fun componentRenamed(component: ComponentView) {
-                    listOfComponentsOfThisType.replaceAll { if (it.id == component.id) component else it  }
+                    listOfComponentsOfThisType.replaceAll { if (it.id == component.id) component else it }
                 }
             }
 
@@ -316,7 +442,6 @@ class ExerciseAndComponents : Fragment() {
                                         componentView
                                     )
                                 )
-                                changeNotifier.componentAdded(componentView)
                             } else {
                                 Toast.makeText(requireContext(), "$component already exists", Toast.LENGTH_SHORT).show()
                             }

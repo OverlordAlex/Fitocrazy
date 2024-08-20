@@ -1,3 +1,14 @@
+# 20 Aug 2024 (Editing Exercises) v2.0
+- Added body part chips to exercises
+- Formatted all labels
+- can delete exercises that have never been used
+- Added ability to add new exercise from exercise list screen
+- Added exercise list sorting
+- BUG: today-today-today on workout (appending instead of setting)
+- if adding an exercise to a workout, if there are no possible exercises then we're in edit mode
+- be able to edit date on workout
+
+
 # 19 Aug 2024 (Editing Components)
 - Add ability to delete components
 - Add ability to rename components, including exercises

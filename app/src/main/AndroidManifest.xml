@@ -29,7 +29,8 @@
             android:name=".ui.home.workout.WorkoutActivity"
             android:exported="true"
             android:parentActivityName=".HomepageActivity"
-            android:launchMode="singleInstance"/>
+            android:launchMode="singleInstance"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"/>
         <activity
             android:name=".ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity"
             android:exported="true"

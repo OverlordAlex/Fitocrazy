@@ -85,7 +85,7 @@ data class ExerciseAndExerciseModelCrossRef(
 data class Exercise(
     @PrimaryKey(autoGenerate = true) var exerciseId: Long,
     val exerciseModelId: Long,
-    val date: LocalDate,
+    var date: LocalDate,
     val order: Int,
     val workoutId: Long,
 ) : Comparable<Exercise> {
@@ -131,7 +131,7 @@ data class MostCommonExerciseView(
 @Entity
 data class Workout(
     @PrimaryKey(autoGenerate = true) var workoutId: Long,
-    val date: LocalDate,
+    var date: LocalDate,
     var totalPoints: Int = 0,
     var totalExercises: Int = 0,
 
@@ -238,6 +238,9 @@ interface ExerciseDao {
     @Query("UPDATE ExerciseModel SET displayName = :displayName WHERE exerciseId = :exerciseId")
     suspend fun updateExerciseDisplayName(exerciseId: Long, displayName: String)
 
+    @Query("DELETE FROM ExerciseModel WHERE exerciseId = :exerciseModelId")
+    suspend fun deleteExerciseModel(exerciseModelId: Long)
+
     @Query("SELECT * FROM ExerciseExerciseComponentCrossRef WHERE componentId IN (:firstComponentId, :secondComponentId, :thirdComponentId) GROUP BY exerciseId HAVING COUNT(exerciseId) = 3 LIMIT 1")
     suspend fun getExercise(
         firstComponentId: Long,
@@ -257,7 +260,6 @@ interface ExerciseDao {
     @Query("DELETE FROM ExerciseComponentModel WHERE componentId = :exerciseComponentId")
     suspend fun deleteExerciseComponent(exerciseComponentId: Long)
 
-
     @Insert
     suspend fun addExercise(exercise: ExerciseModel): Long
 
@@ -267,8 +269,11 @@ interface ExerciseDao {
     @Insert
     suspend fun addExerciseExerciseComponentCrossRef(crossRef: ExerciseExerciseComponentCrossRef): Long
 
-    @Query("SELECT * FROM Exercise WHERE exerciseId = :exerciseId ORDER BY date DESC")
-    suspend fun getWorkoutsWithExercise(exerciseId: Long): List<Exercise>
+    @Query("DELETE FROM ExerciseExerciseComponentCrossRef WHERE exerciseId = :exerciseId")
+    suspend fun deleteExerciseComponentCrossRefByExerciseId(exerciseId: Long)
+
+    @Query("SELECT * FROM Exercise WHERE exerciseId = :exerciseId ORDER BY date DESC LIMIT 1")
+    suspend fun getLastExerciseOccurrence(exerciseId: Long): Exercise?
 
     @Insert
     suspend fun addExerciseSet(exercise: Exercise): Long
@@ -281,6 +286,9 @@ interface ExerciseDao {
 
     @Delete
     suspend fun deleteExercise(exercise: Exercise)
+
+    @Update
+    suspend fun updateExercise(exercise: Exercise)
 
     @Query("DELETE from Exercise WHERE workoutId = :workoutId")
     suspend fun deleteExercisesInWorkout(workoutId: Long)

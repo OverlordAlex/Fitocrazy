@@ -198,6 +198,8 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_new_exercise_to_workout)
 
+        var inEditMode = intent.getLongExtra("workoutId", -1L) == -1L
+
         val addExerciseButton: Button = findViewById(R.id.btn_addExercise)
 
         val chipGroup = findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
@@ -231,29 +233,6 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
         val listExerciseSuggestions = findViewById<RecyclerView>(R.id.list_addExerciseSuggestions)
         val autoComplete = findViewById<SearchView>(R.id.search_addExercise)
 
-        labelExpandExerciseGroup.setOnClickListener {
-            val visible: Int = if (detailLayout.visibility == View.GONE) {
-                listExerciseSuggestions.visibility = RecyclerView.GONE
-                autoComplete.clearFocus()
-
-                labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(R.drawable.drawer_opened, 0, 0, 0)
-
-                View.VISIBLE
-            } else {
-                listExerciseSuggestions.visibility = RecyclerView.VISIBLE
-                autoComplete.requestFocus()
-
-                labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(R.drawable.drawer_closed, 0, 0, 0)
-
-                View.GONE
-            }
-
-            val autoTransition = AutoTransition()
-            autoTransition.setDuration(100) // probably not needed, default is 300 if not set
-            TransitionManager.beginDelayedTransition(detailLayout, autoTransition)
-            detailLayout.visibility = visible
-        }
-
         val equipmentSpinner = findViewById<Spinner>(R.id.spinner_equipment)
         val positionSpinner = findViewById<Spinner>(R.id.spinner_position)
         val movementSpinner = findViewById<Spinner>(R.id.spinner_movement)
@@ -268,14 +247,51 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
             movementSpinner.adapter = movementAdapter
 
             val db = ExerciseDatabase.getInstance(applicationContext)
-            listOfSuggestedExercises = db.exerciseDao().getMostCommonExercises(
-                LocalDate.now(),
-                intent.getLongArrayExtra("currentExercisesInWorkout")?.toList() ?: emptyList()
-            )
-            suggestedExerciseAdapter = SuggestedExercisesListAdapter(listOfSuggestedExercises)
+            if (!inEditMode){
+                listOfSuggestedExercises = db.exerciseDao().getMostCommonExercises(
+                    LocalDate.now(),
+                    intent.getLongArrayExtra("currentExercisesInWorkout")?.toList() ?: emptyList()
+                )
+                suggestedExerciseAdapter = SuggestedExercisesListAdapter(listOfSuggestedExercises)
+                listExerciseSuggestions.adapter = suggestedExerciseAdapter
+
+            } else {
+                listOfSuggestedExercises = emptyList()
+            }
         }
-        listExerciseSuggestions.adapter = suggestedExerciseAdapter
+        if (listOfSuggestedExercises.isEmpty()) inEditMode = true
         listExerciseSuggestions.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+
+        if (!inEditMode) {
+            labelExpandExerciseGroup.setOnClickListener {
+                val visible: Int = if (detailLayout.visibility == View.GONE) {
+                    listExerciseSuggestions.visibility = RecyclerView.GONE
+                    autoComplete.clearFocus()
+
+                    labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(R.drawable.drawer_opened, 0, 0, 0)
+
+                    View.VISIBLE
+                } else {
+                    listExerciseSuggestions.visibility = RecyclerView.VISIBLE
+                    autoComplete.requestFocus()
+
+                    labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(R.drawable.drawer_closed, 0, 0, 0)
+
+                    View.GONE
+                }
+
+                val autoTransition = AutoTransition()
+                autoTransition.setDuration(100) // probably not needed, default is 300 if not set
+                TransitionManager.beginDelayedTransition(detailLayout, autoTransition)
+                detailLayout.visibility = visible
+            }
+        } else {
+            listExerciseSuggestions.visibility = RecyclerView.GONE
+            autoComplete.clearFocus()
+            autoComplete.visibility = SearchView.GONE
+            labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(R.drawable.drawer_opened, 0, 0, 0)
+            detailLayout.visibility = View.VISIBLE
+        }
 
         class QueryTextChangedListener : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {

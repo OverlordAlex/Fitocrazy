@@ -29,7 +29,14 @@
     <string name="navigation_workout_list">Workouts</string>
     <string name="navigation_exercise_and_components">Exercises</string>
 
-    <string name="title_dashboard">Dashboard</string>
+    <string name="exercise_max_weight">PR: %1$.2f kg</string>
+    <string name="exercise_max_reps">Most reps in a single set: %1$d</string>
+    <string name="exercise_max_moved">Max moved: %1$.0f kg</string>
+    <string name="exercise_last_seen">Last seen: %1$s (%2$d days ago)</string>
+    <string name="exercise_last_seen_today">Last seen: %1$s (today)</string>
+    <string name="exercise_last_seen_never">[never done]</string>
+    <string name="btn_edit">Edit</string>
+
     <string name="title_notifications">Notifications</string>
     <string name="title_activity_homepage">HomepageActivity</string>
 

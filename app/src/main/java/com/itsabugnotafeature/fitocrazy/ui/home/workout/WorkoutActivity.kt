@@ -1,14 +1,18 @@
 package com.itsabugnotafeature.fitocrazy.ui.home.workout
 
 import android.app.Activity
+import android.app.DatePickerDialog
+import android.app.Dialog
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.ProgressDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +21,7 @@ import android.view.animation.AccelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.Chronometer
+import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.ImageView
@@ -28,10 +33,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Lifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -49,10 +56,12 @@ import com.itsabugnotafeature.fitocrazy.common.SetRecordView
 import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity
 import kotlinx.coroutines.runBlocking
+import org.w3c.dom.Text
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.Locale
 
 
@@ -373,24 +382,24 @@ class WorkoutActivity : AppCompatActivity() {
         LocalBroadcastManager.getInstance(this)
             .registerReceiver(broadcastReceiver!!, IntentFilter(NOTIFICATION_ACTION_COMPLETE_SET))
 
-        val db = ExerciseDatabase.getInstance(this)
+        val db = ExerciseDatabase.getInstance(this).exerciseDao()
         val latestExerciseModel = runBlocking {
-            exerciseList = db.exerciseDao().getListOfExerciseInWorkout(workout.workoutId).map { exercise ->
-                val thisExerciseModel = db.exerciseDao().getExerciseDetails(exercise.exerciseModelId)!!
+            exerciseList = db.getListOfExerciseInWorkout(workout.workoutId).map { exercise ->
+                val thisExerciseModel = db.getExerciseDetails(exercise.exerciseModelId)!!
                 ExerciseView(
                     displayName = thisExerciseModel.exercise.displayName,
                     tags = thisExerciseModel.exercise.getChips(),
                     exercise = exercise,
-                    sets = db.exerciseDao().getSets(exercise.exerciseId).toMutableList(),
-                    record = db.exerciseDao().getRecord(exercise.exerciseModelId),
-                    historicalSets = db.exerciseDao()
+                    sets = db.getSets(exercise.exerciseId).toMutableList(),
+                    record = db.getRecord(exercise.exerciseModelId),
+                    historicalSets = db
                         .getHistoricalSets(exercise.exerciseModelId, 3, exercise.toTimeStamp()).toSortedMap()
                         .map { Pair(it.key.date, it.value) },
                     basePoints = thisExerciseModel.exercise.basePoints,
                 )
             }.toMutableList()
 
-            db.exerciseDao().getExerciseDetails(exerciseList.lastOrNull()?.exercise?.exerciseModelId ?: -1)
+            db.getExerciseDetails(exerciseList.lastOrNull()?.exercise?.exerciseModelId ?: -1)
         }
         exerciseListViewAdapter.exerciseList = exerciseList
 
@@ -408,7 +417,60 @@ class WorkoutActivity : AppCompatActivity() {
 
         val today = LocalDate.now()
 
-        title = title.toString() + " - " + (if (today == workout.date) getString(R.string.today) else workout.date)
+        class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener {
+            override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+                // Use the current date as the default date in the picker.
+                val c = Calendar.getInstance()
+                val year = c.get(Calendar.YEAR)
+                val month = c.get(Calendar.MONTH)
+                val day = c.get(Calendar.DAY_OF_MONTH)
+
+                // Create a new instance of DatePickerDialog and return it.
+                return DatePickerDialog(requireContext(), this, year, month, day)
+            }
+
+            override fun onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {
+                // Date picker 0-indexes the month REEE
+                val userDate = LocalDate.of(year, month + 1, day)
+                if (userDate == workout.date) return
+
+                if (userDate > today) {
+                    Toast.makeText(applicationContext, "We are not presently in the future", Toast.LENGTH_SHORT).show()
+                    return
+                }
+
+                // update Exercise
+                // update workout
+                runBlocking {
+                    // TODO run this on a non-UI thread
+                    //val db = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
+                    workout.date = userDate
+                    db.updateWorkout(workout)
+
+                    for (exercise in exerciseList) {
+                        exercise.exercise.date = userDate
+                        db.updateExercise(exercise.exercise)
+                    }
+                }
+
+                findViewById<TextView>(R.id.toolbar_title).text =
+                    "Fitocrazy - " + (if (today == workout.date) getString(R.string.today) else workout.date)
+            }
+        }
+
+        val toolbar = findViewById<Toolbar>(R.id.toolbar_workout)
+        val editDateBtn = toolbar.findViewById<Button>(R.id.btn_editWorkoutDate)
+        editDateBtn.setOnClickListener {
+            val datePicker = DatePickerFragment()
+            datePicker.show(supportFragmentManager, "datePicker")
+        }
+        editDateBtn.setBackgroundColor(getColor(R.color.purple_accent))
+
+        toolbar.findViewById<TextView>(R.id.toolbar_title).text =
+            "Fitocrazy - " + (if (today == workout.date) getString(R.string.today) else workout.date)
+
+        setSupportActionBar(toolbar)
+
 
         val totalWeightLabel = findViewById<TextView>(R.id.totalWeightValue)
         val totalRepsLabel = findViewById<TextView>(R.id.totalRepsValue)

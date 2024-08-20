@@ -8,6 +8,48 @@
     android:background="@color/blue_accent_light"
     tools:context=".ui.home.workout.WorkoutActivity">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_workout"
+        style="@style/Theme.AppCompat.NoActionBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/purple_main"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:weightSum="1"
+            tools:layout_editor_absoluteX="16dp"
+            tools:layout_editor_absoluteY="8dp">
+
+            <TextView
+                android:id="@+id/toolbar_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:text="ActionBar Title"
+                android:textColor="@color/white"
+                android:textSize="32dp" />
+
+            <Button
+                android:id="@+id/btn_editWorkoutDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginEnd="4dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                app:cornerRadius="40dp"
+                app:icon="@android:drawable/ic_menu_edit"
+                app:iconPadding="0dp" />
+        </LinearLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_endWorkout"
         android:layout_width="wrap_content"
@@ -44,7 +86,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/toolbar_workout">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/layout_currentWorkoutStats"

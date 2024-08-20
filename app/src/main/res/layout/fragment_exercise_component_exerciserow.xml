@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    app:cardElevation="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -17,6 +18,7 @@
             android:text="TextView"
             android:textColor="@color/black"
             android:textSize="18dp"
+            app:layout_constraintBottom_toTopOf="@id/chipgroup_Bodyparts"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -29,7 +31,19 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipgroup_Bodyparts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toTopOf="@id/layout_exerciseRecordGroup"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/label_exerciseName">
+
+        </com.google.android.material.chip.ChipGroup>
+
         <LinearLayout
+            android:id="@+id/layout_exerciseRecordGroup"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -63,10 +77,12 @@
                     android:layout_height="wrap_content"
                     android:text="TextView" />
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/list_workoutsWithExercise"
+                <TextView
+                    android:id="@+id/label_exerciseLastOccurrence"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="wrap_content"
+                    android:text="TextView" />
+
             </LinearLayout>
         </LinearLayout>
 

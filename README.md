@@ -1,10 +1,12 @@
 # Known Bugs
 BUG: "enter" when creating a new exercise component does weird stuff (should trim+enter)
+BUG: focus is set to autocomplete on addnewexercise when a component has been added and popup closed
+BUG: resume activity from icon (not notification) reopens app completely
 
 # TODO
+- able to edit exercises (not just remove)
 - when achieving a record, record when it was achieved
 - when editing a component that causes the list of components of that type to be reordered, that refresh should refresh a range and not entire dataset
-- be able to edit date on workout
 - auto migrate DB / reset DB
 - Bodyweight - what kg to enter?
 - add average weight per set and rep in the workout overview page
