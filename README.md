@@ -2,8 +2,25 @@
 BUG: "enter" when creating a new exercise component does weird stuff (should trim+enter)
 BUG: focus is set to autocomplete on addnewexercise when a component has been added and popup closed
 BUG: resume activity from icon (not notification) reopens app completely
+BUG: exercise added started with achivements already set?
+BUG: adding first set is swallowed when rep edit text has focus (toast shows! inputs cleared) - related to achivements? worked on latest exercise but not earlier
+- BUG: I have animations turned off... lol
+Bug: notification timer not restarted on new set
+Bug: adding new set not updating the exercise?
+Bug: total set time doesn't count when in background
+Bug: achievement doesn't survive reload
+Bug: app not installed when starting from bottom bar icon
+
 
 # TODO
+- move from a group selecter to a difficulty selector that includes bodyweight
+- add bodypart chips to exercises in add-exercise, and then be able to search by them
+- action bar on workout could use better styling (edit date on long press title, back button, etc)
+- spinners should be searchable
+- ability to reorder exercises in workout
+- nicer page scrolling animations between tabs on "exercises"
+- I keep wanting to tap "add exercise" on empty workout
+- be able to back up exercises for future migrations
 - able to edit exercises (not just remove)
 - when achieving a record, record when it was achieved
 - when editing a component that causes the list of components of that type to be reordered, that refresh should refresh a range and not entire dataset
@@ -22,10 +39,8 @@ BUG: resume activity from icon (not notification) reopens app completely
 - better font
 - the weight + reps enters should have more strict validation provided by android itself?
 - better icons for achievements
-- icon to indicate time can be paused
+- timer pause icon should be closer to time, better styled, and timer started/stops when pressing anywhere in layout
 - number of sets at current weight in notification should be displayed better (closer to the weight?)
-- dont show achievements on first instance of that exercise ever (no history)
-- - should achievements be per-row? or at least on the set card itself?
 - records should live with their exercises forever
 
 # Out of Scope
@@ -33,3 +48,4 @@ BUG: resume activity from icon (not notification) reopens app completely
 - bring points to the spinners on exercise type for more flexibility?
 - most common exercises should be based on similar exercises already in workout?
 - total points per exercise in chip next to exercise name (floating popups enough?)
+- BUG: buttons dont line up with spinners in adding exercise (problem only if the spinner is empty) - should happen once in entire app lifecycle

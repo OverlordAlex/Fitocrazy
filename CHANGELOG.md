@@ -1,4 +1,22 @@
-# 20 Aug 2024 (Editing Exercises) v2.0
+# 21 Aug 2024 (Small QoL Improvements)
+- Fix application name lmao
+- BUG: recyclerview does not shift up on softkeyboard open
+- BUG: spinners should be sorted (searchable?)
+- BUG: touch target to add new exercise too small
+- BUG: searchviews too small - only grab focus when pressing on the icon
+- BUG: top 5 exercises loaded for suggestions, but search bar implies could be more...
+- tapping bar in workout should go home
+- bodypart chips should be ordered alphabetically
+- BUG: records should reset if set removed
+- cannot get achievements first time ever doing set
+- - dont show achievements on first instance of that exercise ever (no history)
+- - should achievements be per-row? or at least on the set card itself?
+- BUG: achievement icons overlapp with chips
+- BUG: points toast shows weird values
+- icon to indicate time can be paused
+
+
+# 20 Aug 2024 (Editing Exercises) v2.0 (db v13)
 - Added body part chips to exercises
 - Formatted all labels
 - can delete exercises that have never been used

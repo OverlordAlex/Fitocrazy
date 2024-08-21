@@ -33,6 +33,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -114,8 +115,9 @@ class WorkoutActivity : AppCompatActivity() {
                 }
                 weightEditText.setOnFocusChangeListener { _, hasFocus ->
                     // clear text on focus
-                    if (hasFocus) weightEditText.text = null
-                    else if (weightEditText.text.toString().isNotEmpty()) {
+                    if (hasFocus) {
+                        weightEditText.text = null
+                    } else if (weightEditText.text.toString().isNotEmpty()) {
                         // when losing focus, format text
                         weightEditText.setText(formatDoubleWeight(weightEditText.text.toString().toDouble()))
                     }
@@ -144,10 +146,17 @@ class WorkoutActivity : AppCompatActivity() {
                     }
                 }
 
+                val points = Workout.calculatePoints(currentExercise)
+                val pointsChip = itemView.findViewById<Chip>(R.id.chip_exercisePoints)
+                if (points.points == 0) {
+                    pointsChip.visibility = Chip.GONE
+                } else {
+                    exerciseNameOnCard.setPadding(12, 0, 0, 0)
+                }
+                pointsChip.text = points.points.toString()
+
                 val exerciseSetsScrollLayout = itemView.findViewById<LinearLayout>(R.id.layout_listOfSetsOnExerciseCard)
                 exerciseSetsScrollLayout.removeAllViews()
-
-                // TODO
 
                 currentExercise.historicalSets.forEach { (workoutDate, setList) ->
                     val setListView = LayoutInflater.from(parent.context).inflate(
@@ -231,7 +240,12 @@ class WorkoutActivity : AppCompatActivity() {
                                     ImageView.VISIBLE
                             }
                         }
-                        if (records.isNotEmpty()) exerciseNameOnCard.setPadding(12, 0, 0, 0)
+                        val points = Workout.calculatePoints(currentExercise)
+                        val pointsChip = itemView.findViewById<Chip>(R.id.chip_exercisePoints)
+                        if (points.points == 0) {
+                            pointsChip.visibility = Chip.GONE
+                        }
+                        pointsChip.text = points.points.toString()
 
                         notifyItemChanged(adapterPosition)
                     }
@@ -265,7 +279,12 @@ class WorkoutActivity : AppCompatActivity() {
                                 ImageView.VISIBLE
                         }
                     }
-                    if (records.isNotEmpty()) exerciseNameOnCard.setPadding(12, 0, 0, 0)
+                    val points = Workout.calculatePoints(currentExercise)
+                    val pointsChip = itemView.findViewById<Chip>(R.id.chip_exercisePoints)
+                    if (points.points > 0) {
+                        pointsChip.visibility = Chip.VISIBLE
+                    }
+                    pointsChip.text = points.points.toString()
 
                     notifyItemChanged(adapterPosition)
                 }
@@ -439,11 +458,8 @@ class WorkoutActivity : AppCompatActivity() {
                     return
                 }
 
-                // update Exercise
-                // update workout
                 runBlocking {
                     // TODO run this on a non-UI thread
-                    //val db = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
                     workout.date = userDate
                     db.updateWorkout(workout)
 
@@ -468,7 +484,7 @@ class WorkoutActivity : AppCompatActivity() {
 
         toolbar.findViewById<TextView>(R.id.toolbar_title).text =
             "Fitocrazy - " + (if (today == workout.date) getString(R.string.today) else workout.date)
-
+        toolbar.findViewById<TextView>(R.id.toolbar_title).setOnClickListener { finish() }
         setSupportActionBar(toolbar)
 
 
@@ -534,13 +550,13 @@ class WorkoutActivity : AppCompatActivity() {
             override fun setAdded(exercise: ExerciseView, set: Set): List<ExerciseRecord> {
                 val oldTotal = workout.totalPoints
                 workout.recalculateWorkoutTotals(exerciseList)
-                if (lifecycle.currentState == Lifecycle.State.RESUMED) {
+                /*if (lifecycle.currentState == Lifecycle.State.RESUMED) {
                     lastToast?.cancel()
                     lastToast = Toast.makeText(
                         applicationContext, "${workout.totalPoints - oldTotal} ★ pts", Toast.LENGTH_SHORT
                     )
                     lastToast?.show()
-                }
+                }*/
 
                 runBlocking {
                     db.exerciseDao().updateWorkout(workout)
@@ -570,7 +586,7 @@ class WorkoutActivity : AppCompatActivity() {
                     totalSets = exercise.sets.size
                 )
 
-                return workout.calculatePoints(exercise).records
+                return Workout.calculatePoints(exercise).records
             }
 
             override fun setRemoved(exercise: ExerciseView, set: Set): List<ExerciseRecord> {
@@ -595,7 +611,7 @@ class WorkoutActivity : AppCompatActivity() {
                     totalSets = null
                 )
 
-                return workout.calculatePoints(exercise).records
+                return Workout.calculatePoints(exercise).records
             }
 
             override fun exerciseDeleted() {
@@ -664,11 +680,12 @@ class WorkoutActivity : AppCompatActivity() {
                 setTimeTimer.stop()
                 pausedTime = SystemClock.elapsedRealtime() - setTimeTimer.base
                 setTimeTimer.setTextColor(this.getColor(R.color.orange_main))
+                setTimeTimer.setCompoundDrawablesWithIntrinsicBounds(AppCompatResources.getDrawable(applicationContext, android.R.drawable.ic_media_pause), null, null, null)
             } else {
                 setTimeTimer.base = SystemClock.elapsedRealtime() - pausedTime
                 setTimeTimer.start()
                 setTimeTimer.setTextColor(this.getColor(R.color.black))
-
+                setTimeTimer.setCompoundDrawablesWithIntrinsicBounds(AppCompatResources.getDrawable(applicationContext, android.R.drawable.ic_media_play), null, null, null)
             }
             setTimerIsActive = !setTimerIsActive
         }

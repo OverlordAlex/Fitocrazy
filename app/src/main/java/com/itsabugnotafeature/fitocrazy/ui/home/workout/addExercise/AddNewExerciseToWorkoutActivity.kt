@@ -97,13 +97,14 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
                         val db = ExerciseDatabase.getInstance(applicationContext)
                         val existing = db.exerciseDao().getExerciseComponent(enteredText, exerciseComponentType)
                         if (existing == null) {
-                            db.exerciseDao().addExerciseComponent(
-                                ExerciseComponentModel(
-                                    0,
-                                    enteredText,
-                                    exerciseComponentType
-                                )
+                            val newComponent = ExerciseComponentModel(
+                                0,
+                                enteredText,
+                                exerciseComponentType
                             )
+                            newComponent.componentId = db.exerciseDao().addExerciseComponent(newComponent)
+                            updateSpinnerData()
+                            spinner.setSelection(equipmentAdapter.getPosition(newComponent))
                         } else {
                             spinner.setSelection(
                                 (spinner.adapter as ArrayAdapter<ExerciseComponentModel>).getPosition(
@@ -111,8 +112,6 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
                                 ), false
                             )
                         }
-                        updateSpinnerData()
-                        spinner.setSelection(spinner.adapter.count - 1)
                     }
                 }
             }
@@ -123,15 +122,15 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
         val db = ExerciseDatabase.getInstance(this)
         equipmentAdapter.clear()
         equipmentAdapter.addAll(
-            db.exerciseDao().getExerciseComponent(ExerciseComponentType.EQUIPMENT)
+            db.exerciseDao().getExerciseComponent(ExerciseComponentType.EQUIPMENT).sortedBy { it.name }
         )
         locationAdapter.clear()
         locationAdapter.addAll(
-            db.exerciseDao().getExerciseComponent(ExerciseComponentType.LOCATION)
+            db.exerciseDao().getExerciseComponent(ExerciseComponentType.LOCATION).sortedBy { it.name }
         )
         movementAdapter.clear()
         movementAdapter.addAll(
-            db.exerciseDao().getExerciseComponent(ExerciseComponentType.MOVEMENT)
+            db.exerciseDao().getExerciseComponent(ExerciseComponentType.MOVEMENT).sortedBy { it.name }
         )
     }
 
@@ -203,7 +202,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
         val addExerciseButton: Button = findViewById(R.id.btn_addExercise)
 
         val chipGroup = findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
-        val chipList = resources.getStringArray(R.array.arrayOfExerciseTagChips)
+        val chipList = resources.getStringArray(R.array.arrayOfExerciseTagChips).sorted()
         chipList.forEach { chipName ->
             val newChip = Chip(this)
             newChip.text = chipName

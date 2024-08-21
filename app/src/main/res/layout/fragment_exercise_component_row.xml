@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:text="TextView"
             android:textColor="@color/black"
-            android:textSize="32dp"
+            android:textSize="28dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 

@@ -26,6 +26,7 @@ import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.Companio
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.ExerciseView
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
+import kotlin.math.max
 import kotlin.math.pow
 
 enum class ExerciseComponentType {
@@ -34,13 +35,25 @@ enum class ExerciseComponentType {
 
 @Entity
 data class ExerciseComponentModel(
-    @PrimaryKey(autoGenerate = true) val componentId: Long,
+    @PrimaryKey(autoGenerate = true) var componentId: Long,
     val name: String,
     val type: ExerciseComponentType
 ) : Comparable<ExerciseComponentModel> {
     override fun toString() = name
     override fun compareTo(other: ExerciseComponentModel) =
         this.type.ordinal.compareTo(other.type.ordinal)
+
+    override fun equals(other: Any?): Boolean {
+        if (other is ExerciseComponentModel) return componentId == other.componentId
+        return super.equals(other)
+    }
+
+    override fun hashCode(): Int {
+        var result = componentId.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + type.hashCode()
+        return result
+    }
 }
 
 @Entity
@@ -161,54 +174,56 @@ data class Workout(
         }
     }
 
-    // TODO save on recalculate
-    // TODO: when do we update the max records? end of workout right? exercise not populating records oncreate?
-    fun calculatePoints(exercise: ExerciseView): PointsResult {
-        if (exercise.sets.isEmpty()) return PointsResult(0, emptyList())
+    companion object {
+        // TODO save on recalculate
+        // TODO: when do we update the max records? end of workout right? exercise not populating records oncreate?
+        fun calculatePoints(exercise: ExerciseView): PointsResult {
+            if (exercise.sets.isEmpty()) return PointsResult(0, emptyList())
 
-        var points: Double = 0.0
-        val records: MutableList<ExerciseRecord> = mutableListOf()
+            var points: Double = 0.0
+            val records: MutableList<ExerciseRecord> = mutableListOf()
 
-        val maxWeightThisSet = exercise.sets.maxOf { it.weight }
-        val maxRepsThisSet = exercise.sets.maxOf { it.reps }
-        val maxMovedThisSet = exercise.sets.maxOf { it.weight * it.reps }
+            val maxWeightThisSet = exercise.sets.maxOf { it.weight }
+            val maxRepsThisSet = exercise.sets.maxOf { it.reps }
+            val maxMovedThisSet = exercise.sets.maxOf { it.weight * it.reps }
 
-        var exerciseMaxWeight = exercise.record?.maxWeight ?: 0.0
-        val exerciseMaxReps = exercise.record?.maxReps ?: 0
-        val exerciseMaxMoved = exercise.record?.mostWeightMoved ?: 0.0
+            val exerciseMaxWeight = exercise.record?.maxWeight ?: maxWeightThisSet
+            val exerciseMaxReps = exercise.record?.maxReps ?: maxRepsThisSet
+            val exerciseMaxMoved = exercise.record?.mostWeightMoved ?: maxMovedThisSet
 
-        if (maxWeightThisSet > exerciseMaxWeight) {
-            points += 75
-            records.add(ExerciseRecord(exercise.record?.maxWeight ?: 0.0, maxWeightThisSet, RecordType.MAX_WEIGHT))
-            exerciseMaxWeight = maxWeightThisSet
-        }
-
-        if (maxRepsThisSet > exerciseMaxReps) {
-            points += 25
-            records.add(ExerciseRecord(exercise.record?.maxReps ?: 0.0, maxRepsThisSet, RecordType.MAX_REPS))
-        }
-
-        if (maxMovedThisSet > exerciseMaxMoved) {
-            points += 50
-            records.add(
-                ExerciseRecord(
-                    exercise.record?.mostWeightMoved ?: 0.0, maxMovedThisSet, RecordType.MAX_WEIGHT_MOVED
-                )
-            )
-        }
-
-        exercise.sets.forEach {
-            val repMultiplier: Double = when {
-                it.reps <= 4 -> 0.9
-                it.reps <= 8 -> 1.0
-                else -> 1.05
+            if (maxWeightThisSet > exerciseMaxWeight) {
+                points += 75
+                records.add(ExerciseRecord(exercise.record?.maxWeight ?: 0.0, maxWeightThisSet, RecordType.MAX_WEIGHT))
             }
 
-            points += exercise.basePoints.toDouble()
-                .pow((it.weight / exerciseMaxWeight)) * (it.reps * repMultiplier)
-        }
+            if (maxRepsThisSet > exerciseMaxReps) {
+                points += 25
+                records.add(ExerciseRecord(exercise.record?.maxReps ?: 0.0, maxRepsThisSet, RecordType.MAX_REPS))
+            }
 
-        return PointsResult(points.toInt(), records)
+            if (maxMovedThisSet > exerciseMaxMoved) {
+                points += 50
+                records.add(
+                    ExerciseRecord(
+                        exercise.record?.mostWeightMoved ?: 0.0, maxMovedThisSet, RecordType.MAX_WEIGHT_MOVED
+                    )
+                )
+            }
+
+            var maxWeightSoFar = exercise.sets.firstOrNull()?.weight ?: 0.0
+            exercise.sets.forEach {
+                val repMultiplier: Double = when {
+                    it.reps <= 4 -> 0.9
+                    it.reps <= 8 -> 1.0
+                    else -> 1.05
+                }
+
+                maxWeightSoFar = max(maxWeightSoFar, it.weight)
+                points += exercise.basePoints.toDouble().pow((it.weight / maxWeightSoFar)) * (it.reps * repMultiplier)
+            }
+
+            return PointsResult(points.toInt(), records)
+        }
     }
 }
 
@@ -323,8 +338,11 @@ interface ExerciseDao {
     @Query("SELECT * FROM WorkoutRecordView LIMIT 1")
     suspend fun getWorkoutStats(): WorkoutRecordView?
 
-    @Query("SELECT * FROM MostCommonExerciseView WHERE (date < :today OR date IS NULL) AND exerciseModelId NOT IN (:existingExercises) ORDER BY date DESC LIMIT 5")
-    suspend fun getMostCommonExercises(today: LocalDate, existingExercises: List<Long> = emptyList()): List<MostCommonExerciseView>
+    @Query("SELECT * FROM MostCommonExerciseView WHERE (date < :today OR date IS NULL) AND exerciseModelId NOT IN (:existingExercises) ORDER BY date DESC, displayName ASC")
+    suspend fun getMostCommonExercises(
+        today: LocalDate,
+        existingExercises: List<Long> = emptyList()
+    ): List<MostCommonExerciseView>
 }
 
 @Database(

@@ -17,6 +17,7 @@ android {
         targetSdk = 34
         versionCode = 2
         versionName = "2.0"
+//        version 13 of the DB
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

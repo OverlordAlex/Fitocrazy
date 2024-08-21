@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/blue_accent_light"
-    tools:context=".ui.home.workout.WorkoutActivity">
+    tools:context=".ui.home.workout.WorkoutActivity" >
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar_workout"
@@ -111,6 +111,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
+                    android:drawableStart="@android:drawable/ic_media_play"
                     android:gravity="center"
                     android:text="3:21"
                     android:textSize="48sp"
@@ -261,7 +262,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/list_exercisesInCurrentWorkout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:paddingHorizontal="2dp">
 
             </androidx.recyclerview.widget.RecyclerView>
