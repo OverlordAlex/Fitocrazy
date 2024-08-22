@@ -14,6 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/purple_main"
+        android:theme="@style/ToolbarTheme"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -33,7 +34,7 @@
                 android:layout_weight="1"
                 android:text="ActionBar Title"
                 android:textColor="@color/white"
-                android:textSize="32dp" />
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/btn_editWorkoutDate"
@@ -111,7 +112,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:drawableStart="@android:drawable/ic_media_play"
+                    android:drawableStart="@android:drawable/ic_media_pause"
                     android:gravity="center"
                     android:text="3:21"
                     android:textSize="48sp"

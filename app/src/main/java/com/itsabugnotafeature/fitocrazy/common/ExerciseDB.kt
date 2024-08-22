@@ -10,6 +10,7 @@ import androidx.room.Delete
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Ignore
+import androidx.room.Index
 import androidx.room.Insert
 import androidx.room.Junction
 import androidx.room.PrimaryKey
@@ -67,7 +68,7 @@ data class ExerciseModel(
     fun getChips(): List<String> = bodyPartChips?.split(" ") ?: emptyList()
 }
 
-@Entity(primaryKeys = ["componentId", "exerciseId"])
+@Entity(primaryKeys = ["componentId", "exerciseId"]) // , indices = [Index("exerciseId", unique = false)]
 data class ExerciseExerciseComponentCrossRef(
     val componentId: Long,
     val exerciseId: Long,
@@ -133,12 +134,13 @@ data class WorkoutRecordView(
     val avgTotalPoints: Double
 )
 
-@DatabaseView("SELECT E.exerciseId AS exerciseModelId, displayName, date, COUNT(DISTINCT workoutId) AS count FROM (SELECT * FROM ExerciseModel) AS E  LEFT JOIN Exercise on Exercise.exerciseModelId=E.exerciseId GROUP BY E.exerciseId ORDER BY count DESC, date DESC")
+@DatabaseView("SELECT E.exerciseId AS exerciseModelId, displayName, date, COUNT(DISTINCT workoutId) AS count, bodyPartChips FROM (SELECT * FROM ExerciseModel) AS E LEFT JOIN Exercise on Exercise.exerciseModelId=E.exerciseId GROUP BY E.exerciseId ORDER BY count DESC, date DESC")
 data class MostCommonExerciseView(
     val exerciseModelId: Long,
     val displayName: String,
     val date: LocalDate?,
     val count: Int,
+    val bodyPartChips: String,
 )
 
 @Entity
@@ -235,9 +237,11 @@ interface ExerciseDao {
     @Query("SELECT EM.exerciseId, displayName, basePoints, bodyPartChips FROM exerciseexercisecomponentcrossref CR JOIN exercisemodel EM ON EM.exerciseId=CR.exerciseId WHERE CR.componentId = :componentId")
     suspend fun getExerciseDetailsWithComponent(componentId: Long): List<ExerciseModel>
 
+    //@Transaction
     @Query("SELECT * FROM ExerciseModel WHERE exerciseId = :id")
     suspend fun getExerciseDetails(id: Long): ExerciseWithComponentModel?
 
+    //@Transaction
     @Query("SELECT * FROM ExerciseModel")
     suspend fun getExercises(): List<ExerciseWithComponentModel>
 
@@ -287,7 +291,7 @@ interface ExerciseDao {
     @Query("DELETE FROM ExerciseExerciseComponentCrossRef WHERE exerciseId = :exerciseId")
     suspend fun deleteExerciseComponentCrossRefByExerciseId(exerciseId: Long)
 
-    @Query("SELECT * FROM Exercise WHERE exerciseId = :exerciseId ORDER BY date DESC LIMIT 1")
+    @Query("SELECT * FROM Exercise WHERE exerciseModelId = :exerciseId ORDER BY date DESC LIMIT 1")
     suspend fun getLastExerciseOccurrence(exerciseId: Long): Exercise?
 
     @Insert
@@ -348,7 +352,11 @@ interface ExerciseDao {
 @Database(
     entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class],
     views = [SetRecordView::class, WorkoutRecordView::class, MostCommonExerciseView::class],
-    version = 13
+    version = 14,
+    exportSchema = true,
+    autoMigrations = [
+        AutoMigration (from = 13, to = 14),
+    ],
 )
 @TypeConverters(Converters::class)
 abstract class ExerciseDatabase : RoomDatabase() {
@@ -375,7 +383,7 @@ abstract class ExerciseDatabase : RoomDatabase() {
                         ExerciseDatabase::class.java,
                         DATABASE_NAME
                     )
-                        .fallbackToDestructiveMigration()
+                        .fallbackToDestructiveMigrationOnDowngrade()
                         .build()
 
                     INSTANCE = instance

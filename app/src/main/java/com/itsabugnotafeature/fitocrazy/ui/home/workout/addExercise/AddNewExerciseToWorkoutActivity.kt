@@ -6,6 +6,7 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -144,13 +145,22 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
 
                 val lastSeenLabel = itemView.findViewById<TextView>(R.id.label_exerciseSuggestionLastSeen)
                 if (suggestion.date == null) {
-                    lastSeenLabel.visibility = TextView.INVISIBLE
+                    lastSeenLabel.visibility = TextView.GONE
                 } else {
                     lastSeenLabel.text = itemView.context.getString(
                         R.string.add_exercise_days_ago,
                         suggestion.date.format(Converters.dateFormatter),
                         LocalDate.now().toEpochDay() - suggestion.date.toEpochDay()
                     )
+                }
+
+                val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipgroup_suggestedExerciseBodyParts)
+                chipGroup.removeAllViews()
+                suggestion.bodyPartChips.split(" ").sorted().forEach { chipName ->
+                    val newChip = Chip(itemView.context)
+                    newChip.text = chipName
+                    newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
+                    chipGroup.addView(newChip)
                 }
 
                 val btn = itemView.findViewById<Button>(R.id.btn_exerciseSuggestionAddExercise)
@@ -301,9 +311,13 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
             //          https://stackoverflow.com/questions/30398247/how-to-filter-a-recyclerview-with-a-searchview
             @SuppressLint("NotifyDataSetChanged")
             override fun onQueryTextChange(query: String?): Boolean {
+                // once the suggestion is open, keep the height consistent
+                listExerciseSuggestions.minimumHeight = listExerciseSuggestions.height
+
                 if (query != null) {
                     val upperQ = query.uppercase()
-                    suggestedExerciseAdapter.exerciseList = listOfSuggestedExercises.filter { it.displayName.contains(upperQ) }
+                    val lowerQ = query.lowercase()
+                    suggestedExerciseAdapter.exerciseList = listOfSuggestedExercises.filter { it.displayName.contains(upperQ) || it.bodyPartChips.contains(lowerQ)}
                     suggestedExerciseAdapter.notifyDataSetChanged()
                     listExerciseSuggestions.scrollToPosition(0)
                     return true

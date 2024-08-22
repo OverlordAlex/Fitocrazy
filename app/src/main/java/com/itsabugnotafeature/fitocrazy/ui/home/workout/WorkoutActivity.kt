@@ -5,7 +5,6 @@ import android.app.DatePickerDialog
 import android.app.Dialog
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.ProgressDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -40,7 +39,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.Lifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -57,7 +55,6 @@ import com.itsabugnotafeature.fitocrazy.common.SetRecordView
 import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity
 import kotlinx.coroutines.runBlocking
-import org.w3c.dom.Text
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.time.LocalDate
@@ -475,18 +472,22 @@ class WorkoutActivity : AppCompatActivity() {
         }
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar_workout)
-        val editDateBtn = toolbar.findViewById<Button>(R.id.btn_editWorkoutDate)
-        editDateBtn.setOnClickListener {
+        val toolbarTitle = toolbar.findViewById<TextView>(R.id.toolbar_title)
+
+        toolbarTitle.text =
+            "Fitocrazy - " + (if (today == workout.date) getString(R.string.today) else workout.date)
+        toolbarTitle.setOnClickListener { finish() }
+        toolbarTitle.setOnLongClickListener {
             val datePicker = DatePickerFragment()
             datePicker.show(supportFragmentManager, "datePicker")
+            true
         }
+
+        val editDateBtn = toolbar.findViewById<Button>(R.id.btn_editWorkoutDate)
         editDateBtn.setBackgroundColor(getColor(R.color.purple_accent))
 
-        toolbar.findViewById<TextView>(R.id.toolbar_title).text =
-            "Fitocrazy - " + (if (today == workout.date) getString(R.string.today) else workout.date)
-        toolbar.findViewById<TextView>(R.id.toolbar_title).setOnClickListener { finish() }
         setSupportActionBar(toolbar)
-
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val totalWeightLabel = findViewById<TextView>(R.id.totalWeightValue)
         val totalRepsLabel = findViewById<TextView>(R.id.totalRepsValue)

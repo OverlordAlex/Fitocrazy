@@ -25,7 +25,7 @@ class Converters {
             return date.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
         }
 
-        val dateFormatter = DateTimeFormatter.ofPattern("dd LLL yy")
+        val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd LLL yyyy")
     }
 
 }

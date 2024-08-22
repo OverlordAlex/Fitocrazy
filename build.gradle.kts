@@ -5,4 +5,5 @@ plugins {
     id("com.google.devtools.ksp") version "2.0.0-1.0.23"
     alias(libs.plugins.google.firebase.appdistribution) apply false
     alias(libs.plugins.google.gms.google.services) apply false
+    id("androidx.room") version "2.6.1" apply false
 }

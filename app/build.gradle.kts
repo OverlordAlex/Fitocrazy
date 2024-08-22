@@ -5,6 +5,8 @@ plugins {
     id("com.google.devtools.ksp")
     alias(libs.plugins.google.firebase.appdistribution)
     alias(libs.plugins.google.gms.google.services)
+
+    id("androidx.room")
 }
 
 android {
@@ -20,6 +22,14 @@ android {
 //        version 13 of the DB
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+    }
+
+    room {
+        schemaDirectory("$projectDir/schemas")
     }
 
     signingConfigs {
@@ -63,7 +73,11 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+
 }
+
+
 
 dependencies {
 

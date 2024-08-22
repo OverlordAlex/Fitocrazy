@@ -7,15 +7,14 @@ BUG: adding first set is swallowed when rep edit text has focus (toast shows! in
 - BUG: I have animations turned off... lol
 Bug: notification timer not restarted on new set
 Bug: adding new set not updating the exercise?
-Bug: total set time doesn't count when in background
+Bug: total set time doesn't count when in background4
 Bug: achievement doesn't survive reload
 Bug: app not installed when starting from bottom bar icon
 
 
 # TODO
 - move from a group selecter to a difficulty selector that includes bodyweight
-- add bodypart chips to exercises in add-exercise, and then be able to search by them
-- action bar on workout could use better styling (edit date on long press title, back button, etc)
+- action bar on workout could use better styling (, back button, etc)
 - spinners should be searchable
 - ability to reorder exercises in workout
 - nicer page scrolling animations between tabs on "exercises"
@@ -24,7 +23,6 @@ Bug: app not installed when starting from bottom bar icon
 - able to edit exercises (not just remove)
 - when achieving a record, record when it was achieved
 - when editing a component that causes the list of components of that type to be reordered, that refresh should refresh a range and not entire dataset
-- auto migrate DB / reset DB
 - Bodyweight - what kg to enter?
 - add average weight per set and rep in the workout overview page
 - basic weight tracking

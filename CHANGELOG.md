@@ -1,3 +1,12 @@
+# 22 Aug 2024
+- Enabled schema migrations
+- - auto migrate DB / reset DB
+- add bodypart chips to exercises in add-exercise, and then be able to search by them
+- exercise suggestion box is now constant height and does not change one search
+- edit date on long press title
+- BUG: can delete exercises in use, causing crashes on those workouts
+
+
 # 21 Aug 2024 (Small QoL Improvements)
 - Fix application name lmao
 - BUG: recyclerview does not shift up on softkeyboard open
