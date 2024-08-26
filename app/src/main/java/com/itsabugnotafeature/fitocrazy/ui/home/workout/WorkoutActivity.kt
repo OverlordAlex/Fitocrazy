@@ -11,7 +11,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -39,7 +38,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
@@ -157,7 +156,7 @@ class WorkoutActivity : AppCompatActivity() {
 
                 currentExercise.historicalSets.forEach { (workoutDate, setList) ->
                     val setListView = LayoutInflater.from(parent.context).inflate(
-                        R.layout.workout_exercise_set_list_horizontal_container, parent, false
+                        R.layout.container_workout_exercise_set_list_horizontal, parent, false
                     )
                     setListView.findViewById<TextView>(R.id.label_setDate).text =
                         workoutDate.format(Converters.dateFormatter)
@@ -175,7 +174,7 @@ class WorkoutActivity : AppCompatActivity() {
                 }
 
                 val setListView = LayoutInflater.from(parent.context).inflate(
-                    R.layout.workout_exercise_set_list_horizontal_container_today, parent, false
+                    R.layout.container_workout_exercise_set_list_horizontal_today, parent, false
                 )
 
                 setListView.findViewById<TextView>(R.id.label_setDate).text =
@@ -201,6 +200,14 @@ class WorkoutActivity : AppCompatActivity() {
 
                 val scrollView = itemView.findViewById<HorizontalScrollView>(R.id.scrollview_listOfSetsOnExerciseCard)
                 scrollView.post { scrollView.scrollX = setListView.left }
+
+                if (currentExercise.historicalSets.isEmpty()) {
+                    pointsChip.setChipBackgroundColorResource(R.color.orange_main)
+                    pointsChip.setTextColor(itemView.context.getColor(R.color.white))
+                } else {
+                    pointsChip.setChipBackgroundColorResource(R.color.blue_accent_lightest)
+                    pointsChip.setTextColor(itemView.context.getColor(R.color.slate_dark))
+                }
 
                 itemView.findViewById<Button>(R.id.btn_removeLastSetFromThisExercise).setOnClickListener {
                     val imm = parent.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
@@ -237,12 +244,11 @@ class WorkoutActivity : AppCompatActivity() {
                                     ImageView.VISIBLE
                             }
                         }
-                        val points = Workout.calculatePoints(currentExercise)
-                        val pointsChip = itemView.findViewById<Chip>(R.id.chip_exercisePoints)
-                        if (points.points == 0) {
+                        val newPoints = Workout.calculatePoints(currentExercise)
+                        if (newPoints.points == 0) {
                             pointsChip.visibility = Chip.GONE
                         }
-                        pointsChip.text = points.points.toString()
+                        pointsChip.text = newPoints.points.toString()
 
                         notifyItemChanged(adapterPosition)
                     }
@@ -276,12 +282,12 @@ class WorkoutActivity : AppCompatActivity() {
                                 ImageView.VISIBLE
                         }
                     }
-                    val points = Workout.calculatePoints(currentExercise)
-                    val pointsChip = itemView.findViewById<Chip>(R.id.chip_exercisePoints)
-                    if (points.points > 0) {
+                    val newPoints = Workout.calculatePoints(currentExercise)
+                    if (newPoints.points > 0) {
                         pointsChip.visibility = Chip.VISIBLE
                     }
-                    pointsChip.text = points.points.toString()
+
+                    pointsChip.text = newPoints.points.toString()
 
                     notifyItemChanged(adapterPosition)
                 }
@@ -291,7 +297,7 @@ class WorkoutActivity : AppCompatActivity() {
         override fun getItemCount() = exerciseList.size
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view: View = LayoutInflater.from(parent.context).inflate(R.layout.workout_exercise_row, parent, false)
+            val view: View = LayoutInflater.from(parent.context).inflate(R.layout.row_workout_exercise, parent, false)
             return ViewHolder(view)
         }
 
@@ -306,6 +312,7 @@ class WorkoutActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+
         val totalTimeTimer = findViewById<Chronometer>(R.id.timer_totalTime)
         val setTimeTimer = findViewById<Chronometer>(R.id.timer_timeAfterLastSet)
 
@@ -318,12 +325,58 @@ class WorkoutActivity : AppCompatActivity() {
         runBlocking {
             db.exerciseDao().updateWorkout(workout)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
 
         if (broadcastReceiver != null) {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver!!)
-            //ContextCompat.registerReceiver(this, broadcastReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
+            applicationContext.unregisterReceiver(broadcastReceiver)
         }
+    }
 
+    private data class LastNotification(
+        val totalExercises: Int,
+        val date: LocalDate,
+        val chronometerBase: Long,
+        var chronometerRunning: Boolean,
+        val exerciseId: Long?,
+        val displayName: String?,
+        val set: Set?,
+        val numPrevSets: Int?,
+        val totalSets: Int?,
+    )
+
+    private lateinit var lastNotification: LastNotification
+
+    private fun showNotificationAgain(chronometerBase: Long, chronometerRunning: Boolean = true) {
+        if (::lastNotification.isInitialized)
+            showNotification(
+                lastNotification.totalExercises,
+                lastNotification.date,
+                chronometerBase,
+                chronometerRunning,
+                lastNotification.exerciseId,
+                lastNotification.displayName,
+                lastNotification.set,
+                lastNotification.numPrevSets,
+                lastNotification.totalSets,
+            )
+    }
+
+    private fun showNotificationAgainWithSetInc(chronometerBase: Long, chronometerRunning: Boolean = true) {
+        if (::lastNotification.isInitialized)
+            showNotification(
+                lastNotification.totalExercises,
+                lastNotification.date,
+                chronometerBase,
+                chronometerRunning,
+                lastNotification.exerciseId,
+                lastNotification.displayName,
+                lastNotification.set,
+                lastNotification.numPrevSets?.plus(1),
+                lastNotification.totalSets?.plus(1),
+            )
     }
 
     fun showNotification(
@@ -338,6 +391,17 @@ class WorkoutActivity : AppCompatActivity() {
         totalSets: Int?,
     ) {
         if (date != LocalDate.now()) return
+        lastNotification = LastNotification(
+            totalExercises,
+            date,
+            chronometerBase,
+            chronometerRunning,
+            exerciseId,
+            displayName,
+            set,
+            numPrevSets,
+            totalSets
+        )
 
         val title = "${date.format(DateTimeFormatter.ofPattern("dd LLLL yyyy"))} [$totalExercises]"
 
@@ -347,10 +411,11 @@ class WorkoutActivity : AppCompatActivity() {
 
         val notificationLayoutExpanded = RemoteViews("com.itsabugnotafeature.fitocrazy", R.layout.notification_large)
         notificationLayoutExpanded.setTextViewText(R.id.label_notificationTitle, title)
-        notificationLayoutExpanded.setChronometer(/* viewId = */ R.id.timer_notificationSetTime,/* base = */
-            chronometerBase,/* format = */
-            null,/* started = */
-            chronometerRunning
+        notificationLayoutExpanded.setChronometer(
+            /* viewId = */ R.id.timer_notificationSetTime,
+            /* base = */ chronometerBase,
+            /* format = */ null,
+            /* started = */ chronometerRunning
         )
         notificationLayoutExpanded.setTextViewText(
             R.id.label_notificationContent,
@@ -360,20 +425,13 @@ class WorkoutActivity : AppCompatActivity() {
             R.id.label_notificationLastSet, if (set != null) "${formatDoubleWeight(set.weight)}kg x ${set.reps}" else ""
         )
 
-        val addAnotherSetIntent = Intent().apply {
-            action = NOTIFICATION_ACTION_COMPLETE_SET
-            putExtra("exerciseId", exerciseId)
-        }
-
-        val addAnotherSetPendingIntent = PendingIntent.getBroadcast(
-            this,
-            0,
-            Intent(addAnotherSetIntent),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
         val contentIntent: PendingIntent =
-            PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE //or PendingIntent.FLAG_UPDATE_CURRENT
+            )
 
         val customNotification = NotificationCompat.Builder(this, CHANNEL_ID).setContentTitle(title)
             .setSmallIcon(R.drawable.fitocrazy_logo) // TODO get this to work
@@ -382,21 +440,28 @@ class WorkoutActivity : AppCompatActivity() {
             .setCategory(NotificationCompat.CATEGORY_STATUS).setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
         if (set != null) {
+            val addAnotherSetIntent = Intent().apply {
+                action = NOTIFICATION_ACTION_COMPLETE_SET
+                putExtra("exerciseId", exerciseId)
+            }
+            val addAnotherSetPendingIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                addAnotherSetIntent,
+                PendingIntent.FLAG_IMMUTABLE //or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+
             customNotification.addAction(
                 android.R.drawable.ic_menu_add, NOTIFICATION_ACTION_COMPLETE_SET, addAnotherSetPendingIntent
             )
         }
 
-        val notificationManager =
-            this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID, customNotification.build())
     }
 
     override fun onResume() {
         super.onResume()
-
-        LocalBroadcastManager.getInstance(this)
-            .registerReceiver(broadcastReceiver!!, IntentFilter(NOTIFICATION_ACTION_COMPLETE_SET))
 
         val db = ExerciseDatabase.getInstance(this).exerciseDao()
         val latestExerciseModel = runBlocking {
@@ -474,8 +539,7 @@ class WorkoutActivity : AppCompatActivity() {
         val toolbar = findViewById<Toolbar>(R.id.toolbar_workout)
         val toolbarTitle = toolbar.findViewById<TextView>(R.id.toolbar_title)
 
-        toolbarTitle.text =
-            "Fitocrazy - " + (if (today == workout.date) getString(R.string.today) else workout.date)
+        toolbarTitle.text = "Fitocrazy - " + (if (today == workout.date) getString(R.string.today) else workout.date)
         toolbarTitle.setOnClickListener { finish() }
         toolbarTitle.setOnLongClickListener {
             val datePicker = DatePickerFragment()
@@ -508,10 +572,12 @@ class WorkoutActivity : AppCompatActivity() {
             exerciseListView.visibility = RecyclerView.INVISIBLE
             labelForEmptyExerciseList.visibility = TextView.VISIBLE
         }
+        exerciseListViewAdapter.notifyDataSetChanged()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
         setContentView(R.layout.activity_workout)
 
@@ -549,16 +615,7 @@ class WorkoutActivity : AppCompatActivity() {
 
         class Notifier : ExerciseNotification {
             override fun setAdded(exercise: ExerciseView, set: Set): List<ExerciseRecord> {
-                val oldTotal = workout.totalPoints
                 workout.recalculateWorkoutTotals(exerciseList)
-                /*if (lifecycle.currentState == Lifecycle.State.RESUMED) {
-                    lastToast?.cancel()
-                    lastToast = Toast.makeText(
-                        applicationContext, "${workout.totalPoints - oldTotal} ★ pts", Toast.LENGTH_SHORT
-                    )
-                    lastToast?.show()
-                }*/
-
                 runBlocking {
                     db.exerciseDao().updateWorkout(workout)
                 }
@@ -612,6 +669,14 @@ class WorkoutActivity : AppCompatActivity() {
                     totalSets = null
                 )
 
+                if (lifecycle.currentState == Lifecycle.State.RESUMED) {
+                    lastToast?.cancel()
+                    lastToast = Toast.makeText(
+                        applicationContext, "Removed: ${set.weight} kg x ${set.reps}", Toast.LENGTH_SHORT
+                    )
+                    lastToast?.show()
+                }
+
                 return Workout.calculatePoints(exercise).records
             }
 
@@ -653,42 +718,57 @@ class WorkoutActivity : AppCompatActivity() {
                 if (exerciseId == -1L) return
 
                 runBlocking {
-                    //val db = ExerciseDatabase.getInstance(this)
-                    val sets = db.exerciseDao().getSets(exerciseId)
+                    val broadcastDb = ExerciseDatabase.getInstance(applicationContext)
+                    val sets = broadcastDb.exerciseDao().getSets(exerciseId)
 
                     val set = Set(
                         0, exerciseId, sets.last().weight, sets.last().reps, sets.size
                     )
 
-                    set.setID = db.exerciseDao().addSetToExercise(set)
-                    //exerciseList.last().second.add(set)
-                    val exercise = exerciseList.find { it.exercise.exerciseId == exerciseId }!!
-                    exercise.sets.add(set)
+                    set.setID = broadcastDb.exerciseDao().addSetToExercise(set)
 
-                    notifier.setAdded(exercise, set)
-                    exerciseListViewAdapter.notifyItemChanged(exerciseList.indexOf(exercise))
+                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                        val exercise = exerciseList.find { it.exercise.exerciseId == exerciseId }!!
+                        exercise.sets.add(set)
+
+                        notifier.setAdded(exercise, set)
+                        exerciseListViewAdapter.notifyItemChanged(exerciseList.indexOf(exercise))
+                    } else {
+                        showNotificationAgainWithSetInc(SystemClock.elapsedRealtime())
+                    }
                 }
             }
         }
 
         broadcastReceiver = SetAddedBroadcastReceiver()
         val filter = IntentFilter(NOTIFICATION_ACTION_COMPLETE_SET)
-        ContextCompat.registerReceiver(this, broadcastReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        ContextCompat.registerReceiver(applicationContext, broadcastReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
 
         var pausedTime = 0L
         setTimeTimer.setOnClickListener {
             if (setTimerIsActive) {
                 setTimeTimer.stop()
                 pausedTime = SystemClock.elapsedRealtime() - setTimeTimer.base
-                setTimeTimer.setTextColor(this.getColor(R.color.orange_main))
-                setTimeTimer.setCompoundDrawablesWithIntrinsicBounds(AppCompatResources.getDrawable(applicationContext, android.R.drawable.ic_media_pause), null, null, null)
+                setTimeTimer.setTextColor(this.getColor(R.color.blue_secondary))
+                setTimeTimer.setCompoundDrawablesWithIntrinsicBounds(
+                    AppCompatResources.getDrawable(
+                        applicationContext,
+                        android.R.drawable.ic_media_pause
+                    ), null, null, null
+                )
             } else {
                 setTimeTimer.base = SystemClock.elapsedRealtime() - pausedTime
                 setTimeTimer.start()
                 setTimeTimer.setTextColor(this.getColor(R.color.black))
-                setTimeTimer.setCompoundDrawablesWithIntrinsicBounds(AppCompatResources.getDrawable(applicationContext, android.R.drawable.ic_media_play), null, null, null)
+                setTimeTimer.setCompoundDrawablesWithIntrinsicBounds(
+                    AppCompatResources.getDrawable(
+                        applicationContext,
+                        android.R.drawable.ic_media_play
+                    ), null, null, null
+                )
             }
             setTimerIsActive = !setTimerIsActive
+            showNotificationAgain(setTimeTimer.base, setTimerIsActive)
         }
 
         val endWorkoutBtn = findViewById<FloatingActionButton>(R.id.btn_endWorkout)
@@ -783,7 +863,6 @@ class WorkoutActivity : AppCompatActivity() {
                         )
                     }
 
-                    exerciseListView.smoothScrollToPosition(exerciseList.size - 1)
                     exerciseListView.visibility = RecyclerView.VISIBLE
                     labelForEmptyExerciseList.visibility = TextView.GONE
                 }

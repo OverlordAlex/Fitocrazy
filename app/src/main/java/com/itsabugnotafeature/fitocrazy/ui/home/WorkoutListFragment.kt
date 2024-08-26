@@ -7,7 +7,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -177,7 +176,7 @@ class WorkoutListFragment : Fragment() {
         override fun getItemCount() = workoutList.size
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view: View = LayoutInflater.from(parent.context).inflate(R.layout.workout_row, parent, false)
+            val view: View = LayoutInflater.from(parent.context).inflate(R.layout.row_workout, parent, false)
             return ViewHolder(view)
         }
 

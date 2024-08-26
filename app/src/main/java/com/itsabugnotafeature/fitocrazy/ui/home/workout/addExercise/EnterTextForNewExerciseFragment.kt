@@ -24,7 +24,7 @@ class EnterTextForNewExerciseFragment(private val hintForExerciseComponentType: 
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.new_exercise_fragment_enter_text_for_new_exercise, container, false)
+        return inflater.inflate(R.layout.dialog_enter_text_for_new_exercise, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

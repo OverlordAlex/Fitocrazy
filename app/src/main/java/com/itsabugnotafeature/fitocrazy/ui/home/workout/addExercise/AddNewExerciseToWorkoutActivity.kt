@@ -6,7 +6,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -194,7 +193,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view: View = LayoutInflater.from(parent.context)
-                .inflate(R.layout.activity_row_exercise_suggestion_add_new_exercise_to_workout, parent, false)
+                .inflate(R.layout.row_add_new_exercise_to_workout_suggestion, parent, false)
             return ViewHolder(view)
         }
 
@@ -205,7 +204,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_new_exercise_to_workout)
+        setContentView(R.layout.fragment_add_new_exercise_to_workout)
 
         var inEditMode = intent.getLongExtra("workoutId", -1L) == -1L
 

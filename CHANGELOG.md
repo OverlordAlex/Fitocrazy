@@ -1,3 +1,18 @@
+# 26 Aug 2024
+- minor styling 
+- Recent exercises should be in reverse date order
+- Color the points chip orange when the exercise is being done for the first time
+- Double checked that no more scrolling is happening on any recycler
+- change notification register to only happen onCreate and onDestroy
+- refresh workout onResume
+- notification should work better now 
+- Starting timer manually doesn't update notification?
+- Recycler not refreshing state on app resume
+- BUG: adding sets from notification could happen multiple times
+- Removing set should toast
+- Renamed layouts to consistent naming style
+
+
 # 22 Aug 2024
 - Enabled schema migrations
 - - auto migrate DB / reset DB

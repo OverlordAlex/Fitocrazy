@@ -342,7 +342,7 @@ interface ExerciseDao {
     @Query("SELECT * FROM WorkoutRecordView LIMIT 1")
     suspend fun getWorkoutStats(): WorkoutRecordView?
 
-    @Query("SELECT * FROM MostCommonExerciseView WHERE (date < :today OR date IS NULL) AND exerciseModelId NOT IN (:existingExercises) ORDER BY date DESC, displayName ASC")
+    @Query("SELECT * FROM MostCommonExerciseView WHERE (date < :today OR date IS NULL) AND exerciseModelId NOT IN (:existingExercises) ORDER BY date ASC, displayName ASC")
     suspend fun getMostCommonExercises(
         today: LocalDate,
         existingExercises: List<Long> = emptyList()

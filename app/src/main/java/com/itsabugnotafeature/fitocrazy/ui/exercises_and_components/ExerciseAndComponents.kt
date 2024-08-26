@@ -1,24 +1,18 @@
 package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
+import android.graphics.Paint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
@@ -32,20 +26,15 @@ import com.google.android.material.chip.ChipGroup
 import com.google.android.material.tabs.TabLayout
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.Converters
-import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentModel
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseModel
 import com.itsabugnotafeature.fitocrazy.common.SetRecordView
-import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.EnterTextForNewExerciseFragment
 import kotlinx.coroutines.runBlocking
-import org.w3c.dom.Text
 import java.time.LocalDate
-import kotlin.math.abs
-import kotlin.math.min
 
 class ExerciseAndComponents : Fragment() {
 
@@ -84,7 +73,9 @@ class ExerciseAndComponents : Fragment() {
         override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
             val view = inflater.inflate(R.layout.fragment_exercise_component, container, false)
 
-            view.findViewById<TextView>(R.id.label_componentType).text = "EXERCISES"
+            val componentTypeLabel = view.findViewById<TextView>(R.id.label_componentType)
+            componentTypeLabel.paintFlags = componentTypeLabel.paintFlags.or(Paint.UNDERLINE_TEXT_FLAG)
+            componentTypeLabel.text = "Exercises"
 
             val exerciseListView = view.findViewById<RecyclerView>(R.id.list_exerciseComponents)
 
@@ -135,7 +126,7 @@ class ExerciseAndComponents : Fragment() {
                             lastSeen.text = getString(R.string.exercise_last_seen_never)
                         } else {
                             actionButton.text = getString(R.string.btn_edit)
-                            val today =  LocalDate.now()
+                            val today = LocalDate.now()
                             lastSeen.text = if (today == exerciseView.lastWorkout) {
                                 getString(
                                     R.string.exercise_last_seen_today,
@@ -180,7 +171,7 @@ class ExerciseAndComponents : Fragment() {
                 override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
                     val row: View =
                         LayoutInflater.from(parent.context)
-                            .inflate(R.layout.fragment_exercise_component_exerciserow, parent, false)
+                            .inflate(R.layout.row_exercise_component, parent, false)
                     return ViewHolder(row)
                 }
 
@@ -230,7 +221,8 @@ class ExerciseAndComponents : Fragment() {
                     if (query != null) {
                         val upperQ = query.uppercase()
                         exerciseListAdapter.exerciseList = listOfExercises.filter { exerciseView ->
-                            exerciseView.exercise.displayName.contains(upperQ) || (exerciseView.exercise.bodyPartChips?.uppercase()?.contains(upperQ) == true)
+                            exerciseView.exercise.displayName.contains(upperQ) || (exerciseView.exercise.bodyPartChips?.uppercase()
+                                ?.contains(upperQ) == true)
                         }.toMutableList()
                         exerciseListAdapter.notifyDataSetChanged()
                         exerciseListView.scrollToPosition(0)
@@ -241,6 +233,7 @@ class ExerciseAndComponents : Fragment() {
                 }
 
             }
+
             val autoComplete = view.findViewById<SearchView>(R.id.search_componentList)
             autoComplete.setOnQueryTextListener(QueryTextChangedListener())
 
@@ -358,7 +351,7 @@ class ExerciseAndComponents : Fragment() {
 
             override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
                 val view: View =
-                    LayoutInflater.from(parent.context).inflate(R.layout.fragment_exercise_component_row, parent, false)
+                    LayoutInflater.from(parent.context).inflate(R.layout.row_component, parent, false)
                 return ViewHolder(view)
             }
 
@@ -373,7 +366,9 @@ class ExerciseAndComponents : Fragment() {
         override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
             val view = inflater.inflate(R.layout.fragment_exercise_component, container, false)
 
-            view.findViewById<TextView>(R.id.label_componentType).text = type?.name ?: "Unknown Type"
+            val componentTypeLabel = view.findViewById<TextView>(R.id.label_componentType)
+            componentTypeLabel.paintFlags = componentTypeLabel.paintFlags.or(Paint.UNDERLINE_TEXT_FLAG)
+            componentTypeLabel.text = type?.name.toString().lowercase().replaceFirstChar { it.titlecase() }
             if (type == null) return view
 
             val listOfComponents = view.findViewById<RecyclerView>(R.id.list_exerciseComponents)

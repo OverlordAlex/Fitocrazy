@@ -3,16 +3,20 @@ BUG: "enter" when creating a new exercise component does weird stuff (should tri
 BUG: focus is set to autocomplete on addnewexercise when a component has been added and popup closed
 BUG: resume activity from icon (not notification) reopens app completely
 BUG: exercise added started with achivements already set?
-BUG: adding first set is swallowed when rep edit text has focus (toast shows! inputs cleared) - related to achivements? worked on latest exercise but not earlier
+BUG: adding first set is swallowed when rep edit text has focus (toast shows! inputs cleared) - related to achievements? worked on latest exercise but not earlier
 - BUG: I have animations turned off... lol
 Bug: notification timer not restarted on new set
 Bug: adding new set not updating the exercise?
-Bug: total set time doesn't count when in background4
+Bug: total set time doesn't count when in background
 Bug: achievement doesn't survive reload
 Bug: app not installed when starting from bottom bar icon
 
 
 # TODO
+- workout creation based on body part
+- multiple of same set should show better in current workout (collapse?)
+- Why would history not work? - because exercise was added by manually recreating instead of selecting from list!
+- show how often an exercise is done on the overall list
 - move from a group selecter to a difficulty selector that includes bodyweight
 - action bar on workout could use better styling (, back button, etc)
 - spinners should be searchable
