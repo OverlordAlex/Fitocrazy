@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/card_workoutRow"
+    android:layout_margin="4dp"
+    android:minHeight="100dp"
+    android:outlineSpotShadowColor="@color/purple_main"
+    app:cardCornerRadius="20dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_workoutRowConstraint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:background="#FFFFFF"
+        android:minHeight="100dp"
+        android:padding="8dp">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_exercisePoints"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@id/label_exerciseNameOnCard"
+            app:layout_constraintEnd_toStartOf="@id/label_exerciseNameOnCard"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/label_exerciseNameOnCard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="EXAMPLE EXERCISE"
+            android:textColor="@color/slate_dark"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/chip_exercisePoints"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroup_exerciseTags"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@id/btn_moveSetUpInExercise"
+            app:layout_constraintStart_toEndOf="@id/btn_moveSetUpInExercise"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btn_moveSetUpInExercise">
+
+        </com.google.android.material.chip.ChipGroup>
+
+        <Button
+            android:id="@+id/btn_moveSetUpInExercise"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="12dp"
+            android:width="48dp"
+            android:height="48dp"
+            android:backgroundTint="@color/blue_secondary"
+            android:maxWidth="48dp"
+            android:maxHeight="48dp"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:text="UP"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btn_moveSetDownInExercise"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toEndOf="@id/chipGroup_exerciseTags"
+            app:layout_constraintTop_toBottomOf="@id/label_exerciseNameOnCard" />
+
+        <Button
+            android:id="@+id/btn_moveSetDownInExercise"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="12dp"
+            android:width="48dp"
+            android:height="48dp"
+            android:backgroundTint="@color/blue_accent"
+            android:maxWidth="48dp"
+            android:maxHeight="48dp"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:text="DN"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/label_exerciseNameOnCard" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

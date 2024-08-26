@@ -37,7 +37,6 @@
     <string name="exercise_last_seen_never">[never done]</string>
     <string name="btn_edit">Edit</string>
 
-    <string name="title_notifications">Notifications</string>
-    <string name="title_activity_homepage">HomepageActivity</string>
+    <string name="title_profile">Profile</string>
 
 </resources>

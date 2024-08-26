@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
+import android.view.DragEvent
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -59,6 +60,7 @@ import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
+import java.util.Collections
 import java.util.Locale
 
 
@@ -94,6 +96,7 @@ class WorkoutActivity : AppCompatActivity() {
     // the parent list of exercises in a workout
     class ExerciseListViewAdapter(
         var exerciseList: MutableList<ExerciseView>,
+        var inReorderMode: Boolean = false,
         private var db: ExerciseDatabase,
         private var parent: RecyclerView,
         private var notifier: ExerciseNotification
@@ -102,6 +105,53 @@ class WorkoutActivity : AppCompatActivity() {
             fun bind(
                 currentExercise: ExerciseView,
             ) {
+                val exerciseNameOnCard = itemView.findViewById<TextView>(R.id.label_exerciseNameOnCard)
+                exerciseNameOnCard.text = currentExercise.displayName
+                if (currentExercise.tags.isNotEmpty()) {
+                    val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
+                    chipGroup.removeAllViews()
+                    chipGroup.visibility = ChipGroup.VISIBLE
+                    currentExercise.tags.forEach { chipName ->
+                        val newChip = Chip(itemView.context)
+                        newChip.text = chipName
+                        newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
+                        chipGroup.addView(newChip)
+                    }
+                }
+
+                val points = Workout.calculatePoints(currentExercise)
+                val pointsChip = itemView.findViewById<Chip>(R.id.chip_exercisePoints)
+                if (points.points == 0) {
+                    pointsChip.visibility = Chip.GONE
+                } else {
+                    exerciseNameOnCard.setPadding(12, 0, 0, 0)
+                }
+                pointsChip.text = points.points.toString()
+
+                if (inReorderMode) {
+                    val btnMoveUp = itemView.findViewById<Button>(R.id.btn_moveSetUpInExercise)
+                    val btnMoveDown = itemView.findViewById<Button>(R.id.btn_moveSetDownInExercise)
+                    btnMoveUp.visibility = Button.VISIBLE
+                    btnMoveDown.visibility = Button.VISIBLE
+
+                    if (adapterPosition == exerciseList.size - 1) {
+                        btnMoveUp.visibility = Button.INVISIBLE
+                    } else if (adapterPosition == 0) {
+                        btnMoveDown.visibility = Button.INVISIBLE
+                    }
+
+                    btnMoveUp.setOnClickListener {
+                        Collections.swap(exerciseList, adapterPosition, adapterPosition + 1)
+                        notifyItemRangeChanged(adapterPosition, 2)
+                    }
+                    btnMoveDown.setOnClickListener {
+                        Collections.swap(exerciseList, adapterPosition, adapterPosition - 1)
+                        notifyItemRangeChanged(adapterPosition - 1, 2)
+                    }
+
+                    return
+                }
+
                 val weightEditText = itemView.findViewById<EditText>(R.id.numberEntry_addKilogramsToThisExercise)
                 val lastSet = currentExercise.sets.lastOrNull()
                 if (lastSet == null) {
@@ -127,29 +177,6 @@ class WorkoutActivity : AppCompatActivity() {
                         repsEditText.setText(repsEditText.text.toString().toInt().toString())
                     }
                 }
-
-                val exerciseNameOnCard = itemView.findViewById<TextView>(R.id.label_exerciseNameOnCard)
-                exerciseNameOnCard.text = currentExercise.displayName
-                if (currentExercise.tags.isNotEmpty()) {
-                    val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
-                    chipGroup.removeAllViews()
-                    chipGroup.visibility = ChipGroup.VISIBLE
-                    currentExercise.tags.forEach { chipName ->
-                        val newChip = Chip(itemView.context)
-                        newChip.text = chipName
-                        newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
-                        chipGroup.addView(newChip)
-                    }
-                }
-
-                val points = Workout.calculatePoints(currentExercise)
-                val pointsChip = itemView.findViewById<Chip>(R.id.chip_exercisePoints)
-                if (points.points == 0) {
-                    pointsChip.visibility = Chip.GONE
-                } else {
-                    exerciseNameOnCard.setPadding(12, 0, 0, 0)
-                }
-                pointsChip.text = points.points.toString()
 
                 val exerciseSetsScrollLayout = itemView.findViewById<LinearLayout>(R.id.layout_listOfSetsOnExerciseCard)
                 exerciseSetsScrollLayout.removeAllViews()
@@ -297,7 +324,11 @@ class WorkoutActivity : AppCompatActivity() {
         override fun getItemCount() = exerciseList.size
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view: View = LayoutInflater.from(parent.context).inflate(R.layout.row_workout_exercise, parent, false)
+            val view: View = if (inReorderMode)
+                LayoutInflater.from(parent.context).inflate(R.layout.row_workout_exercise_moving, parent, false)
+            else
+                LayoutInflater.from(parent.context).inflate(R.layout.row_workout_exercise, parent, false)
+
             return ViewHolder(view)
         }
 
@@ -547,8 +578,13 @@ class WorkoutActivity : AppCompatActivity() {
             true
         }
 
-        val editDateBtn = toolbar.findViewById<Button>(R.id.btn_editWorkoutDate)
-        editDateBtn.setBackgroundColor(getColor(R.color.purple_accent))
+        val editWorkoutOrderBtn = toolbar.findViewById<Button>(R.id.btn_editWorkoutOrder)
+        editWorkoutOrderBtn.setBackgroundColor(getColor(R.color.purple_accent))
+        editWorkoutOrderBtn.setOnClickListener {
+            exerciseListViewAdapter.inReorderMode = !exerciseListViewAdapter.inReorderMode
+            val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
+            exerciseListView.adapter = exerciseListViewAdapter
+        }
 
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -705,8 +741,8 @@ class WorkoutActivity : AppCompatActivity() {
 
         val notifier = Notifier()
         val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
-        exerciseListViewAdapter = ExerciseListViewAdapter(exerciseList, db, exerciseListView, notifier)
-        exerciseListView.itemAnimator = null
+        exerciseListViewAdapter = ExerciseListViewAdapter(exerciseList, false, db, exerciseListView, notifier)
+        // exerciseListView.itemAnimator = null
         val exerciseListViewLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
         exerciseListViewLayoutManager.stackFromEnd = true
         exerciseListView.layoutManager = exerciseListViewLayoutManager
@@ -869,6 +905,7 @@ class WorkoutActivity : AppCompatActivity() {
             }
 
         addNewExerciseButton.setOnClickListener {
+            exerciseListViewAdapter.inReorderMode = false
             addExerciseResult.launch(
                 Intent(
                     this, AddNewExerciseToWorkoutActivity::class.java
@@ -878,6 +915,14 @@ class WorkoutActivity : AppCompatActivity() {
                         "currentExercisesInWorkout",
                         exerciseList.map { it.exercise.exerciseModelId }.toLongArray()
                     )
+            )
+        }
+        labelForEmptyExerciseList.setOnClickListener {
+            addExerciseResult.launch(
+                Intent(
+                    this, AddNewExerciseToWorkoutActivity::class.java
+                ).setAction("addNewExerciseFromWorkout")
+                    .putExtra("workoutId", workout.workoutId)
             )
         }
 

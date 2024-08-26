@@ -3,7 +3,7 @@
 
     <item
         android:id="@+id/navigation_workoutList"
-        android:icon="@drawable/ic_dashboard_black_24dp"
+        android:icon="@android:drawable/ic_menu_today"
         android:title="@string/navigation_workout_list" />
 
     <item
@@ -12,8 +12,8 @@
         android:title="@string/navigation_exercise_and_components" />
 
     <item
-        android:id="@+id/navigation_notifications"
-        android:icon="@drawable/ic_notifications_black_24dp"
-        android:title="@string/title_notifications" />
+        android:id="@+id/navigation_profile"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="@string/title_profile" />
 
 </menu>

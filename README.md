@@ -13,18 +13,17 @@ Bug: app not installed when starting from bottom bar icon
 
 
 # TODO
+- icons for moving exercises up and down
+- change edit icon when in moving mode
 - workout creation based on body part
 - multiple of same set should show better in current workout (collapse?)
-- Why would history not work? - because exercise was added by manually recreating instead of selecting from list!
-- show how often an exercise is done on the overall list
+- Why would history not work? - because exercise was added by manually recreating instead of selecting from list?
 - move from a group selecter to a difficulty selector that includes bodyweight
 - action bar on workout could use better styling (, back button, etc)
 - spinners should be searchable
-- ability to reorder exercises in workout
 - nicer page scrolling animations between tabs on "exercises"
-- I keep wanting to tap "add exercise" on empty workout
 - be able to back up exercises for future migrations
-- able to edit exercises (not just remove)
+- when pressing a chip for the number of times that exercise was done, open a view of the exercises when it was last seen
 - when achieving a record, record when it was achieved
 - when editing a component that causes the list of components of that type to be reordered, that refresh should refresh a range and not entire dataset
 - Bodyweight - what kg to enter?

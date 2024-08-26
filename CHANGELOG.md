@@ -1,4 +1,4 @@
-# 26 Aug 2024
+# 26 Aug 2024 (Activity lifecycle and reordering exercises)
 - minor styling 
 - Recent exercises should be in reverse date order
 - Color the points chip orange when the exercise is being done for the first time
@@ -11,6 +11,9 @@
 - BUG: adding sets from notification could happen multiple times
 - Removing set should toast
 - Renamed layouts to consistent naming style
+- show how often an exercise is done on the overall list
+- Tapping "add exercise" on empty workout will open add-new-exercise dialog
+- ability to reorder exercises in workout
 
 
 # 22 Aug 2024

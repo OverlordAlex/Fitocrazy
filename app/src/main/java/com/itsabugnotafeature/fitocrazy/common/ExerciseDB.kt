@@ -232,7 +232,6 @@ data class Workout(
 @Dao
 interface ExerciseDao {
 // do joins need @Transaction ?
-// E.exerciseId, group_concat(CM.name, " ")
 
     @Query("SELECT EM.exerciseId, displayName, basePoints, bodyPartChips FROM exerciseexercisecomponentcrossref CR JOIN exercisemodel EM ON EM.exerciseId=CR.exerciseId WHERE CR.componentId = :componentId")
     suspend fun getExerciseDetailsWithComponent(componentId: Long): List<ExerciseModel>
@@ -244,6 +243,9 @@ interface ExerciseDao {
     //@Transaction
     @Query("SELECT * FROM ExerciseModel")
     suspend fun getExercises(): List<ExerciseWithComponentModel>
+
+    @Query("SELECT COUNT(*) FROM Exercise WHERE exerciseModelId = :exerciseModelId LIMIT 1")
+    suspend fun getExerciseCount(exerciseModelId: Long): Int?
 
     @Query("SELECT * FROM ExerciseComponentModel WHERE componentId = :id")
     suspend fun getExercise(id: Long): ExerciseComponentModel?

@@ -50,6 +50,7 @@ class ExerciseAndComponents : Fragment() {
         val exercise: ExerciseModel,
         var lastWorkout: LocalDate?,
         val record: SetRecordView?,
+        val total: Int?,
     ) : Comparable<ExerciseView> {
         override fun compareTo(other: ExerciseView) = this.exercise.displayName.compareTo(other.exercise.displayName)
         override fun equals(other: Any?): Boolean {
@@ -85,7 +86,8 @@ class ExerciseAndComponents : Fragment() {
                     ExerciseView(
                         it.exercise,
                         db.exerciseDao().getLastExerciseOccurrence(it.exercise.exerciseId)?.date,
-                        db.exerciseDao().getRecord(it.exercise.exerciseId)
+                        db.exerciseDao().getRecord(it.exercise.exerciseId),
+                        db.exerciseDao().getExerciseCount(it.exercise.exerciseId)
                     )
                 }.sorted().toMutableList()
             }
@@ -96,6 +98,8 @@ class ExerciseAndComponents : Fragment() {
             ) : RecyclerView.Adapter<ExerciseListAdapter.ViewHolder>() {
                 inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                     fun bind(exerciseView: ExerciseView) {
+                        itemView.findViewById<Chip>(R.id.chip_exerciseCount).text = exerciseView.total?.toString() ?: "0"
+
                         itemView.findViewById<TextView>(R.id.label_exerciseName).text =
                             exerciseView.exercise.displayName
 
@@ -125,7 +129,8 @@ class ExerciseAndComponents : Fragment() {
                         if (exerciseView.lastWorkout == null) {
                             lastSeen.text = getString(R.string.exercise_last_seen_never)
                         } else {
-                            actionButton.text = getString(R.string.btn_edit)
+                            //actionButton.text = getString(R.string.btn_edit)
+                            actionButton.visibility = Button.GONE
                             val today = LocalDate.now()
                             lastSeen.text = if (today == exerciseView.lastWorkout) {
                                 getString(
