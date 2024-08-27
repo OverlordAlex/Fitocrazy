@@ -193,14 +193,14 @@
                     android:gravity="start"
                     android:textColor="@color/slate_dark" />
             </LinearLayout>
-
         </LinearLayout>
 
-        <FrameLayout
+        <LinearLayout
             android:id="@+id/frame_deleteWorkout"
             android:layout_width="wrap_content"
-            android:layout_height="0dp"
+            android:layout_height="match_parent"
             android:animateLayoutChanges="false"
+            android:orientation="vertical"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -209,14 +209,25 @@
 
             <Button
                 android:id="@+id/btnDeleteWorkout"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_margin="4dp"
+                android:layout_weight="1"
                 android:gravity="center"
                 android:text="X"
-                android:textSize="50dp"
+                android:textSize="35sp"
                 android:textStyle="bold" />
-        </FrameLayout>
+
+            <Button
+                android:id="@+id/btnDuplicateWorkout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textSize="35sp"
+                app:icon="@android:drawable/ic_menu_set_as"
+                app:iconGravity="textEnd"
+                app:iconSize="40sp" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

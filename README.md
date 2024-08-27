@@ -13,8 +13,6 @@ Bug: app not installed when starting from bottom bar icon
 
 
 # TODO
-- icons for moving exercises up and down
-- change edit icon when in moving mode
 - workout creation based on body part
 - multiple of same set should show better in current workout (collapse?)
 - Why would history not work? - because exercise was added by manually recreating instead of selecting from list?

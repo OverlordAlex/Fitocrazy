@@ -11,7 +11,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
-import android.view.DragEvent
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -42,6 +42,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -229,7 +230,7 @@ class WorkoutActivity : AppCompatActivity() {
                 scrollView.post { scrollView.scrollX = setListView.left }
 
                 if (currentExercise.historicalSets.isEmpty()) {
-                    pointsChip.setChipBackgroundColorResource(R.color.orange_main)
+                    pointsChip.setChipBackgroundColorResource(R.color.blue_accent)
                     pointsChip.setTextColor(itemView.context.getColor(R.color.white))
                 } else {
                     pointsChip.setChipBackgroundColorResource(R.color.blue_accent_lightest)
@@ -246,7 +247,7 @@ class WorkoutActivity : AppCompatActivity() {
                         }
                         exerciseList.removeAt(adapterPosition)
                         notifier.exerciseDeleted()
-                        notifyItemRemoved(adapterPosition)
+                        notifyItemRemoved(adapterPosition) // TODO possibly disable animations
                     } else {
                         val removedSet = currentExercise.sets.removeLast()
                         runBlocking {
@@ -342,6 +343,7 @@ class WorkoutActivity : AppCompatActivity() {
 
 
     override fun onPause() {
+        //Log.i(title.toString(), "onPause")
         super.onPause()
 
         val totalTimeTimer = findViewById<Chronometer>(R.id.timer_totalTime)
@@ -359,9 +361,11 @@ class WorkoutActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        //Log.i(title.toString(), "onDestroy")
         super.onDestroy()
 
         if (broadcastReceiver != null) {
+            //Log.i(title.toString(), "Unregister Receiver")
             applicationContext.unregisterReceiver(broadcastReceiver)
         }
     }
@@ -492,6 +496,7 @@ class WorkoutActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
+        //Log.i(title.toString(), "onResume")
         super.onResume()
 
         val db = ExerciseDatabase.getInstance(this).exerciseDao()
@@ -578,10 +583,16 @@ class WorkoutActivity : AppCompatActivity() {
             true
         }
 
-        val editWorkoutOrderBtn = toolbar.findViewById<Button>(R.id.btn_editWorkoutOrder)
+        val editWorkoutOrderBtn = toolbar.findViewById<MaterialButton>(R.id.btn_editWorkoutOrder)
         editWorkoutOrderBtn.setBackgroundColor(getColor(R.color.purple_accent))
         editWorkoutOrderBtn.setOnClickListener {
             exerciseListViewAdapter.inReorderMode = !exerciseListViewAdapter.inReorderMode
+            if (exerciseListViewAdapter.inReorderMode) {
+                editWorkoutOrderBtn.setIconResource(android.R.drawable.ic_menu_save)
+            } else {
+                editWorkoutOrderBtn.setIconResource(android.R.drawable.ic_menu_sort_by_size)
+            }
+
             val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
             exerciseListView.adapter = exerciseListViewAdapter
         }
@@ -612,6 +623,7 @@ class WorkoutActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        //Log.i(title.toString(), "onCreate")
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
@@ -778,6 +790,7 @@ class WorkoutActivity : AppCompatActivity() {
 
         broadcastReceiver = SetAddedBroadcastReceiver()
         val filter = IntentFilter(NOTIFICATION_ACTION_COMPLETE_SET)
+        //Log.i(title.toString(), "Register Receiver")
         ContextCompat.registerReceiver(applicationContext, broadcastReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
 
         var pausedTime = 0L

@@ -45,7 +45,7 @@
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 app:cornerRadius="40dp"
-                app:icon="@android:drawable/ic_menu_edit"
+                app:icon="@android:drawable/ic_menu_sort_by_size"
                 app:iconPadding="0dp" />
         </LinearLayout>
 

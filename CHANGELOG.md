@@ -1,3 +1,10 @@
+# 27 Aug 2024
+- icons for moving exercises up and down
+- change edit icon when in moving mode
+- add button to duplicate historical workout
+
+
+
 # 26 Aug 2024 (Activity lifecycle and reordering exercises)
 - minor styling 
 - Recent exercises should be in reverse date order

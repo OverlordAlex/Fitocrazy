@@ -11,9 +11,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,6 +21,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.itsabugnotafeature.fitocrazy.R
+import com.itsabugnotafeature.fitocrazy.common.Converters
+import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.common.WorkoutRecordView
@@ -52,18 +54,18 @@ class WorkoutListFragment : Fragment() {
                 itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.GONE
                 itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).visibility = TextView.GONE
 
-                val deleteFrame = itemView.findViewById<FrameLayout>(R.id.frame_deleteWorkout)
+                val deleteFrame = itemView.findViewById<LinearLayout>(R.id.frame_deleteWorkout)
                 deleteFrame.alpha = 0f
-                deleteFrame.visibility = FrameLayout.VISIBLE
+                deleteFrame.visibility = LinearLayout.VISIBLE
                 deleteFrame.animate().setDuration(200).alpha(1f)
             }
 
             private fun hideDelete() {
-                val deleteFrame = itemView.findViewById<FrameLayout>(R.id.frame_deleteWorkout)
-                if (deleteFrame.visibility == FrameLayout.GONE) return
+                val deleteFrame = itemView.findViewById<LinearLayout>(R.id.frame_deleteWorkout)
+                if (deleteFrame.visibility == LinearLayout.GONE) return
 
                 deleteFrame.animate().setDuration(150).alpha(0f).withEndAction {
-                    deleteFrame.visibility = FrameLayout.GONE
+                    deleteFrame.visibility = LinearLayout.GONE
                     itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.VISIBLE
                     itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).visibility = TextView.VISIBLE
                 }
@@ -132,10 +134,10 @@ class WorkoutListFragment : Fragment() {
                     }
                 }
 
-                val deleteFrame = itemView.findViewById<FrameLayout>(R.id.frame_deleteWorkout)
+                val deleteFrame = itemView.findViewById<LinearLayout>(R.id.frame_deleteWorkout)
                 hideDelete()
                 itemView.setOnClickListener {
-                    if (deleteFrame.visibility == FrameLayout.VISIBLE) {
+                    if (deleteFrame.visibility == LinearLayout.VISIBLE) {
                         hideDelete()
                         return@setOnClickListener
                     }
@@ -148,7 +150,7 @@ class WorkoutListFragment : Fragment() {
                 }
 
                 itemView.setOnLongClickListener {
-                    if (deleteFrame.visibility == FrameLayout.GONE) {
+                    if (deleteFrame.visibility == LinearLayout.GONE) {
                         lastOpened?.hideDelete()
                         showDelete()
                         lastOpened = this
@@ -169,6 +171,43 @@ class WorkoutListFragment : Fragment() {
                     workoutList.removeAt(adapterPosition)
                     notifyItemRemoved(adapterPosition)
                     lastOpened = null
+                }
+
+                itemView.findViewById<Button>(R.id.btnDuplicateWorkout).setOnClickListener {
+                    val db = ExerciseDatabase.getInstance(itemView.context).exerciseDao()
+                    val today = LocalDate.now()
+                    runBlocking {
+                        val workout = Workout(0, today)
+                        workout.workoutId = db.addWorkout(workout)
+                        var exercisesAdded = 0
+                        db.getListOfExerciseInWorkout(currentWorkout.workoutId).map { exercise ->
+                            db.addExerciseSet(
+                                Exercise(
+                                    0,
+                                    exercise.exerciseModelId,
+                                    today,
+                                    exercisesAdded++,
+                                    workout.workoutId
+                                )
+                            )
+                        }
+                        workout.totalExercises = currentWorkout.totalExercises
+                        workout.topTags = currentWorkout.topTags
+                        db.updateWorkout(workout)
+
+                        Toast.makeText(
+                            itemView.context, "Copied $exercisesAdded exercises from ${
+                                currentWorkout.date.format(
+                                    Converters.dateFormatter
+                                )
+                            }", Toast.LENGTH_SHORT
+                        ).show()
+                        hideDelete()
+                        lastOpened = null
+                        workoutList.add(0, workout)
+                        notifyItemInserted(0) // does not scroll to top??
+                        (itemView.parent as RecyclerView).scrollToPosition(0)
+                    }
                 }
             }
         }
@@ -197,7 +236,9 @@ class WorkoutListFragment : Fragment() {
         val mChannel = NotificationChannel(channelId, name, importance)
         mChannel.description = descriptionText
         // Register the channel with the system.
-        (requireActivity().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(mChannel)
+        (requireActivity().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(
+            mChannel
+        )
 
         super.onViewCreated(view, savedInstanceState)
     }
