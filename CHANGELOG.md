@@ -1,8 +1,7 @@
-# 27 Aug 2024
+# 27 Aug 2024 (Workout Duplication) v3.0 (db v14)
 - icons for moving exercises up and down
 - change edit icon when in moving mode
 - add button to duplicate historical workout
-
 
 
 # 26 Aug 2024 (Activity lifecycle and reordering exercises)
@@ -23,7 +22,7 @@
 - ability to reorder exercises in workout
 
 
-# 22 Aug 2024
+# 22 Aug 2024 (Edit Workout dates)
 - Enabled schema migrations
 - - auto migrate DB / reset DB
 - add bodypart chips to exercises in add-exercise, and then be able to search by them

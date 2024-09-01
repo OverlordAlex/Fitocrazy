@@ -17,15 +17,11 @@ android {
         applicationId = "com.itsabugnotafeature.fitocrazy"
         minSdk = 29
         targetSdk = 34
-        versionCode = 2
-        versionName = "2.0"
-//        version 13 of the DB
+        versionCode = 3
+        versionName = "3.0"
+//        version 14 of the DB
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
-        }
     }
 
     room {
@@ -50,8 +46,6 @@ android {
             )
             signingConfig = signingConfigs.getByName("release")
             firebaseAppDistribution {
-                releaseNotes="Added notification support"
-                //testers="me@itsabugnotafeature.com"
             }
         }
         debug {
@@ -74,13 +68,12 @@ android {
         viewBinding = true
     }
 
-
+    tasks.withType<Test> {
+        useJUnitPlatform()
+    }
 }
 
-
-
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -92,13 +85,18 @@ dependencies {
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+
     testImplementation(libs.junit)
+    testImplementation(libs.junit.jupiter)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation(libs.mockk.mockk)
 
     implementation(libs.androidx.room.runtime)
     annotationProcessor(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler.v250)
-    implementation(libs.room.ktx)
+
+    implementation(libs.mpandroidchart)
 }
+

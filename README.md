@@ -13,7 +13,7 @@ Bug: app not installed when starting from bottom bar icon
 
 
 # TODO
-- workout creation based on body part
+- up next, charts!
 - multiple of same set should show better in current workout (collapse?)
 - Why would history not work? - because exercise was added by manually recreating instead of selecting from list?
 - move from a group selecter to a difficulty selector that includes bodyweight
@@ -48,3 +48,4 @@ Bug: app not installed when starting from bottom bar icon
 - most common exercises should be based on similar exercises already in workout?
 - total points per exercise in chip next to exercise name (floating popups enough?)
 - BUG: buttons dont line up with spinners in adding exercise (problem only if the spinner is empty) - should happen once in entire app lifecycle
+- workout creation based on body part (not needed - can create via search by bodypart on adding exercises)

@@ -28,9 +28,10 @@ import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.common.WorkoutRecordView
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.Companion.NOTIFICATION_ID
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -38,55 +39,52 @@ import kotlin.time.toDuration
 class WorkoutListFragment : Fragment() {
 
     private val channelId = "FitocrazyCurrentExerciseChannel"
-    private lateinit var workoutList: MutableList<Workout>
-    private lateinit var workoutListViewAdapter: WorkoutListViewAdapter
-    private var workoutStats: WorkoutRecordView? = null
 
-    class WorkoutListViewAdapter(
-        var workoutList: MutableList<Workout>,
-        val workoutStats: WorkoutRecordView?,
-    ) : RecyclerView.Adapter<WorkoutListViewAdapter.ViewHolder>() {
-        var lastOpened: ViewHolder? = null
+    class WorkoutListViewAdapter : RecyclerView.Adapter<WorkoutListViewAdapter.ViewHolder>() {
+        private var workoutList: MutableList<Workout> = emptyList<Workout>().toMutableList()
+        private var totalWorkoutStats: WorkoutRecordView? = null
+        private var currentlyShowingActionFrameIndex: Int? = null
+
+        suspend fun loadData(applicationContext: Context) {
+            if (workoutList.isNotEmpty()) throw InstantiationException("Workout list already populated!")
+
+            withContext(Dispatchers.IO) {
+                val db = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
+                workoutList = db.listWorkouts().toMutableList()
+                totalWorkoutStats = db.getWorkoutStats()
+                notifyItemRangeInserted(0, workoutList.size)
+            }
+        }
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            fun bind(currentWorkout: Workout) {
+                val layoutWorkoutStats = itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats)
+                val labelNumberOfExercises = itemView.findViewById<TextView>(R.id.label_workoutNumberExercises)
+                val frameActionItems = itemView.findViewById<LinearLayout>(R.id.frame_deleteOrDuplicateWorkout)
 
-            private fun showDelete() {
-                itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.GONE
-                itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).visibility = TextView.GONE
-
-                val deleteFrame = itemView.findViewById<LinearLayout>(R.id.frame_deleteWorkout)
-                deleteFrame.alpha = 0f
-                deleteFrame.visibility = LinearLayout.VISIBLE
-                deleteFrame.animate().setDuration(200).alpha(1f)
-            }
-
-            private fun hideDelete() {
-                val deleteFrame = itemView.findViewById<LinearLayout>(R.id.frame_deleteWorkout)
-                if (deleteFrame.visibility == LinearLayout.GONE) return
-
-                deleteFrame.animate().setDuration(150).alpha(0f).withEndAction {
-                    deleteFrame.visibility = LinearLayout.GONE
-                    itemView.findViewById<LinearLayout>(R.id.layout_workoutOtherStats).visibility = LinearLayout.VISIBLE
-                    itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).visibility = TextView.VISIBLE
+                if (adapterPosition == currentlyShowingActionFrameIndex) {
+                    layoutWorkoutStats.visibility = LinearLayout.GONE
+                    labelNumberOfExercises.visibility = TextView.GONE
+                    frameActionItems.visibility = LinearLayout.VISIBLE
+                } else {
+                    layoutWorkoutStats.visibility = LinearLayout.VISIBLE
+                    labelNumberOfExercises.visibility = TextView.VISIBLE
+                    frameActionItems.visibility = LinearLayout.GONE
                 }
-            }
 
-            fun bind(
-                currentWorkout: Workout,
-            ) {
                 itemView.findViewById<TextView>(R.id.label_workoutDate).text =
                     if (LocalDate.now() == currentWorkout.date) {
                         itemView.context.getString(R.string.today)
                     } else {
-                        currentWorkout.date.format(DateTimeFormatter.ofPattern("dd LLLL yyyy"))
+                        currentWorkout.date.format(Converters.dateFormatter)
                     }
 
-                itemView.findViewById<TextView>(R.id.label_workoutNumberExercises).text =
+                labelNumberOfExercises.text =
                     itemView.context.getString(R.string.number_of_exercises_in_workout, currentWorkout.totalExercises)
 
                 val labelWorkoutPoints = itemView.findViewById<TextView>(R.id.label_workoutPoints)
                 // do a nice color animation on points more than the last 10 average
-                if (currentWorkout.totalPoints > (workoutStats?.avgTotalPoints ?: 0.0)) {
+                if (currentWorkout.totalPoints > (totalWorkoutStats?.avgTotalPoints ?: 0.0)) {
                     val colorFrom: Int = itemView.context.getColor(R.color.blue_main)
                     val colorTo: Int = itemView.context.getColor(R.color.blue_accent)
 
@@ -104,7 +102,7 @@ class WorkoutListFragment : Fragment() {
                     itemView.context.getString(R.string.total_points_in_workout, currentWorkout.totalPoints)
 
                 itemView.findViewById<TextView>(R.id.label_workoutTotalWeightValue).text =
-                    "%.0f kg".format(currentWorkout.totalWeight)
+                    itemView.context.getString(R.string.total_weight_in_workout, currentWorkout.totalWeight)
 
                 itemView.findViewById<TextView>(R.id.label_workoutTotalRepsValue).text =
                     currentWorkout.totalReps.toString()
@@ -134,11 +132,10 @@ class WorkoutListFragment : Fragment() {
                     }
                 }
 
-                val deleteFrame = itemView.findViewById<LinearLayout>(R.id.frame_deleteWorkout)
-                hideDelete()
                 itemView.setOnClickListener {
-                    if (deleteFrame.visibility == LinearLayout.VISIBLE) {
-                        hideDelete()
+                    if (adapterPosition == currentlyShowingActionFrameIndex) {
+                        currentlyShowingActionFrameIndex = null
+                        notifyItemChanged(adapterPosition)
                         return@setOnClickListener
                     }
 
@@ -150,15 +147,15 @@ class WorkoutListFragment : Fragment() {
                 }
 
                 itemView.setOnLongClickListener {
-                    if (deleteFrame.visibility == LinearLayout.GONE) {
-                        lastOpened?.hideDelete()
-                        showDelete()
-                        lastOpened = this
+                    if (currentlyShowingActionFrameIndex == adapterPosition) {
+                        // hide if we're the one showing it
+                        currentlyShowingActionFrameIndex = null
                     } else {
-                        hideDelete()
-                        lastOpened = null
+                        val oldIndex = currentlyShowingActionFrameIndex
+                        currentlyShowingActionFrameIndex = adapterPosition
+                        if (oldIndex != null) notifyItemChanged(oldIndex)
                     }
-
+                    notifyItemChanged(adapterPosition)
                     true
                 }
 
@@ -170,7 +167,7 @@ class WorkoutListFragment : Fragment() {
                     }
                     workoutList.removeAt(adapterPosition)
                     notifyItemRemoved(adapterPosition)
-                    lastOpened = null
+                    currentlyShowingActionFrameIndex = null
                 }
 
                 itemView.findViewById<Button>(R.id.btnDuplicateWorkout).setOnClickListener {
@@ -202,8 +199,10 @@ class WorkoutListFragment : Fragment() {
                                 )
                             }", Toast.LENGTH_SHORT
                         ).show()
-                        hideDelete()
-                        lastOpened = null
+
+                        currentlyShowingActionFrameIndex = null
+                        notifyItemChanged(adapterPosition)
+
                         workoutList.add(0, workout)
                         notifyItemInserted(0) // does not scroll to top??
                         (itemView.parent as RecyclerView).scrollToPosition(0)
@@ -248,15 +247,14 @@ class WorkoutListFragment : Fragment() {
         // no workouts may be running on this screen
         (requireActivity().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(NOTIFICATION_ID)
 
-        val db = ExerciseDatabase.getInstance(requireContext())
-        workoutList = runBlocking {
-            workoutStats = db.exerciseDao().getWorkoutStats()
-            db.exerciseDao().listWorkouts().toMutableList()
-        }
         val workoutListView = requireView().findViewById<RecyclerView>(R.id.list_allWorkoutsHomepage)
-        workoutListViewAdapter = WorkoutListViewAdapter(workoutList, workoutStats)
+        val workoutListViewAdapter = WorkoutListViewAdapter()
         workoutListView.adapter = workoutListViewAdapter
         workoutListView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+
+        runBlocking {
+            workoutListViewAdapter.loadData(requireContext())
+        }
 
         requireView().findViewById<Button>(R.id.btn_AddNewWorkout)?.setOnClickListener {
             startActivity(
