@@ -24,7 +24,7 @@ class ExerciseDisplayListAdapter : RecyclerView.Adapter<ExerciseDisplayListAdapt
     override var dataList = emptyList<ExerciseView>().toMutableList()
     override var displayList = emptyList<ExerciseView>().toMutableList()
 
-    override suspend fun loadData(applicationContext: Context) {
+    override suspend fun loadData(applicationContext: Context, arguments: Map<String, Any>?) {
         if (dataList.isNotEmpty()) throw InstantiationException("Component list already populated!")
 
         withContext(Dispatchers.IO) {
@@ -109,7 +109,6 @@ class ExerciseDisplayListAdapter : RecyclerView.Adapter<ExerciseDisplayListAdapt
                 newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
                 chipGroup.addView(newChip)
             }
-
 
             actionButton.setOnClickListener {
                 if (exerciseView.lastWorkout == null) {

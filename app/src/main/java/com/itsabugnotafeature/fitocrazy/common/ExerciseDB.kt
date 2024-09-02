@@ -100,7 +100,7 @@ data class Exercise(
     @PrimaryKey(autoGenerate = true) var exerciseId: Long,
     val exerciseModelId: Long,
     var date: LocalDate,
-    val order: Int,
+    var order: Int,
     val workoutId: Long,
 ) : Comparable<Exercise> {
     override fun compareTo(other: Exercise): Int {
@@ -108,6 +108,10 @@ data class Exercise(
     }
 
     fun toTimeStamp(): Long? = Converters.dateToTimestamp(date)
+
+    override fun toString(): String {
+        return "[$order] $exerciseId in $workoutId"
+    }
 }
 
 @Entity
@@ -157,7 +161,7 @@ data class Workout(
     var totalTime: Long = 0,
 
     var topTags: String = "",
-) {
+) : Comparable<Workout> {
     @Ignore
     var currentSetTime: Long = 0
 
@@ -226,6 +230,10 @@ data class Workout(
 
             return PointsResult(points.toInt(), records)
         }
+    }
+
+    override fun compareTo(other: Workout): Int {
+        return this.date.compareTo(other.date)
     }
 }
 
@@ -314,7 +322,7 @@ interface ExerciseDao {
     @Query("DELETE from Exercise WHERE workoutId = :workoutId")
     suspend fun deleteExercisesInWorkout(workoutId: Long)
 
-    @Query("SELECT * FROM `Set` s JOIN (SELECT * FROM Exercise ORDER BY date DESC LIMIT 1, :nSets) as E ON s.exerciseId=E.exerciseId WHERE E.exerciseModelId=:exerciseModelId AND E.date < :excludeDate")
+    @Query("SELECT * FROM `Set` as s JOIN (SELECT * FROM Exercise ORDER BY date DESC) as E ON s.exerciseId=E.exerciseId WHERE E.exerciseModelId=:exerciseModelId AND workoutId in (SELECT workoutId FROM Exercise EX WHERE EX.exerciseModelId = :exerciseModelId AND EX.date < :excludeDate GROUP BY EX.workoutId ORDER BY EX.date DESC LIMIT :nSets)")
     suspend fun getHistoricalSets(exerciseModelId: Long, nSets: Int, excludeDate: Long? = 0): Map<Exercise, List<Set>>
 
     @Query("SELECT * FROM Exercise WHERE workoutId = :workoutId")
@@ -357,7 +365,7 @@ interface ExerciseDao {
     version = 14,
     exportSchema = true,
     autoMigrations = [
-        AutoMigration (from = 13, to = 14),
+        AutoMigration(from = 13, to = 14),
     ],
 )
 @TypeConverters(Converters::class)

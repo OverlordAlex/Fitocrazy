@@ -29,7 +29,7 @@ class ComponentDisplayListAdapter(val type: ExerciseComponentType) :
     override var dataList = emptyList<ComponentView>().toMutableList()
     override var displayList = emptyList<ComponentView>().toMutableList()
 
-    override suspend fun loadData(applicationContext: Context) {
+    override suspend fun loadData(applicationContext: Context, arguments: Map<String, Any>?) {
         if (dataList.isNotEmpty()) throw InstantiationException("Component list already populated!")
 
         withContext(Dispatchers.IO) {

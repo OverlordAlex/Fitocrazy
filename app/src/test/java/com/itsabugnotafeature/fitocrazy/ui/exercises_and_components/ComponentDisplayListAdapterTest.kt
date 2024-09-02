@@ -26,7 +26,7 @@ class ComponentDisplayListAdapterTest {
         every { componentAdapter.notifyItemInserted(any()) } returns Unit
         every { componentAdapter.notifyItemRemoved(any()) } returns Unit
 
-        componentAdapter.componentList = componentsData.toMutableList()
+        componentAdapter.dataList = componentsData.toMutableList()
         componentAdapter.displayList = componentsData.toMutableList()
 
         componentAdapter.updateDisplayedItems("A")

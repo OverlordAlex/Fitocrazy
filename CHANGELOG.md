@@ -1,3 +1,11 @@
+# 02 Sep 2024 (Massive refactor)
+- refactor component list to use adapter
+- refactor exercise list to use adapter
+- refactor workout list to use adapter
+- refactor exercises in workout to to use adapter
+- fix previous set history!
+
+
 # 27 Aug 2024 (Workout Duplication) v3.0 (db v14)
 - icons for moving exercises up and down
 - change edit icon when in moving mode
