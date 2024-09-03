@@ -10,7 +10,6 @@ import androidx.room.Delete
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Ignore
-import androidx.room.Index
 import androidx.room.Insert
 import androidx.room.Junction
 import androidx.room.PrimaryKey
@@ -18,21 +17,26 @@ import androidx.room.Query
 import androidx.room.Relation
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.Transaction
 import androidx.room.TypeConverters
 import androidx.room.Update
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.Companion.ExerciseRecord
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.Companion.PointsResult
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.Companion.RecordType
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.ExerciseView
-import kotlinx.coroutines.flow.Flow
+import com.itsabugnotafeature.fitocrazy.ui.home.workout.ExerciseListViewAdapter
 import java.time.LocalDate
+import java.util.EnumSet
 import kotlin.math.max
 import kotlin.math.pow
 
 enum class ExerciseComponentType {
     EQUIPMENT, LOCATION, MOVEMENT
 }
+
+enum class RecordType {
+    MAX_WEIGHT,
+    MAX_REPS,
+    MAX_WEIGHT_MOVED
+}
+
+data class ExerciseRecord(val oldBest: Number, val newBest: Number, val recordType: RecordType)
+data class PointsResult(val points: Int, val records: List<ExerciseRecord>)
 
 @Entity
 data class ExerciseComponentModel(
@@ -96,13 +100,37 @@ data class ExerciseAndExerciseModelCrossRef(
 )
 
 @Entity
-data class Exercise(
+class Exercise(
     @PrimaryKey(autoGenerate = true) var exerciseId: Long,
     val exerciseModelId: Long,
-    var date: LocalDate,
-    var order: Int,
+    date: LocalDate,
+    order: Int,
     val workoutId: Long,
+    recordsAchieved: EnumSet<RecordType>? = null
 ) : Comparable<Exercise> {
+    var date: LocalDate = date
+        set(value: LocalDate) {
+            dirty = true
+            field = value
+        }
+    var order: Int = order
+        set(value: Int) {
+            dirty = true
+            field = value
+        }
+    @ColumnInfo(defaultValue = "0.0") var recordsAchieved: EnumSet<RecordType>? = recordsAchieved
+        set(value: EnumSet<RecordType>?) {
+            dirty = true
+            field = value
+        }
+
+    @Ignore
+    private var dirty: Boolean = false
+    fun isDirty() = dirty
+    fun clearDirty() {
+        dirty = false
+    }
+
     override fun compareTo(other: Exercise): Int {
         return if (this.date == other.date) this.order.compareTo(other.order) else this.date.compareTo(other.date)
     }
@@ -165,7 +193,7 @@ data class Workout(
     @Ignore
     var currentSetTime: Long = 0
 
-    fun recalculateWorkoutTotals(exerciseList: List<ExerciseView>) {
+    fun recalculateWorkoutTotals(exerciseList: List<ExerciseListViewAdapter.ExerciseView>) {
         totalWeight = 0.0
         totalReps = 0
         totalSets = 0
@@ -183,7 +211,7 @@ data class Workout(
     companion object {
         // TODO save on recalculate
         // TODO: when do we update the max records? end of workout right? exercise not populating records oncreate?
-        fun calculatePoints(exercise: ExerciseView): PointsResult {
+        fun calculatePoints(exercise: ExerciseListViewAdapter.ExerciseView): PointsResult {
             if (exercise.sets.isEmpty()) return PointsResult(0, emptyList())
 
             var points: Double = 0.0
@@ -199,19 +227,33 @@ data class Workout(
 
             if (maxWeightThisSet > exerciseMaxWeight) {
                 points += 75
-                records.add(ExerciseRecord(exercise.record?.maxWeight ?: 0.0, maxWeightThisSet, RecordType.MAX_WEIGHT))
+                records.add(
+                    ExerciseRecord(
+                        exercise.record?.maxWeight ?: 0.0,
+                        maxWeightThisSet,
+                        RecordType.MAX_WEIGHT
+                    )
+                )
             }
 
             if (maxRepsThisSet > exerciseMaxReps) {
                 points += 25
-                records.add(ExerciseRecord(exercise.record?.maxReps ?: 0.0, maxRepsThisSet, RecordType.MAX_REPS))
+                records.add(
+                    ExerciseRecord(
+                        exercise.record?.maxReps ?: 0.0,
+                        maxRepsThisSet,
+                        RecordType.MAX_REPS
+                    )
+                )
             }
 
             if (maxMovedThisSet > exerciseMaxMoved) {
                 points += 50
                 records.add(
                     ExerciseRecord(
-                        exercise.record?.mostWeightMoved ?: 0.0, maxMovedThisSet, RecordType.MAX_WEIGHT_MOVED
+                        exercise.record?.mostWeightMoved ?: 0.0,
+                        maxMovedThisSet,
+                        RecordType.MAX_WEIGHT_MOVED
                     )
                 )
             }
@@ -362,10 +404,11 @@ interface ExerciseDao {
 @Database(
     entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class],
     views = [SetRecordView::class, WorkoutRecordView::class, MostCommonExerciseView::class],
-    version = 14,
+    version = 15,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 13, to = 14),
+        AutoMigration(from = 14, to = 15),
     ],
 )
 @TypeConverters(Converters::class)

@@ -50,22 +50,9 @@ class WorkoutActivity : AppCompatActivity() {
     private var broadcastReceiver: BroadcastReceiver? = null
 
     interface ExerciseNotification {
-        fun setAdded(exercise: ExerciseView, set: Set)
-        fun setRemoved(exercise: ExerciseView, set: Set)
-    }
-
-    data class ExerciseView(
-        val displayName: String?,
-        val tags: List<String>,
-        val exercise: Exercise,
-        val sets: MutableList<Set>,
-        val record: SetRecordView?,
-        val historicalSets: List<Pair<LocalDate, List<Set>>>,
-        val basePoints: Int,
-    ) : Comparable<ExerciseView> {
-        override fun compareTo(other: ExerciseView): Int {
-            return this.exercise.order.compareTo(other.exercise.order)
-        }
+        fun setAdded(exercise: ExerciseListViewAdapter.ExerciseView, set: Set)
+        fun setRemoved(exercise: ExerciseListViewAdapter.ExerciseView, set: Set)
+        fun exerciseDeleted()
     }
 
     /*override fun onPause() {
@@ -97,7 +84,7 @@ class WorkoutActivity : AppCompatActivity() {
         super.onResume()
 
         // TODO: refresh the exercise that was shown in the notification in case the user added more sets
-        exerciseListViewAdapter.showNotification()
+        //exerciseListViewAdapter.showNotification()
 
         val totalWeightLabel = findViewById<TextView>(R.id.totalWeightValue)
         val totalRepsLabel = findViewById<TextView>(R.id.totalRepsValue)
@@ -134,9 +121,15 @@ class WorkoutActivity : AppCompatActivity() {
 
         class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener {
             override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-                // Use the current date as the default date in the picker.
+                // Use the current workoutDate as the default date in the picker.
                 // Create a new instance of DatePickerDialog and return it.
-                return DatePickerDialog(requireContext(), this, today.year, today.monthValue - 1, today.dayOfMonth)
+                return DatePickerDialog(
+                    requireContext(),
+                    this,
+                    workoutDate.year,
+                    workoutDate.monthValue - 1,
+                    workoutDate.dayOfMonth
+                )
             }
 
             override fun onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {
@@ -149,9 +142,9 @@ class WorkoutActivity : AppCompatActivity() {
                     return
                 }
 
+                workoutDate = userDate
+                exerciseListViewAdapter.workout.date = userDate
                 runBlocking {
-                    workoutDate = userDate
-                    exerciseListViewAdapter.workout.date = userDate
                     exerciseListViewAdapter.saveWorkout(applicationContext)
                     exerciseListViewAdapter.updateExerciseDates(applicationContext, userDate)
                 }
@@ -174,27 +167,21 @@ class WorkoutActivity : AppCompatActivity() {
                 if (exerciseId == -1L) return
 
                 runBlocking {
-                    val broadcastDb = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
-                    val sets = broadcastDb.getSets(exerciseId)
-
-                    val set = Set(
-                        0, exerciseId, sets.last().weight, sets.last().reps, sets.size
-                    )
-
-                    set.setID = broadcastDb.addSetToExercise(set)
-
-                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        exerciseListViewAdapter.addSetToExercise(exerciseId, set)
+                    exerciseListViewAdapter.addSetSameAsLast(applicationContext, exerciseId)
+                    /*if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                        // TODO is this needed? was used to avoid notifying item changed
                     } else {
-                        // TODO
+
                         //showNotificationAgainWithSetInc(SystemClock.elapsedRealtime())
-                    }
+                    }*/
                 }
             }
         }
 
+        val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
+
         class Notifier : ExerciseNotification {
-            override fun setAdded(exercise: ExerciseView, set: Set) {
+            override fun setAdded(exercise: ExerciseListViewAdapter.ExerciseView, set: Set) {
                 totalWeightLabel.text = exerciseListViewAdapter.workout.totalWeight.toString()
                 totalRepsLabel.text = exerciseListViewAdapter.workout.totalReps.toString()
                 totalPointsLabel.text = exerciseListViewAdapter.workout.totalPoints.toString()
@@ -208,7 +195,7 @@ class WorkoutActivity : AppCompatActivity() {
                 }
             }
 
-            override fun setRemoved(exercise: ExerciseView, set: Set) {
+            override fun setRemoved(exercise: ExerciseListViewAdapter.ExerciseView, set: Set) {
                 totalWeightLabel.text = exerciseListViewAdapter.workout.totalWeight.toString()
                 totalRepsLabel.text = exerciseListViewAdapter.workout.totalReps.toString()
                 totalPointsLabel.text = exerciseListViewAdapter.workout.totalPoints.toString()
@@ -219,6 +206,13 @@ class WorkoutActivity : AppCompatActivity() {
                         applicationContext, "Removed: ${set.weight} kg x ${set.reps}", Toast.LENGTH_SHORT
                     )
                     lastToast?.show()
+                }
+            }
+
+            override fun exerciseDeleted() {
+                if (exerciseListViewAdapter.itemCount == 0) {
+                    exerciseListView.visibility = RecyclerView.INVISIBLE
+                    labelForEmptyExerciseList.visibility = TextView.VISIBLE
                 }
             }
         }
@@ -235,7 +229,6 @@ class WorkoutActivity : AppCompatActivity() {
         }
         workoutDate = exerciseListViewAdapter.workout.date
 
-        val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
         // exerciseListView.itemAnimator = null
         val exerciseListViewLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
         exerciseListViewLayoutManager.stackFromEnd = true
@@ -247,7 +240,7 @@ class WorkoutActivity : AppCompatActivity() {
         //Log.i(title.toString(), "Register Receiver")
         ContextCompat.registerReceiver(applicationContext, broadcastReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
 
-        var pausedTime = 0L
+        /*var pausedTime = 0L
         setTimeTimer.setOnClickListener {
             if (setTimerIsActive) {
                 setTimeTimer.stop()
@@ -272,7 +265,7 @@ class WorkoutActivity : AppCompatActivity() {
             }
             setTimerIsActive = !setTimerIsActive
             exerciseListViewAdapter.showNotificationAgain(setTimeTimer.base, setTimerIsActive)
-        }
+        }*/
 
         val endWorkoutBtn = findViewById<FloatingActionButton>(R.id.btn_endWorkout)
         endWorkoutBtn.setOnClickListener {
@@ -282,9 +275,9 @@ class WorkoutActivity : AppCompatActivity() {
                 exerciseListViewAdapter.saveWorkout(applicationContext)
             }*/
 
-            setTimeTimer.stop()  // needed?
+            /*setTimeTimer.stop()  // needed?
             setTimerIsActive = false
-            totalTimeTimer.stop()  // needed?
+            totalTimeTimer.stop()  // needed?*/
 
             intent.putExtra("dataUpdated", true)
             intent.putExtra("workoutId", exerciseListViewAdapter.workout.workoutId)
@@ -316,7 +309,7 @@ class WorkoutActivity : AppCompatActivity() {
                     runBlocking {
                         exerciseListViewAdapter.addExercises(applicationContext, exerciseModelIds.reversed())
                     }
-                    exerciseListViewAdapter.showNotification()
+                    //exerciseListViewAdapter.showNotification()
                     exerciseListView.visibility = RecyclerView.VISIBLE
                     labelForEmptyExerciseList.visibility = TextView.GONE
                 }
@@ -373,12 +366,5 @@ class WorkoutActivity : AppCompatActivity() {
 
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-    }
-
-    companion object {
-        // TODO: these should all be moved
-        enum class RecordType { MAX_WEIGHT, MAX_REPS, MAX_WEIGHT_MOVED }
-        data class ExerciseRecord(val oldBest: Number, val newBest: Number, val recordType: RecordType)
-        data class PointsResult(val points: Int, val records: List<ExerciseRecord>)
     }
 }

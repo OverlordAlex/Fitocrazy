@@ -1,16 +1,16 @@
 package com.itsabugnotafeature.fitocrazy.common
 
 import androidx.room.TypeConverter
-import org.json.JSONArray
-import org.json.JSONObject
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Date
+import java.util.EnumSet
 import java.util.Locale
+import kotlin.math.log2
+import kotlin.math.pow
 
 class Converters {
     @TypeConverter
@@ -21,6 +21,25 @@ class Converters {
     @TypeConverter
     fun dateToTimestamp(date: LocalDate?): Long? {
         return date?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+    }
+
+    @TypeConverter
+    fun fromLong(value: Long?): EnumSet<RecordType> {
+        if (value == null || value == 0L) return EnumSet.noneOf(RecordType::class.java)
+        var result = mutableListOf<RecordType>()
+        var bitflag = value ?: 0  // not required, except to make xor happy
+        while (bitflag != 0L) {
+            val ordinal = bitflag.takeLowestOneBit()
+
+            result.add(RecordType.entries[ordinal.countTrailingZeroBits()])
+            bitflag = bitflag.xor(ordinal)
+        }
+        return EnumSet.copyOf(result)
+    }
+
+    @TypeConverter
+    fun enumSetToLong(values: EnumSet<RecordType>?): Long? {
+        return values?.fold(0.0) {acc, next -> acc + 2.0.pow(next.ordinal) }?.toLong()
     }
 
     companion object {

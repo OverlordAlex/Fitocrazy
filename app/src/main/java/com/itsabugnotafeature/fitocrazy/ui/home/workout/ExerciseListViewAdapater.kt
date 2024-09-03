@@ -26,12 +26,12 @@ import com.itsabugnotafeature.fitocrazy.common.DisplayListAdapter
 import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseWithComponentModel
+import com.itsabugnotafeature.fitocrazy.common.RecordType
 import com.itsabugnotafeature.fitocrazy.common.Set
 import com.itsabugnotafeature.fitocrazy.common.SetRecordView
 import com.itsabugnotafeature.fitocrazy.common.Workout
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.Companion.RecordType
+import com.itsabugnotafeature.fitocrazy.ui.home.workout.ExerciseListViewAdapter.ExerciseView
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.ExerciseNotification
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.ExerciseView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -50,10 +50,24 @@ class ExerciseListViewAdapter(
 
     lateinit var workout: Workout
 
-    @SuppressLint("NotifyDataSetChanged")
+    data class ExerciseView(
+        val displayName: String?,
+        val tags: List<String>,
+        val exercise: Exercise,
+        val sets: MutableList<Set>,
+        val record: SetRecordView?,
+        val historicalSets: List<Pair<LocalDate, List<Set>>>,
+        val basePoints: Int,
+    ) : Comparable<ExerciseView> {
+        override fun compareTo(other: ExerciseView): Int {
+            return this.exercise.order.compareTo(other.exercise.order)
+        }
+    }
+
+    /*@SuppressLint("NotifyDataSetChanged")
     fun refresh(hard: Boolean = false) {
         if (hard) notifyDataSetChanged() else notifyItemRangeInserted(0, displayList.size)
-    }
+    }*/
 
     override suspend fun loadData(applicationContext: Context, arguments: Map<String, Any>?) {
         if (dataList.isNotEmpty()) throw InstantiationException()
@@ -75,7 +89,8 @@ class ExerciseListViewAdapter(
                     record = db.getRecord(exercise.exerciseModelId),
                     historicalSets = db
                         .getHistoricalSets(thisExerciseModel.exercise.exerciseId, 3, exercise.toTimeStamp())
-                        .map { Pair(it.key.date, it.value) }.sortedBy { it.first },
+                        .toList().groupBy { it.first.date }
+                        .map { Pair(it.key, it.value.map { sec -> sec.second }.flatten()) },
                     basePoints = thisExerciseModel.exercise.basePoints,
                 )
             }.sorted().toMutableList()
@@ -103,19 +118,14 @@ class ExerciseListViewAdapter(
         return removedItem
     }
 
-    fun getMostRecentlyAdded(): ExerciseView? = lastAdded
+    private fun getMostRecentlyAdded(): ExerciseView? = lastAdded
 
-    suspend fun updateExerciseDates(applicationContext: Context, newDate: LocalDate) {
-        val db = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
-        withContext(Dispatchers.IO) {
-            dataList.forEach {
-                it.exercise.date = newDate
-                db.updateExercise(it.exercise)
-            }
-        }
+    suspend fun updateExerciseDates(context: Context, newDate: LocalDate) {
+        dataList.forEach { it.exercise.date = newDate }
+        saveExercises(context)
     }
 
-    suspend fun addExercises(applicationContext: Context, listOfExerciseIds: List<Long>) {
+    suspend fun addExercises(context: Context, listOfExerciseIds: List<Long>) {
         for (exerciseModelId in listOfExerciseIds) {
             val exercise = Exercise(
                 0,
@@ -128,19 +138,16 @@ class ExerciseListViewAdapter(
             val record: SetRecordView?
             val historicalSets: List<Pair<LocalDate, List<Set>>>
 
-
+            val db = ExerciseDatabase.getInstance(context).exerciseDao()
             withContext(Dispatchers.IO) {
-                val db = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
-                withContext(Dispatchers.IO) {
-                    exercise.exerciseId = db.addExerciseSet(exercise)
-                    exerciseModel = db.getExerciseDetails(exercise.exerciseModelId)
-                    record = db.getRecord(exercise.exerciseModelId)
-                    historicalSets = db
-                        .getHistoricalSets(exercise.exerciseModelId, 3, exercise.toTimeStamp())
-                        .toSortedMap().toList().map { Pair(it.first.date, it.second) }
-                }
+                exercise.exerciseId = db.addExerciseSet(exercise)
+                exerciseModel = db.getExerciseDetails(exercise.exerciseModelId)
+                record = db.getRecord(exercise.exerciseModelId)
+                historicalSets = db
+                    .getHistoricalSets(exercise.exerciseModelId, 3, exercise.toTimeStamp())
+                    .toSortedMap().toList().map { Pair(it.first.date, it.second) }
             }
-            Log.i("TEXT", "Historical ${exerciseModel?.exercise?.exerciseId} sets: ${historicalSets.size}")
+            //Log.i("TEXT", "Historical ${exerciseModel?.exercise?.exerciseId} sets: ${historicalSets.size}")
             addNewItem(
                 ExerciseView(
                     displayName = exerciseModel?.exercise?.displayName,
@@ -154,18 +161,79 @@ class ExerciseListViewAdapter(
             )
             workout.topTags = getTopTags()
             workout.totalExercises = itemCount
-            saveWorkout(applicationContext)
+            saveWorkout(context)
         }
     }
 
-    fun addSetToExercise(exerciseId: Long, set: Set) {
+    private suspend fun deleteExercise(context: Context, position: Int) {
+        withContext(Dispatchers.IO) {
+            val db = ExerciseDatabase.getInstance(context).exerciseDao()
+            db.deleteExercise(dataList[position].exercise)
+        }
+        removeItemAt(position)
+        workout.totalExercises = itemCount
+        saveWorkout(context)
+        notifier.exerciseDeleted()
+
+    }
+
+    private fun addSetToExercise(exerciseId: Long, set: Set) {
         val idx = dataList.indexOfFirst { it.exercise.exerciseId == exerciseId }
-        dataList[idx].sets.add(set) // dont need to add twice as the underlying object is the same!
+        dataList[idx].sets.add(set) // dont need to add to displaylist as the underlying object is the same!
+        val newPoints = Workout.calculatePoints(dataList[idx])
+        dataList[idx].exercise.recordsAchieved?.addAll(newPoints.records.map { it.recordType })
         notifyItemChanged(idx)
     }
 
-    fun addSetToExercise(exercise: ExerciseView, set: Set) {
-        addSetToExercise(exercise.exercise.exerciseId, set)
+    suspend fun addSetSameAsLast(context: Context, exerciseId: Long) {
+        withContext(Dispatchers.IO) {
+            val db = ExerciseDatabase.getInstance(context).exerciseDao()
+            val sets = db.getSets(exerciseId)
+            val set = Set(0, exerciseId, sets.last().weight, sets.last().reps, sets.size)
+            addSet(context, set)
+        }
+    }
+
+    suspend fun addSet(context: Context, set: Set) {
+        val db = ExerciseDatabase.getInstance(context).exerciseDao()
+        withContext(Dispatchers.IO) {
+            set.setID = db.addSetToExercise(set)
+        }
+        addSetToExercise(set.exerciseId, set)
+        updateWorkoutPoints()
+        saveWorkout(context)
+        saveExercises(context)
+
+    }
+
+    suspend fun deleteLastSet(context: Context, position: Int) {
+        val exercise = dataList[position]
+
+        if (exercise.sets.isEmpty()) {
+            deleteExercise(context, position)
+        } else {
+            val removedSet = exercise.sets.removeLast()
+            withContext(Dispatchers.IO) {
+                val db = ExerciseDatabase.getInstance(context).exerciseDao()
+                db.deleteSetFromExercise(removedSet)
+                updateWorkoutPoints()
+                saveWorkout(context)
+                saveExercises(context)
+            }
+            notifier.setRemoved(exercise, removedSet)
+            notifyItemChanged(position)
+        }
+    }
+
+
+    private suspend fun saveExercises(context: Context) {
+        val db = ExerciseDatabase.getInstance(context).exerciseDao()
+        withContext(Dispatchers.IO) {
+            dataList.filter { it.exercise.isDirty() }.forEach {
+                db.updateExercise(it.exercise)
+                it.exercise.clearDirty()
+            }
+        }
     }
 
     fun updateWorkoutPoints() {
@@ -179,9 +247,9 @@ class ExerciseListViewAdapter(
         }
     }
 
-    suspend fun saveWorkout(applicationContext: Context) {
+    suspend fun saveWorkout(context: Context) {
         withContext(Dispatchers.IO) {
-            val db = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
+            val db = ExerciseDatabase.getInstance(context).exerciseDao()
             db.updateWorkout(workout)
         }
     }
@@ -190,14 +258,14 @@ class ExerciseListViewAdapter(
         addSetNotificationManager.showNotificationAgain(chronometerBase, chronometerRunning)
     }
 
-    fun showNotification() {
+    fun showNotification(chronometerRunning: Boolean = false) {
         val mostRecent = getMostRecentlyAdded()
 
         addSetNotificationManager.showNotification(
             totalExercises = workout.totalExercises,
             date = workout.date,
             chronometerBase = SystemClock.elapsedRealtime(),
-            chronometerRunning = false,
+            chronometerRunning = chronometerRunning,
             exerciseId = mostRecent?.exercise?.exerciseId,
             displayName = mostRecent?.displayName,
             set = mostRecent?.sets?.lastOrNull(),
@@ -212,7 +280,7 @@ class ExerciseListViewAdapter(
         return dataList.map { it.exercise.exerciseModelId }
     }
 
-    fun getTopTags(): String {
+    private fun getTopTags(): String {
         return dataList
             .fold(emptyList<String>()) { ongoing, item -> ongoing + item.tags }
             .groupingBy { it }
@@ -232,6 +300,20 @@ class ExerciseListViewAdapter(
         // TODO move reorder mode to individual view holder / data items, and pass in payload of range changed?
         notifyItemRangeChanged(0, displayList.size)
         return inReorderMode
+    }
+
+    fun swapNext(position: Int) {
+        dataList[position].exercise.order += 1
+        dataList[position + 1].exercise.order -= 1
+
+        swap(position, position + 1)
+    }
+
+    fun swapPrev(position: Int) {
+        dataList[position - 1].exercise.order += 1
+        dataList[position].exercise.order -= 1
+
+        swap(position, position - 1)
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -283,31 +365,38 @@ class ExerciseListViewAdapter(
 
                 // TODO: change ORDER and call re-order
                 btnMoveUp.setOnClickListener {
+                    swapNext(adapterPosition)
                     runBlocking {
-                        withContext(Dispatchers.IO) {
-                            val db = ExerciseDatabase.getInstance(itemView.context).exerciseDao()
-                            dataList[adapterPosition].exercise.order += 1
-                            dataList[adapterPosition + 1].exercise.order -= 1
-                            db.updateExercise(dataList[adapterPosition].exercise)
-                            db.updateExercise(dataList[adapterPosition + 1].exercise)
-                        }
+                        saveExercises(itemView.context)
                     }
-                    swap(adapterPosition, adapterPosition + 1)
                 }
                 btnMoveDown.setOnClickListener {
+                    swapPrev(adapterPosition)
                     runBlocking {
-                        withContext(Dispatchers.IO) {
-                            val db = ExerciseDatabase.getInstance(itemView.context).exerciseDao()
-                            dataList[adapterPosition - 1].exercise.order += 1
-                            dataList[adapterPosition].exercise.order -= 1
-                            db.updateExercise(dataList[adapterPosition - 1].exercise)
-                            db.updateExercise(dataList[adapterPosition].exercise)
-                        }
+                        saveExercises(itemView.context)
                     }
-                    swap(adapterPosition, adapterPosition - 1)
                 }
 
-                return // dont have to waste time rendering further
+                return  // don't have to waste time rendering further
+            }
+
+            val mostWeight = itemView.findViewById<ImageView>(R.id.img_achievementMostWeight)
+            val mostReps = itemView.findViewById<ImageView>(R.id.img_achievementMostReps)
+            val mostMoved = itemView.findViewById<ImageView>(R.id.img_achievementMostMoved)
+            mostWeight.visibility = ImageView.GONE
+            mostReps.visibility = ImageView.GONE
+            mostMoved.visibility = ImageView.GONE
+
+            currentExercise.exercise.recordsAchieved?.forEach {
+                when (it) {
+                    RecordType.MAX_WEIGHT -> mostWeight.visibility = ImageView.VISIBLE
+
+                    RecordType.MAX_REPS -> mostReps.visibility = ImageView.VISIBLE
+
+                    RecordType.MAX_WEIGHT_MOVED -> mostMoved.visibility = ImageView.VISIBLE
+
+                    null -> TODO("Not implemented")
+                }
             }
 
             val weightEditText = itemView.findViewById<EditText>(R.id.numberEntry_addKilogramsToThisExercise)
@@ -318,10 +407,8 @@ class ExerciseListViewAdapter(
                 weightEditText.setText(Converters.formatDoubleWeight(lastSet.weight))
             }
             weightEditText.setOnFocusChangeListener { _, hasFocus ->
-                // clear text on focus
-                if (hasFocus) {
-                    weightEditText.text = null
-                } else if (weightEditText.text.toString().isNotEmpty()) {
+                if (hasFocus) weightEditText.text = null  // clear text on focus
+                else if (weightEditText.text.toString().isNotEmpty()) {
                     // when losing focus, format text
                     weightEditText.setText(Converters.formatDoubleWeight(weightEditText.text.toString().toDouble()))
                 }
@@ -330,8 +417,9 @@ class ExerciseListViewAdapter(
             val repsEditText = itemView.findViewById<EditText>(R.id.numberEntry_addRepsToThisExercise)
             repsEditText.setText(currentExercise.sets.lastOrNull()?.reps?.toString())
             repsEditText.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) repsEditText.text = null
+                if (hasFocus) repsEditText.text = null  // clear text on focus
                 else if (repsEditText.text.toString().isNotEmpty()) {
+                    // when losing focus, format text
                     repsEditText.setText(repsEditText.text.toString().toInt().toString())
                 }
             }
@@ -373,7 +461,7 @@ class ExerciseListViewAdapter(
 
             val setWeightString = StringBuilder()
             val setRepsString = StringBuilder()
-            Log.i("TEST", "Rendering ${currentExercise.sets.size} sets")
+            // Log.i("TEST", "Rendering ${currentExercise.sets.size} sets")
             for (set in currentExercise.sets) {
                 setWeightString.appendLine("${Converters.formatDoubleWeight(set.weight)} x")
                 setRepsString.appendLine(set.reps)
@@ -401,60 +489,10 @@ class ExerciseListViewAdapter(
                 val imm = itemView.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(itemView.windowToken, 0)
 
-                if (currentExercise.sets.isEmpty()) {
-                    runBlocking {
-                        val db = ExerciseDatabase.getInstance(itemView.context).exerciseDao()
-                        db.deleteExercise(currentExercise.exercise)
-
-                        removeItemAt(adapterPosition)
-
-                        workout.totalExercises = itemCount
-                        saveWorkout(itemView.context)
-                    }
-                    showNotification()
-                } else {
-                    val removedSet = currentExercise.sets.removeLast()
-                    runBlocking {
-                        val db = ExerciseDatabase.getInstance(itemView.context).exerciseDao()
-                        db.deleteSetFromExercise(removedSet)
-                        updateWorkoutPoints()
-                        saveWorkout(itemView.context)
-                    }
-                    // TODO: show notification
-                    /*showNotification(
-                    totalExercises = workout.totalExercises,
-                    date = workout.date,
-                    chronometerBase = SystemClock.elapsedRealtime(),
-                    chronometerRunning = false,
-                    exerciseId = null,
-                    displayName = exercise.displayName,
-                    set = null,
-                    numPrevSets = null,
-                    totalSets = null
-                    )*/
-
-                    // TODO: move to normal bind instead of in button, and then notify change
-                    val mostWeight = itemView.findViewById<ImageView>(R.id.img_achievementMostWeight)
-                    val mostReps = itemView.findViewById<ImageView>(R.id.img_achievementMostReps)
-                    val mostMoved = itemView.findViewById<ImageView>(R.id.img_achievementMostMoved)
-                    mostWeight.visibility = ImageView.GONE
-                    mostReps.visibility = ImageView.GONE
-                    mostMoved.visibility = ImageView.GONE
-
-                    val newPoints = Workout.calculatePoints(currentExercise)
-                    pointsChip.text = newPoints.points.toString()
-                    newPoints.records.forEach {
-                        when (it.recordType) {
-                            RecordType.MAX_WEIGHT -> mostWeight.visibility = ImageView.VISIBLE
-
-                            RecordType.MAX_REPS -> mostReps.visibility = ImageView.VISIBLE
-
-                            RecordType.MAX_WEIGHT_MOVED -> mostMoved.visibility = ImageView.VISIBLE
-                        }
-                    }
-
-                    notifier.setRemoved(currentExercise, removedSet)
+                runBlocking {
+                    deleteLastSet(itemView.context, adapterPosition)
                 }
+                //showNotification()
             }
 
             itemView.findViewById<Button>(R.id.btn_addSetToThisExercise).setOnClickListener {
@@ -475,46 +513,10 @@ class ExerciseListViewAdapter(
                     currentExercise.sets.size
                 )
                 runBlocking {
-                    val db = ExerciseDatabase.getInstance(itemView.context).exerciseDao()
-                    set.setID = db.addSetToExercise(set)
-
-
-                    addSetToExercise(currentExercise, set)
-                    updateWorkoutPoints()
-                    saveWorkout(itemView.context)
+                    addSet(itemView.context, set)
                 }
                 notifier.setAdded(currentExercise, set)
-                // TODO update notification
-                /*showNotification(
-                    totalExercises = workout.totalExercises,
-                    date = workout.date,
-                    chronometerBase = SystemClock.elapsedRealtime(),
-                    chronometerRunning = (today == workout.date),
-                    exerciseId = exercise.exercise.exerciseId,
-                    displayName = exercise.displayName,
-                    set = exercise.sets.lastOrNull(),
-                    numPrevSets = exercise.sets.takeLastWhile { it.weight == exercise.sets.last().weight }.count(),
-                    totalSets = exercise.sets.size
-                )*/
-
-                val mostWeight = itemView.findViewById<ImageView>(R.id.img_achievementMostWeight)
-                val mostReps = itemView.findViewById<ImageView>(R.id.img_achievementMostReps)
-                val mostMoved = itemView.findViewById<ImageView>(R.id.img_achievementMostMoved)
-                mostWeight.visibility = ImageView.GONE
-                mostReps.visibility = ImageView.GONE
-                mostMoved.visibility = ImageView.GONE
-
-                val newPoints = Workout.calculatePoints(currentExercise)
-                pointsChip.text = newPoints.points.toString()
-                newPoints.records.forEach {
-                    when (it.recordType) {
-                        RecordType.MAX_WEIGHT -> mostWeight.visibility = ImageView.VISIBLE
-
-                        RecordType.MAX_REPS -> mostReps.visibility = ImageView.VISIBLE
-
-                        RecordType.MAX_WEIGHT_MOVED -> mostMoved.visibility = ImageView.VISIBLE
-                    }
-                }
+                //showNotification(true)
             }
         }
     }
