@@ -173,7 +173,12 @@ data class MostCommonExerciseView(
     val date: LocalDate?,
     val count: Int,
     val bodyPartChips: String,
-)
+) : Comparable<MostCommonExerciseView> {
+    override fun compareTo(other: MostCommonExerciseView): Int {
+        return if (count == other.count) return date?.compareTo(other.date) ?: displayName.compareTo(other.displayName)
+        else count.compareTo(other.count)
+    }
+}
 
 @Entity
 data class Workout(
@@ -192,6 +197,11 @@ data class Workout(
 ) : Comparable<Workout> {
     @Ignore
     var currentSetTime: Long = 0
+
+
+    override fun compareTo(other: Workout): Int {
+        return -this.date.compareTo(other.date)
+    }
 
     fun recalculateWorkoutTotals(exerciseList: List<ExerciseListViewAdapter.ExerciseView>) {
         totalWeight = 0.0
@@ -272,10 +282,6 @@ data class Workout(
 
             return PointsResult(points.toInt(), records)
         }
-    }
-
-    override fun compareTo(other: Workout): Int {
-        return this.date.compareTo(other.date)
     }
 }
 

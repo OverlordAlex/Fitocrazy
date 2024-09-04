@@ -69,7 +69,7 @@ class ExerciseFragment: Fragment() {
 
             override fun onQueryTextChange(query: String?): Boolean {
                 if (query != null) {
-                    exerciseListAdapter.updateDisplayedItems(query.uppercase())
+                    exerciseListAdapter.updateDisplayedItems(query.trim().uppercase())
                     return true
                 }
 

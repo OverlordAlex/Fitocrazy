@@ -37,16 +37,16 @@ class ExerciseDisplayListAdapter : RecyclerView.Adapter<ExerciseDisplayListAdapt
                     db.getExerciseCount(it.exercise.exerciseId)
                 )
             }.sorted().toMutableList()
-            displayList.addAll(dataList)
-            notifyItemRangeInserted(0, displayList.size)
         }
+        displayList.addAll(dataList)
+        notifyItemRangeInserted(0, displayList.size)
     }
 
     override fun filterDataList(filter: String): List<ExerciseView> {
         return dataList.filter { exerciseView ->
             exerciseView.exercise.displayName.contains(filter) || (exerciseView.exercise.bodyPartChips?.uppercase()
                 ?.contains(filter) == true)
-        }.toMutableList()
+        }
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

@@ -2,13 +2,10 @@ package com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.transition.AutoTransition
 import android.transition.TransitionManager
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -29,15 +26,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.itsabugnotafeature.fitocrazy.R
-import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentModel
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseExerciseComponentCrossRef
 import com.itsabugnotafeature.fitocrazy.common.ExerciseModel
-import com.itsabugnotafeature.fitocrazy.common.MostCommonExerciseView
 import kotlinx.coroutines.runBlocking
-import java.time.LocalDate
 
 
 class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
@@ -51,7 +45,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
     private lateinit var locationAdapter: ArrayAdapter<ExerciseComponentModel>
     private lateinit var movementAdapter: ArrayAdapter<ExerciseComponentModel>
 
-    private lateinit var listOfSuggestedExercises: List<MostCommonExerciseView>
+    //private lateinit var listOfSuggestedExercises: List<MostCommonExerciseView>
     private lateinit var suggestedExerciseAdapter: SuggestedExercisesListAdapter
 
     override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
@@ -78,8 +72,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
         btn: Button,
         spinner: Spinner
     ) {
-        val textFrag: DialogFragment =
-            EnterTextForNewExerciseFragment(exerciseComponentType.toString())
+        val textFrag: DialogFragment = EnterTextForNewExerciseFragment(exerciseComponentType.toString())
 
         btn.setOnClickListener {
             val ft: FragmentTransaction = supportFragmentManager.beginTransaction()
@@ -104,12 +97,13 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
                             )
                             newComponent.componentId = db.exerciseDao().addExerciseComponent(newComponent)
                             updateSpinnerData()
-                            spinner.setSelection(equipmentAdapter.getPosition(newComponent))
+                            // without animate it doesn't work??
+                            spinner.setSelection(equipmentAdapter.getPosition(newComponent), true)
                         } else {
                             spinner.setSelection(
                                 (spinner.adapter as ArrayAdapter<ExerciseComponentModel>).getPosition(
                                     existing
-                                ), false
+                                ), true
                             )
                         }
                     }
@@ -132,74 +126,6 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
         movementAdapter.addAll(
             db.exerciseDao().getExerciseComponent(ExerciseComponentType.MOVEMENT).sortedBy { it.name }
         )
-    }
-
-    class SuggestedExercisesListAdapter(
-        var exerciseList: List<MostCommonExerciseView>,
-        val selectedItems: MutableList<Long> = mutableListOf(),
-    ) : RecyclerView.Adapter<SuggestedExercisesListAdapter.ViewHolder>() {
-        inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            fun bind(suggestion: MostCommonExerciseView) {
-                itemView.findViewById<TextView>(R.id.label_exerciseSuggestionName).text = suggestion.displayName
-
-                val lastSeenLabel = itemView.findViewById<TextView>(R.id.label_exerciseSuggestionLastSeen)
-                if (suggestion.date == null) {
-                    lastSeenLabel.visibility = TextView.GONE
-                } else {
-                    lastSeenLabel.text = itemView.context.getString(
-                        R.string.add_exercise_days_ago,
-                        suggestion.date.format(Converters.dateFormatter),
-                        LocalDate.now().toEpochDay() - suggestion.date.toEpochDay()
-                    )
-                }
-
-                val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipgroup_suggestedExerciseBodyParts)
-                chipGroup.removeAllViews()
-                suggestion.bodyPartChips.split(" ").sorted().forEach { chipName ->
-                    val newChip = Chip(itemView.context)
-                    newChip.text = chipName
-                    newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
-                    chipGroup.addView(newChip)
-                }
-
-                val btn = itemView.findViewById<Button>(R.id.btn_exerciseSuggestionAddExercise)
-                btn.setOnClickListener {
-                    if (suggestion.exerciseModelId in selectedItems) {
-                        selectedItems.remove(suggestion.exerciseModelId)
-                        itemView.isSelected = false
-
-                    } else {
-                        selectedItems.add(suggestion.exerciseModelId)
-                        itemView.isSelected = true
-                    }
-
-                    notifyItemChanged(adapterPosition)
-                }
-
-                if (suggestion.exerciseModelId in selectedItems) {
-                    btn.text = itemView.context.getString(R.string.btn_minus)
-                    itemView.setBackgroundColor(itemView.context.getColor(R.color.blue_tertiary))
-                    itemView.elevation = 0f
-                } else {
-                    btn.text = itemView.context.getString(R.string.btn_add)
-                    itemView.setBackgroundColor(itemView.context.getColor(R.color.white))
-                    itemView.elevation = 4f
-                }
-
-            }
-        }
-
-        override fun getItemCount() = exerciseList.size
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view: View = LayoutInflater.from(parent.context)
-                .inflate(R.layout.row_add_new_exercise_to_workout_suggestion, parent, false)
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.bind(exerciseList[position])
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -245,29 +171,28 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
         val positionSpinner = findViewById<Spinner>(R.id.spinner_position)
         val movementSpinner = findViewById<Spinner>(R.id.spinner_movement)
 
+        equipmentAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_dropdown_item_1line)
+        locationAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_dropdown_item_1line)
+        movementAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_dropdown_item_1line)
+        suggestedExerciseAdapter = SuggestedExercisesListAdapter()
         runBlocking {
-            equipmentAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_dropdown_item_1line)
-            locationAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_dropdown_item_1line)
-            movementAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_dropdown_item_1line)
             updateSpinnerData()
             equipmentSpinner.adapter = equipmentAdapter
             positionSpinner.adapter = locationAdapter
             movementSpinner.adapter = movementAdapter
 
-            val db = ExerciseDatabase.getInstance(applicationContext)
-            if (!inEditMode){
-                listOfSuggestedExercises = db.exerciseDao().getMostCommonExercises(
-                    LocalDate.now(),
-                    intent.getLongArrayExtra("currentExercisesInWorkout")?.toList() ?: emptyList()
+            suggestedExerciseAdapter.loadData(
+                applicationContext,
+                mapOf(
+                    "currentExercisesInWorkout" to
+                            (intent.getLongArrayExtra("currentExercisesInWorkout")?.toTypedArray() ?: emptyArray<Long>())
                 )
-                suggestedExerciseAdapter = SuggestedExercisesListAdapter(listOfSuggestedExercises)
+            )
+            if (!suggestedExerciseAdapter.hasSuggestions()) inEditMode = true
+            if (!inEditMode) {
                 listExerciseSuggestions.adapter = suggestedExerciseAdapter
-
-            } else {
-                listOfSuggestedExercises = emptyList()
             }
         }
-        if (listOfSuggestedExercises.isEmpty()) inEditMode = true
         listExerciseSuggestions.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
         if (!inEditMode) {
@@ -275,16 +200,18 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
                 val visible: Int = if (detailLayout.visibility == View.GONE) {
                     listExerciseSuggestions.visibility = RecyclerView.GONE
                     autoComplete.clearFocus()
+                    autoComplete.visibility = SearchView.GONE
 
                     labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(R.drawable.drawer_opened, 0, 0, 0)
-
+                    inEditMode = true
                     View.VISIBLE
                 } else {
                     listExerciseSuggestions.visibility = RecyclerView.VISIBLE
+                    autoComplete.visibility = SearchView.VISIBLE
                     autoComplete.requestFocus()
 
                     labelExpandExerciseGroup.setCompoundDrawablesWithIntrinsicBounds(R.drawable.drawer_closed, 0, 0, 0)
-
+                    inEditMode = false
                     View.GONE
                 }
 
@@ -306,18 +233,12 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
                 return false
             }
 
-            // could change any number of items on filter, could be more efficient with SortedListAdapter
-            //          https://stackoverflow.com/questions/30398247/how-to-filter-a-recyclerview-with-a-searchview
-            @SuppressLint("NotifyDataSetChanged")
             override fun onQueryTextChange(query: String?): Boolean {
                 // once the suggestion is open, keep the height consistent
                 listExerciseSuggestions.minimumHeight = listExerciseSuggestions.height
 
                 if (query != null) {
-                    val upperQ = query.uppercase()
-                    val lowerQ = query.lowercase()
-                    suggestedExerciseAdapter.exerciseList = listOfSuggestedExercises.filter { it.displayName.contains(upperQ) || it.bodyPartChips.contains(lowerQ)}
-                    suggestedExerciseAdapter.notifyDataSetChanged()
+                    suggestedExerciseAdapter.updateDisplayedItems(query.trim())
                     listExerciseSuggestions.scrollToPosition(0)
                     return true
                 }
@@ -419,7 +340,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
                 }
             } else {
                 // selected some things from the list
-                intent.putExtra("exerciseIDs", suggestedExerciseAdapter.selectedItems.toLongArray())
+                intent.putExtra("exerciseIDs", suggestedExerciseAdapter.getSelectedItems().toLongArray())
             }
 
             setResult(RESULT_OK, intent)

@@ -8,6 +8,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager.LayoutParams
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
@@ -16,6 +17,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity.INPUT_METHOD_SERVICE
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -94,13 +96,13 @@ class ExerciseListViewAdapter(
                     basePoints = thisExerciseModel.exercise.basePoints,
                 )
             }.sorted().toMutableList()
-
-            displayList.addAll(dataList)
-            //Log.i("Fitocrazy", displayList.joinToString { it.exercise.toString() })
-            notifyItemRangeInserted(0, displayList.size)
-
-            lastAdded = displayList.lastOrNull()
         }
+        displayList.addAll(dataList)
+        //Log.i("Fitocrazy", displayList.joinToString { it.exercise.toString() })
+        notifyItemRangeInserted(0, displayList.size)
+        lastAdded = displayList.lastOrNull()
+
+        showNotification()
     }
 
     override fun filterDataList(filter: String): List<ExerciseView> {
@@ -110,6 +112,7 @@ class ExerciseListViewAdapter(
     override fun addNewItem(item: ExerciseView) {
         super.addNewItem(item)
         lastAdded = item
+        showNotification()
     }
 
     override fun removeItemAt(index: Int): ExerciseView {
@@ -118,7 +121,7 @@ class ExerciseListViewAdapter(
         return removedItem
     }
 
-    private fun getMostRecentlyAdded(): ExerciseView? = lastAdded
+    private fun getMostRecentlyAdded(): ExerciseView? = lastAdded ?: dataList.lastOrNull()
 
     suspend fun updateExerciseDates(context: Context, newDate: LocalDate) {
         dataList.forEach { it.exercise.date = newDate }
@@ -174,24 +177,16 @@ class ExerciseListViewAdapter(
         workout.totalExercises = itemCount
         saveWorkout(context)
         notifier.exerciseDeleted()
-
-    }
-
-    private fun addSetToExercise(exerciseId: Long, set: Set) {
-        val idx = dataList.indexOfFirst { it.exercise.exerciseId == exerciseId }
-        dataList[idx].sets.add(set) // dont need to add to displaylist as the underlying object is the same!
-        val newPoints = Workout.calculatePoints(dataList[idx])
-        dataList[idx].exercise.recordsAchieved?.addAll(newPoints.records.map { it.recordType })
-        notifyItemChanged(idx)
+        showNotification()
     }
 
     suspend fun addSetSameAsLast(context: Context, exerciseId: Long) {
-        withContext(Dispatchers.IO) {
+        val sets = withContext(Dispatchers.IO) {
             val db = ExerciseDatabase.getInstance(context).exerciseDao()
-            val sets = db.getSets(exerciseId)
-            val set = Set(0, exerciseId, sets.last().weight, sets.last().reps, sets.size)
-            addSet(context, set)
+            db.getSets(exerciseId)
         }
+        val set = Set(0, exerciseId, sets.last().weight, sets.last().reps, sets.size)
+        addSet(context, set)
     }
 
     suspend fun addSet(context: Context, set: Set) {
@@ -199,11 +194,19 @@ class ExerciseListViewAdapter(
         withContext(Dispatchers.IO) {
             set.setID = db.addSetToExercise(set)
         }
-        addSetToExercise(set.exerciseId, set)
+        val idx = dataList.indexOfFirst { it.exercise.exerciseId == set.exerciseId }
+        dataList[idx].sets.add(set) // dont need to add to displaylist as the underlying object is the same!
+        val newPoints = Workout.calculatePoints(dataList[idx])
+        dataList[idx].exercise.recordsAchieved?.addAll(newPoints.records.map { it.recordType })
+
         updateWorkoutPoints()
         saveWorkout(context)
         saveExercises(context)
 
+        notifyItemChanged(idx)
+        Log.i("TEST", "showing notification from adding a set")
+        showNotification(true)
+        notifier.setAdded(dataList[idx], set)
     }
 
     suspend fun deleteLastSet(context: Context, position: Int) {
@@ -216,12 +219,14 @@ class ExerciseListViewAdapter(
             withContext(Dispatchers.IO) {
                 val db = ExerciseDatabase.getInstance(context).exerciseDao()
                 db.deleteSetFromExercise(removedSet)
-                updateWorkoutPoints()
-                saveWorkout(context)
-                saveExercises(context)
             }
-            notifier.setRemoved(exercise, removedSet)
+            updateWorkoutPoints()
+            saveWorkout(context)
+            saveExercises(context)
+            showNotification(true)
+
             notifyItemChanged(position)
+            notifier.setRemoved(exercise, removedSet)
         }
     }
 
@@ -236,14 +241,14 @@ class ExerciseListViewAdapter(
         }
     }
 
-    fun updateWorkoutPoints() {
+    private fun updateWorkoutPoints() {
         workout.recalculateWorkoutTotals(dataList)
     }
 
-    fun saveTimers(totalTimeTime: Long, currentSetTimeBase: Long) {
+    fun saveTimers(totalTimeTime: Long) {
         if (LocalDate.now() == workout.date) {
             workout.totalTime = SystemClock.elapsedRealtime() - totalTimeTime
-            workout.currentSetTime = SystemClock.elapsedRealtime() - currentSetTimeBase
+            //workout.currentSetTime = SystemClock.elapsedRealtime() - currentSetTimeBase // , currentSetTimeBase: Long
         }
     }
 
@@ -258,8 +263,9 @@ class ExerciseListViewAdapter(
         addSetNotificationManager.showNotificationAgain(chronometerBase, chronometerRunning)
     }
 
-    fun showNotification(chronometerRunning: Boolean = false) {
+    private fun showNotification(chronometerRunning: Boolean = false) {
         val mostRecent = getMostRecentlyAdded()
+        Log.i("TEST", "Asked to show notification, most recent: ${mostRecent?.displayName} and timer is running $chronometerRunning")
 
         addSetNotificationManager.showNotification(
             totalExercises = workout.totalExercises,
@@ -297,7 +303,6 @@ class ExerciseListViewAdapter(
         }
 
         inReorderMode = !inReorderMode
-        // TODO move reorder mode to individual view holder / data items, and pass in payload of range changed?
         notifyItemRangeChanged(0, displayList.size)
         return inReorderMode
     }
@@ -443,6 +448,7 @@ class ExerciseListViewAdapter(
 
                 setListView.findViewById<TextView>(R.id.textlist_weightInSet).text = setWeightString
                 setListView.findViewById<TextView>(R.id.textlist_repsInSet).text = setRepsString
+                //setListView.layoutParams = LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1.0F)
                 exerciseSetsScrollLayout.addView(setListView)
             }
 
@@ -471,7 +477,13 @@ class ExerciseListViewAdapter(
             setListView.findViewById<TextView>(R.id.textlist_weightInSet).text = setWeightString
             setListView.findViewById<TextView>(R.id.textlist_repsInSet).text = setRepsString
 
-            setListView.minimumWidth = (itemView.rootView.width * 0.3).toInt()
+            //setListView.minimumWidth = (itemView.rootView.screen * 0.3).toInt()
+            //val constraintSet = ConstraintSet()
+            //constraintSet.constrainPercentWidth(setListView.id, 0.3F)
+            //exerciseSetsScrollLayout.width
+            //setListView.layoutParams = LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1.0F)
+            setListView.minimumWidth = 250  // TODO: 1/4 of screen width?
+
             exerciseSetsScrollLayout.addView(setListView)
 
             val scrollView = itemView.findViewById<HorizontalScrollView>(R.id.scrollview_listOfSetsOnExerciseCard)
@@ -515,7 +527,6 @@ class ExerciseListViewAdapter(
                 runBlocking {
                     addSet(itemView.context, set)
                 }
-                notifier.setAdded(currentExercise, set)
                 //showNotification(true)
             }
         }

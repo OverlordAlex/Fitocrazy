@@ -107,7 +107,7 @@ class ComponentFragment(private val type: ExerciseComponentType?) : Fragment() {
 
             override fun onQueryTextChange(query: String?): Boolean {
                 if (query != null) {
-                    componentListAdapter.updateDisplayedItems(query.uppercase())
+                    componentListAdapter.updateDisplayedItems(query.trim().uppercase())
                     return true
                 }
 

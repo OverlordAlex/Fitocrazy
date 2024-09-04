@@ -44,7 +44,7 @@ interface DisplayListAdapter<ModelType : Comparable<ModelType>> {
 
     fun filterDataList(filter: String): List<ModelType>
 
-    fun updateDisplayedItems(filter: String, ) {
+    fun updateDisplayedItems(filter: String) {
         val desiredFinalState = if (filter.isEmpty()) dataList else filterDataList(filter)
 
         if (desiredFinalState.isEmpty()) {

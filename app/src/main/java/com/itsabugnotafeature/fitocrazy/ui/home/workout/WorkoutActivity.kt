@@ -31,11 +31,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.AddSetNotificationManager
-import com.itsabugnotafeature.fitocrazy.common.Exercise
-import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.Set
-import com.itsabugnotafeature.fitocrazy.common.SetRecordView
-import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
@@ -98,11 +94,17 @@ class WorkoutActivity : AppCompatActivity() {
         val totalTimeTimer = findViewById<Chronometer>(R.id.timer_totalTime)
 
         // TODO fix timer
-        /*totalTimeTimer.base = SystemClock.elapsedRealtime() - workout.totalTime
-        if (workout.date == today) totalTimeTimer.start()*/
+
+        if (exerciseListViewAdapter.workout.date == LocalDate.now()) {
+            // if it's today, we keep the timer running in the background
+            totalTimeTimer.base = exerciseListViewAdapter.workout.totalTime
+            totalTimeTimer.start()
+        } else {
+            // otherwise the total time is fixed, in the past
+            totalTimeTimer.base = SystemClock.elapsedRealtime() - exerciseListViewAdapter.workout.totalTime
+        }
         val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
         exerciseListView.adapter = exerciseListViewAdapter
-        //exerciseListViewAdapter.refresh()
 
         if (exerciseListViewAdapter.itemCount == 0) {
             exerciseListView.visibility = RecyclerView.INVISIBLE
@@ -171,7 +173,6 @@ class WorkoutActivity : AppCompatActivity() {
                     /*if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                         // TODO is this needed? was used to avoid notifying item changed
                     } else {
-
                         //showNotificationAgainWithSetInc(SystemClock.elapsedRealtime())
                     }*/
                 }
@@ -191,7 +192,7 @@ class WorkoutActivity : AppCompatActivity() {
                     setTimeTimer.base = SystemClock.elapsedRealtime()
                     setTimeTimer.setTextColor(applicationContext.getColor(R.color.black))
                     setTimeTimer.start()
-                    setTimerIsActive = true
+                    //TODO setTimerIsActive = true
                 }
             }
 
@@ -237,10 +238,9 @@ class WorkoutActivity : AppCompatActivity() {
 
         broadcastReceiver = SetAddedBroadcastReceiver()
         val filter = IntentFilter(AddSetNotificationManager.NOTIFICATION_ACTION_COMPLETE_SET)
-        //Log.i(title.toString(), "Register Receiver")
         ContextCompat.registerReceiver(applicationContext, broadcastReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
 
-        /*var pausedTime = 0L
+        var pausedTime = 0L
         setTimeTimer.setOnClickListener {
             if (setTimerIsActive) {
                 setTimeTimer.stop()
@@ -265,15 +265,15 @@ class WorkoutActivity : AppCompatActivity() {
             }
             setTimerIsActive = !setTimerIsActive
             exerciseListViewAdapter.showNotificationAgain(setTimeTimer.base, setTimerIsActive)
-        }*/
+        }
 
         val endWorkoutBtn = findViewById<FloatingActionButton>(R.id.btn_endWorkout)
         endWorkoutBtn.setOnClickListener {
             // TODO: save timer
-            /*exerciseListViewAdapter.saveTimers(totalTimeTimer.base)
+            exerciseListViewAdapter.saveTimers(totalTimeTimer.base)
             runBlocking {
                 exerciseListViewAdapter.saveWorkout(applicationContext)
-            }*/
+            }
 
             /*setTimeTimer.stop()  // needed?
             setTimerIsActive = false

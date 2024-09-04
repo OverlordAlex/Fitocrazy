@@ -128,7 +128,7 @@ class AddSetNotificationManager(
                 context,
                 0,
                 addAnotherSetIntent,
-                PendingIntent.FLAG_IMMUTABLE //or PendingIntent.FLAG_UPDATE_CURRENT
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
 
             customNotification.addAction(

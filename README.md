@@ -1,29 +1,37 @@
 # Known Bugs
 BUG: "enter" when creating a new exercise component does weird stuff (should trim+enter)
 BUG: focus is set to autocomplete on addnewexercise when a component has been added and popup closed
-BUG: resume activity from icon (not notification) reopens app completely
-BUG: exercise added started with achivements already set?
 BUG: adding first set is swallowed when rep edit text has focus (toast shows! inputs cleared) - related to achievements? worked on latest exercise but not earlier
 - BUG: I have animations turned off... lol
-Bug: notification timer not restarted on new set
-Bug: adding new set not updating the exercise?
 Bug: total set time doesn't count when in background
-Bug: achievement doesn't survive reload
 Bug: app not installed when starting from bottom bar icon
 
 
 # TODO
+- remove records when removing sets
+- manage time, and saving time
+
+- Searches should split input on space and match-all
+- Scroll to top when adding new exercise <- because no animations?
+- Total sets in exercise so far would be nice
+- Add exercise spinner should select added element
+- Trim whitespace on search
+
+- Calculation should be based more heavily on weight over reps
+- When adding an exercise, search is still clickable when building exercise
+- Changing date on workout should set total time to 0
+
+- When going to old exercise and back, then should scroll to where it was clicked from in the list
+- Make "done" button on adding exercises floating so that it's always on screen and easy to hit
+
+- add exercise to current workout from search in other list
 - up next, charts!
 - multiple of same set should show better in current workout (collapse?)
-- Why would history not work? - because exercise was added by manually recreating instead of selecting from list?
 - move from a group selecter to a difficulty selector that includes bodyweight
 - action bar on workout could use better styling (, back button, etc)
 - spinners should be searchable
 - nicer page scrolling animations between tabs on "exercises"
-- be able to back up exercises for future migrations
 - when pressing a chip for the number of times that exercise was done, open a view of the exercises when it was last seen
-- when achieving a record, record when it was achieved
-- when editing a component that causes the list of components of that type to be reordered, that refresh should refresh a range and not entire dataset
 - Bodyweight - what kg to enter?
 - add average weight per set and rep in the workout overview page
 - basic weight tracking
@@ -36,16 +44,14 @@ Bug: app not installed when starting from bottom bar icon
 - fix icon (lighter background, missing shine on second stickout on F)
 - - add a dumbbell in bottom right of logo
 - better font
-- the weight + reps enters should have more strict validation provided by android itself?
 - better icons for achievements
 - timer pause icon should be closer to time, better styled, and timer started/stops when pressing anywhere in layout
 - number of sets at current weight in notification should be displayed better (closer to the weight?)
-- records should live with their exercises forever
+
 
 # Out of Scope
 - tint of chips should be per bodypart - right now its ordered by most frequent
 - bring points to the spinners on exercise type for more flexibility?
 - most common exercises should be based on similar exercises already in workout?
-- total points per exercise in chip next to exercise name (floating popups enough?)
 - BUG: buttons dont line up with spinners in adding exercise (problem only if the spinner is empty) - should happen once in entire app lifecycle
 - workout creation based on body part (not needed - can create via search by bodypart on adding exercises)

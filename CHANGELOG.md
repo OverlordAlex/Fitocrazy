@@ -1,3 +1,36 @@
+# 04 Sep 2024 (Continue refactor)
+- refactored suggestion list to use displayAdapter
+
+
+# 02 Sep 2024 (Continue refactor)
+- added notifications
+- moved achievements to the Exercise object
+- Bugs assumed fixed:
+  - Bug: achievement doesn't survive reload
+  - Bug: adding new set not updating the exercise?
+  - Bug: notification timer not restarted on new set
+  - BUG: exercise added started with achivements already set?
+  - BUG: resume activity from icon (not notification) reopens app completely
+  - BUG Why would history not work? - because exercise was added by manually recreating instead of selecting from list?
+  - be able to back up exercises for future migrations
+  - when achieving a record, record when it was achieved
+  - when editing a component that causes the list of components of that type to be reordered, that refresh should refresh a range and not entire dataset
+  - the weight + reps enters should have more strict validation provided by android itself?
+  - records should live with their exercises forever
+  - total points per exercise in chip next to exercise name (floating popups enough?)
+- Feedback assumed addressed:
+  - Achievements and history not shown (lost on rebind of view holder?)
+    - rebinding with reorder does not cause history to show
+    - reopening workout does not cause it to show
+      - new achievements are aware of history, but points and view look like new exercise
+  - If there is one exercise it should not be reorderable
+  - Total points and exercise points are different??
+  - Notification timer reset on resume (problem if set started from notification action)
+  -  Set timer not reset when adding from notification
+  -  Items that can be gone, should be gone by default and shown only if necessary
+  - Editing workouts date should default date selector to workout date and not today's date    
+  - History not working could be related to the date of exercises added on same day but the date edit happens before or after they're added to the workout?
+
 # 02 Sep 2024 (Massive refactor)
 - refactor component list to use adapter
 - refactor exercise list to use adapter
