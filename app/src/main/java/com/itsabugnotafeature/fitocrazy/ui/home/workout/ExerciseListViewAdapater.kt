@@ -39,6 +39,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.EnumSet
 
 // the parent list of exercises in a workout
 class ExerciseListViewAdapter(
@@ -57,7 +58,7 @@ class ExerciseListViewAdapter(
         val tags: List<String>,
         val exercise: Exercise,
         val sets: MutableList<Set>,
-        val record: SetRecordView?,
+        var record: SetRecordView?,
         val historicalSets: List<Pair<LocalDate, List<Set>>>,
         val basePoints: Int,
     ) : Comparable<ExerciseView> {
@@ -148,7 +149,8 @@ class ExerciseListViewAdapter(
                 record = db.getRecord(exercise.exerciseModelId)
                 historicalSets = db
                     .getHistoricalSets(exercise.exerciseModelId, 3, exercise.toTimeStamp())
-                    .toSortedMap().toList().map { Pair(it.first.date, it.second) }
+                    .toList().groupBy { it.first.date }
+                    .map { Pair(it.key, it.value.map { sec -> sec.second }.flatten()) }
             }
             //Log.i("TEXT", "Historical ${exerciseModel?.exercise?.exerciseId} sets: ${historicalSets.size}")
             addNewItem(
@@ -190,14 +192,21 @@ class ExerciseListViewAdapter(
     }
 
     suspend fun addSet(context: Context, set: Set) {
+        val idx = dataList.indexOfFirst { it.exercise.exerciseId == set.exerciseId }
+        val exercise = dataList[idx]
+
         val db = ExerciseDatabase.getInstance(context).exerciseDao()
         withContext(Dispatchers.IO) {
             set.setID = db.addSetToExercise(set)
         }
-        val idx = dataList.indexOfFirst { it.exercise.exerciseId == set.exerciseId }
-        dataList[idx].sets.add(set) // dont need to add to displaylist as the underlying object is the same!
-        val newPoints = Workout.calculatePoints(dataList[idx])
-        dataList[idx].exercise.recordsAchieved?.addAll(newPoints.records.map { it.recordType })
+
+        exercise.sets.add(set) // dont need to add to displaylist as the underlying object is the same!
+        val newPoints = Workout.calculatePoints(exercise)
+        exercise.exercise.recordsAchieved?.addAll(newPoints.records.map { it.recordType })
+
+        withContext(Dispatchers.IO) {
+            exercise.record = db.getRecord(exercise.exercise.exerciseModelId)
+        }
 
         updateWorkoutPoints()
         saveWorkout(context)
@@ -206,7 +215,7 @@ class ExerciseListViewAdapter(
         notifyItemChanged(idx)
         Log.i("TEST", "showing notification from adding a set")
         showNotification(true)
-        notifier.setAdded(dataList[idx], set)
+        notifier.setAdded(exercise, set)
     }
 
     suspend fun deleteLastSet(context: Context, position: Int) {
@@ -219,7 +228,15 @@ class ExerciseListViewAdapter(
             withContext(Dispatchers.IO) {
                 val db = ExerciseDatabase.getInstance(context).exerciseDao()
                 db.deleteSetFromExercise(removedSet)
+                exercise.record = db.getRecord(exercise.exercise.exerciseModelId)
             }
+            val newPoints = Workout.calculatePoints(exercise)
+            exercise.exercise.recordsAchieved = if (newPoints.records.isEmpty()) {
+                EnumSet.noneOf(RecordType::class.java)
+            } else {
+                EnumSet.copyOf(newPoints.records.map { it.recordType })
+            }
+
             updateWorkoutPoints()
             saveWorkout(context)
             saveExercises(context)

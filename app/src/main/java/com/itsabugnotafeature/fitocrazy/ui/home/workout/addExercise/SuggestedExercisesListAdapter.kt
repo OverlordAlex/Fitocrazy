@@ -52,7 +52,10 @@ class SuggestedExercisesListAdapter() :
     override fun filterDataList(filter: String): List<MostCommonExerciseView> {
         val upperQ = filter.uppercase()
         val lowerQ = filter.lowercase()
-        return dataList.filter { it.displayName.contains(upperQ) || it.bodyPartChips.contains(lowerQ) }
+        return dataList.filter {
+            it.bodyPartChips.contains(lowerQ) || upperQ.split(" ")
+                .all { filterWord -> it.displayName.contains(filterWord) }
+        }
     }
 
     fun getSelectedItems(): List<Long> = selectedItems.toList()

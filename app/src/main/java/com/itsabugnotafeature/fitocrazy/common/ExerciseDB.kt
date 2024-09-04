@@ -1,6 +1,7 @@
 package com.itsabugnotafeature.fitocrazy.common
 
 import android.content.Context
+import android.util.Log
 import androidx.room.AutoMigration
 import androidx.room.ColumnInfo
 import androidx.room.Dao
@@ -17,6 +18,7 @@ import androidx.room.Query
 import androidx.room.Relation
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.Transaction
 import androidx.room.TypeConverters
 import androidx.room.Update
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.ExerciseListViewAdapter
@@ -219,8 +221,6 @@ data class Workout(
     }
 
     companion object {
-        // TODO save on recalculate
-        // TODO: when do we update the max records? end of workout right? exercise not populating records oncreate?
         fun calculatePoints(exercise: ExerciseListViewAdapter.ExerciseView): PointsResult {
             if (exercise.sets.isEmpty()) return PointsResult(0, emptyList())
 
@@ -234,6 +234,7 @@ data class Workout(
             val exerciseMaxWeight = exercise.record?.maxWeight ?: maxWeightThisSet
             val exerciseMaxReps = exercise.record?.maxReps ?: maxRepsThisSet
             val exerciseMaxMoved = exercise.record?.mostWeightMoved ?: maxMovedThisSet
+            //Log.i("TEXT", "$maxWeightThisSet VS $exerciseMaxWeight\n $maxRepsThisSet VS $exerciseMaxReps\n $maxMovedThisSet vs $exerciseMaxMoved")
 
             if (maxWeightThisSet > exerciseMaxWeight) {
                 points += 75
@@ -292,11 +293,9 @@ interface ExerciseDao {
     @Query("SELECT EM.exerciseId, displayName, basePoints, bodyPartChips FROM exerciseexercisecomponentcrossref CR JOIN exercisemodel EM ON EM.exerciseId=CR.exerciseId WHERE CR.componentId = :componentId")
     suspend fun getExerciseDetailsWithComponent(componentId: Long): List<ExerciseModel>
 
-    //@Transaction
     @Query("SELECT * FROM ExerciseModel WHERE exerciseId = :id")
     suspend fun getExerciseDetails(id: Long): ExerciseWithComponentModel?
 
-    //@Transaction
     @Query("SELECT * FROM ExerciseModel")
     suspend fun getExercises(): List<ExerciseWithComponentModel>
 

@@ -8,22 +8,12 @@ Bug: app not installed when starting from bottom bar icon
 
 
 # TODO
-- remove records when removing sets
 - manage time, and saving time
-
-- Searches should split input on space and match-all
 - Scroll to top when adding new exercise <- because no animations?
 - Total sets in exercise so far would be nice
-- Add exercise spinner should select added element
-- Trim whitespace on search
-
 - Calculation should be based more heavily on weight over reps
-- When adding an exercise, search is still clickable when building exercise
 - Changing date on workout should set total time to 0
-
 - When going to old exercise and back, then should scroll to where it was clicked from in the list
-- Make "done" button on adding exercises floating so that it's always on screen and easy to hit
-
 - add exercise to current workout from search in other list
 - up next, charts!
 - multiple of same set should show better in current workout (collapse?)

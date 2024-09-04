@@ -38,7 +38,7 @@
         android:id="@+id/label_ExpandNewExerciseGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:drawableStart="@drawable/drawer_closed"
+        android:drawableStartCompat="@drawable/drawer_closed"
         android:gravity="center_vertical"
         android:text="@string/label_ExpandNewExerciseGroup"
         android:textColor="@color/slate_dark"
@@ -195,13 +195,15 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <Button
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/btn_addExercise"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/purple_main"
+        android:gravity="center_horizontal|center_vertical"
         android:text="@string/btn_addExercise"
         android:textColor="@color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layout_addExerciseToWorkout" />
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

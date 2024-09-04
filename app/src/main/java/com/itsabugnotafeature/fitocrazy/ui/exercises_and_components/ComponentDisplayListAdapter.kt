@@ -49,7 +49,7 @@ class ComponentDisplayListAdapter(val type: ExerciseComponentType) :
     override fun filterDataList(filter: String): List<ComponentView> {
         return dataList.filter { componentView ->
             componentView.name.contains(filter) || (componentView.exercises.find {
-                it.displayName.contains(filter)
+                filter.split(" ").all { filterWord -> it.displayName.contains(filterWord) }
             } != null)
         }
     }

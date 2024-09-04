@@ -25,6 +25,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentModel
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
@@ -134,7 +136,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
 
         var inEditMode = intent.getLongExtra("workoutId", -1L) == -1L
 
-        val addExerciseButton: Button = findViewById(R.id.btn_addExercise)
+        val addExerciseButton: ExtendedFloatingActionButton = findViewById(R.id.btn_addExercise)
 
         val chipGroup = findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
         val chipList = resources.getStringArray(R.array.arrayOfExerciseTagChips).sorted()

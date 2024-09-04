@@ -44,8 +44,8 @@ class ExerciseDisplayListAdapter : RecyclerView.Adapter<ExerciseDisplayListAdapt
 
     override fun filterDataList(filter: String): List<ExerciseView> {
         return dataList.filter { exerciseView ->
-            exerciseView.exercise.displayName.contains(filter) || (exerciseView.exercise.bodyPartChips?.uppercase()
-                ?.contains(filter) == true)
+            exerciseView.exercise.bodyPartChips?.uppercase()?.contains(filter) == true ||
+            filter.split(" ").all { filterWord -> exerciseView.exercise.displayName.contains(filterWord) }
         }
     }
 

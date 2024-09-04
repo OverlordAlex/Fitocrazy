@@ -1,5 +1,12 @@
 # 04 Sep 2024 (Continue refactor)
 - refactored suggestion list to use displayAdapter
+- fixed flicker on removing exercises in workout
+- Searches should split input on space and match-all
+- Add exercise spinner should select added element
+- Trim whitespace on search
+- When adding an exercise, search is still clickable when building exercise
+- remove records when removing sets
+- Make "done" button on adding exercises floating so that it's always on screen and easy to hit
 
 
 # 02 Sep 2024 (Continue refactor)
