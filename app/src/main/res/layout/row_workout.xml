@@ -2,6 +2,7 @@
 
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card_workoutRow"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -24,7 +25,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="start|top"
-            android:text="TODAY"
+            android:text="@string/today"
             android:textColor="@color/black"
             android:textSize="42sp"
             app:layout_constraintEnd_toStartOf="@+id/label_workoutNumberExercises"
@@ -58,7 +59,7 @@
             android:id="@+id/label_workoutPoints"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="bottom|left"
+            android:gravity="bottom|start"
             android:textSize="32sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/layout_workoutOtherStats"
@@ -73,7 +74,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/frame_deleteOrDuplicateWorkout"
             app:layout_constraintStart_toEndOf="@id/label_workoutPoints"
-            app:layout_constraintTop_toBottomOf="@id/label_workoutDate">
+            app:layout_constraintTop_toBottomOf="@id/label_workoutDate"
+            tools:ignore="NestedWeights">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -213,7 +215,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="X"
+                android:text="@string/delete_workout"
                 android:textSize="35sp"
                 android:textStyle="bold" />
 

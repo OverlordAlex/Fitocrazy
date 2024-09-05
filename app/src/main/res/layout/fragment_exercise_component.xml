@@ -5,16 +5,15 @@
     android:id="@+id/layout_exerciseComponent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.exercises_and_components.DashboardFragment">
+    tools:context=".ui.exercises_and_components.ExerciseFragment">
 
     <TextView
         android:id="@+id/label_componentType"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:text="TextView"
         android:textColor="@color/slate_dark"
-        android:textSize="32dp"
+        android:textSize="32sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@id/btn_addNewComponent"
         app:layout_constraintEnd_toStartOf="@id/btn_addNewComponent"
@@ -43,7 +42,7 @@
         android:queryBackground="@drawable/rounded_corner_search_box"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_addNewComponent"></SearchView>
+        app:layout_constraintTop_toBottomOf="@id/btn_addNewComponent" />
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"

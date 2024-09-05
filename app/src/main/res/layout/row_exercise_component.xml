@@ -19,7 +19,6 @@
             android:fadingEdgeLength="40sp"
             android:maxWidth="250sp"
             android:maxLines="2"
-            android:text="TextView"
             android:textColor="@color/black"
             android:textSize="24sp"
             app:layout_constraintBottom_toTopOf="@id/chipgroup_Bodyparts"
@@ -53,44 +52,32 @@
             android:id="@+id/layout_exerciseRecordGroup"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/chipgroup_Bodyparts">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/label_exerciseMaxWeight"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="4dp"
-                android:showDividers="middle">
+                android:layout_height="wrap_content" />
 
-                <TextView
-                    android:id="@+id/label_exerciseMaxWeight"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="TextView" />
+            <TextView
+                android:id="@+id/label_exerciseMaxReps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-                <TextView
-                    android:id="@+id/label_exerciseMaxReps"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="TextView" />
+            <TextView
+                android:id="@+id/label_exerciseWeightMoved"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-                <TextView
-                    android:id="@+id/label_exerciseWeightMoved"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="TextView" />
+            <TextView
+                android:id="@+id/label_exerciseLastOccurrence"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-                <TextView
-                    android:id="@+id/label_exerciseLastOccurrence"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="TextView" />
-
-            </LinearLayout>
         </LinearLayout>
 
         <com.google.android.material.chip.Chip

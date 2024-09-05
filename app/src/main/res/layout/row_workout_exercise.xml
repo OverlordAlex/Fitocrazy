@@ -2,7 +2,6 @@
 
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card_workoutRow"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -24,6 +23,7 @@
             android:id="@+id/chip_exercisePoints"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             app:layout_constraintBottom_toBottomOf="@id/label_exerciseNameOnCard"
             app:layout_constraintEnd_toStartOf="@id/label_exerciseNameOnCard"
             app:layout_constraintStart_toStartOf="parent"
@@ -34,6 +34,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             android:text="EXAMPLE EXERCISE"
             android:textColor="@color/slate_dark"
             android:textSize="20sp"
@@ -156,6 +157,7 @@
                 android:id="@+id/img_achievementMostMoved"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:contentDescription="@string/achivement_most_weight_moved"
                 android:visibility="gone"
                 app:srcCompat="@drawable/achievement_mostmoved" />
 
@@ -163,6 +165,7 @@
                 android:id="@+id/img_achievementMostReps"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:contentDescription="@string/achivement_most_reps"
                 android:visibility="gone"
                 app:srcCompat="@drawable/achievement_mostreps" />
 
@@ -170,6 +173,7 @@
                 android:id="@+id/img_achievementMostWeight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:contentDescription="@string/achivement_max_weight"
                 android:visibility="gone"
                 app:srcCompat="@drawable/achievement_mostweight" />
         </LinearLayout>

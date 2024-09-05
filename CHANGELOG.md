@@ -1,3 +1,6 @@
+
+
+
 # 04 Sep 2024 (Continue refactor)
 - refactored suggestion list to use displayAdapter
 - fixed flicker on removing exercises in workout

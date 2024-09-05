@@ -6,9 +6,6 @@
     android:layout_height="match_parent"
     app:layout_constraintTop_toTopOf="parent">
 
-<!--    style="@style/Navigation.BottomBar"-->
-<!--    app:itemActiveIndicatorStyle="@style/Navigation.ActiveIcon"-->
-<!--    app:itemBackground="@color/orange_gradient1"-->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
 

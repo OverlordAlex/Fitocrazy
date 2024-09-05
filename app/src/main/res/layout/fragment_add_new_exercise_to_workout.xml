@@ -38,11 +38,11 @@
         android:id="@+id/label_ExpandNewExerciseGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:drawableStartCompat="@drawable/drawer_closed"
         android:gravity="center_vertical"
         android:text="@string/label_ExpandNewExerciseGroup"
         android:textColor="@color/slate_dark"
         android:textSize="24sp"
+        app:drawableStartCompat="@drawable/drawer_closed"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/search_addExercise" />
 
@@ -62,8 +62,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/label_addExercise"
-            tools:layout_editor_absoluteX="32dp"
-            tools:layout_editor_absoluteY="32dp" />
+            app:layout_constraintBottom_toTopOf="@id/layout_itemComponentsGroup"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <LinearLayout
             android:id="@+id/layout_itemComponentsGroup"
@@ -80,7 +81,7 @@
 
                 <Spinner
                     android:id="@+id/spinner_equipment"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:minHeight="64dp"
@@ -91,8 +92,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:backgroundTint="@color/blue_secondary"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
                     android:text="@string/btn_add"
                     android:textColor="@color/white" />
             </LinearLayout>
@@ -104,7 +105,7 @@
 
                 <Spinner
                     android:id="@+id/spinner_position"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:minHeight="64dp"
@@ -115,8 +116,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:backgroundTint="@color/blue_secondary"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
                     android:text="@string/btn_add"
                     android:textColor="@color/white" />
             </LinearLayout>
@@ -128,7 +129,7 @@
 
                 <Spinner
                     android:id="@+id/spinner_movement"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:minHeight="64dp"
@@ -139,8 +140,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:backgroundTint="@color/blue_secondary"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
                     android:text="@string/btn_add"
                     android:textColor="@color/white" />
             </LinearLayout>
@@ -164,21 +165,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:buttonTint="@color/purple_main"
-                android:text="Machine" />
+                android:text="@string/machine" />
 
             <RadioButton
                 android:id="@+id/radio_isFreeWeightExercise"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:buttonTint="@color/purple_main"
-                android:text="Free Weight" />
+                android:text="@string/free_weight" />
 
             <RadioButton
                 android:id="@+id/radio_isCompoundExercise"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:buttonTint="@color/purple_main"
-                android:text="Compound" />
+                android:text="@string/compound" />
         </RadioGroup>
 
         <com.google.android.material.chip.ChipGroup

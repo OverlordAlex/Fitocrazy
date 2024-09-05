@@ -41,5 +41,19 @@
     <string name="btn_edit">Edit</string>
 
     <string name="title_profile">Profile</string>
+    <string name="description_end_timing_of_workout">End timing of workout</string>
+    <string name="description_add_new_exercise">Add new exercise</string>
+    <string name="machine">Machine</string>
+    <string name="free_weight">Free Weight</string>
+    <string name="compound">Compound</string>
+    <string name="exercises">Exercises</string>
+    <string name="equipment">Equipment</string>
+    <string name="location">Location</string>
+    <string name="movement">Movement</string>
+    <string name="new_workout">New Workout</string>
+    <string name="delete_workout">X</string>
+    <string name="achivement_most_weight_moved">achivement: most weight moved</string>
+    <string name="achivement_most_reps">achivement: most reps</string>
+    <string name="achivement_max_weight">achivement: max weight</string>
 
 </resources>

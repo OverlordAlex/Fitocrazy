@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/blue_accent_light"
-    tools:context=".ui.home.workout.WorkoutActivity" >
+    tools:context=".ui.home.workout.WorkoutActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar_workout"
@@ -32,7 +32,6 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_weight="1"
-                android:text="ActionBar Title"
                 android:textColor="@color/white"
                 android:textSize="24sp" />
 
@@ -59,7 +58,7 @@
         android:layout_margin="16dp"
         android:alpha="0"
         android:clickable="true"
-        android:contentDescription="End timing of workout"
+        android:contentDescription="@string/description_end_timing_of_workout"
         android:visibility="invisible"
         app:backgroundTint="@color/orange_gradient1"
         app:layout_constraintBottom_toTopOf="@id/btn_addNewExerciseToCurrentWorkout"
@@ -73,7 +72,7 @@
         android:layout_gravity="end|bottom"
         android:layout_margin="16dp"
         android:clickable="true"
-        android:contentDescription="Add new exercise"
+        android:contentDescription="@string/description_add_new_exercise"
         app:backgroundTint="@color/orange_accent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -115,7 +114,6 @@
                     android:layout_weight="1"
                     android:drawableStart="@android:drawable/ic_media_pause"
                     android:gravity="center"
-                    android:text="3:21"
                     android:textSize="48sp"
                     android:textStyle="bold" />
 
@@ -125,7 +123,6 @@
                     android:layout_height="match_parent"
                     android:layout_weight="2"
                     android:gravity="center"
-                    android:text="12:34"
                     android:textSize="16sp" />
 
             </LinearLayout>
@@ -138,7 +135,8 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/layout_workoutTimer"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="NestedWeights">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -168,7 +166,6 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="4"
                         android:gravity="start"
-                        android:text="TextView"
                         android:textColor="@color/slate_dark"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -202,7 +199,6 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="4"
                         android:gravity="start"
-                        android:text="TextView"
                         android:textColor="@color/slate_dark"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -236,7 +232,6 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="4"
                         android:gravity="start"
-                        android:text="TextView"
                         android:textColor="@color/slate_dark"
                         android:textSize="16sp"
                         android:textStyle="bold" />
