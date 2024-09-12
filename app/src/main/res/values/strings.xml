@@ -55,5 +55,7 @@
     <string name="achivement_most_weight_moved">achivement: most weight moved</string>
     <string name="achivement_most_reps">achivement: most reps</string>
     <string name="achivement_max_weight">achivement: max weight</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

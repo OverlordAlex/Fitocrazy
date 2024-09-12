@@ -8,15 +8,33 @@
     android:background="@color/orange_accent_light"
     tools:context=".ui.home.WorkoutListFragment">
 
-    <Spinner
-        android:id="@+id/spinner_monthSelector"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_margin="4dp"
-        android:background="@drawable/rounded_corner_search_box"
+    <TextView
+        android:id="@+id/label_year"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/rounded_corner_dialog"
+        android:backgroundTint="@color/blue_accent_light"
+        android:padding="6dp"
+        android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@id/layout_workoutCardView"
-        app:layout_constraintEnd_toStartOf="@id/btn_AddNewWorkout"
+        app:layout_constraintEnd_toStartOf="@id/label_month"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/label_month"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:layout_marginStart="24dp"
+        android:background="@drawable/rounded_corner_dialog"
+        android:backgroundTint="@color/blue_accent_light"
+        android:padding="6dp"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@id/layout_workoutCardView"
+        app:layout_constraintStart_toEndOf="@id/label_year"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button

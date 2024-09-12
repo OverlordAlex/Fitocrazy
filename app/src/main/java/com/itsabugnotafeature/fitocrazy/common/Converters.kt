@@ -48,6 +48,7 @@ class Converters {
         }
 
         val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd LLL yyyy")
+        val monthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy LLLL")
 
         fun formatDoubleWeight(weight: Double): String {
             return if (weight % 1 == 0.0) {

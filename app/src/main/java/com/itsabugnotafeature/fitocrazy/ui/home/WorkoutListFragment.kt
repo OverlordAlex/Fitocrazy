@@ -4,22 +4,34 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.database.DataSetObserver
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Spinner
+import android.widget.TextView
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
+import androidx.fragment.app.setFragmentResultListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.AddSetNotificationManager
+import com.itsabugnotafeature.fitocrazy.common.Converters
+import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
+import com.itsabugnotafeature.fitocrazy.ui.home.filter.SelectWorkoutTimeFilterFragment
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity
 import kotlinx.coroutines.runBlocking
+import java.time.Instant
 import java.time.LocalDate
 import java.time.Month
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 
 class WorkoutListFragment : Fragment() {
@@ -45,29 +57,99 @@ class WorkoutListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
     }
 
-    class MonthSelectorAdapter(context: Context, resource: Int) : ArrayAdapter<Month>(context, resource) {
-
-    }
-
     override fun onResume() {
         super.onResume()
         // no workouts may be running on this screen
         (requireActivity().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(
-            AddSetNotificationManager.NOTIFICATION_ID)
-
-        val monthSpinner = requireView().findViewById<Spinner>(R.id.spinner_monthSelector)
-        val monthSelectorAdapter = MonthSelectorAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line)
-        monthSpinner.adapter = monthSelectorAdapter
-        monthSelectorAdapter.addAll(LocalDate.now().month)
-        monthSelectorAdapter.addAll(LocalDate.now().month.minus(1))
+            AddSetNotificationManager.NOTIFICATION_ID
+        )
 
         val workoutListView = requireView().findViewById<RecyclerView>(R.id.list_allWorkoutsHomepage)
-        val workoutListViewAdapter = WorkoutListViewAdapter()
-        workoutListView.adapter = workoutListViewAdapter
         workoutListView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
+        val yearLabel = requireView().findViewById<TextView>(R.id.label_year)
+        val monthLabel = requireView().findViewById<TextView>(R.id.label_month)
+
+        val dates = runBlocking {
+            val db = ExerciseDatabase.getInstance(requireContext()).exerciseDao()
+            db.getMonthsPresentInData()
+        }
+        dates.first().let {
+            yearLabel.text = it.year
+            monthLabel.text = it.toDate().month.name
+        }
+        yearLabel.setOnClickListener {
+            val yearFragment: DialogFragment = SelectWorkoutTimeFilterFragment(dates.map { it.year }.toSet().toList())
+            val ft: FragmentTransaction = childFragmentManager.beginTransaction()
+            val prev: Fragment? = childFragmentManager.findFragmentByTag(yearFragment.tag)
+            if (prev != null) {
+                ft.remove(prev)
+            }
+            ft.addToBackStack(null)
+
+            yearFragment.show(ft, yearFragment.tag)
+            yearFragment.setFragmentResultListener("chosenItem") { _, bundle ->
+                val chosenYear: String? = bundle.getString("chosenItem")
+                Log.i("TEXT", "chose $chosenYear")
+                val chosenDate = dates.first { it.year === chosenYear }
+                yearLabel.text = chosenDate.year
+
+                runBlocking {
+                    workoutListView.adapter = WorkoutListViewAdapter().apply {
+                        loadData(
+                            requireContext(),
+                            mapOf(
+                                "start" to chosenDate.toDate().atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000,
+                                "end" to chosenDate.toDate().plusMonths(1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        monthLabel.setOnClickListener {
+            val monthFragment: DialogFragment =
+                SelectWorkoutTimeFilterFragment(dates.filter { it.year == yearLabel.text }
+                    .map { it.toDate().month.name }.toSet().toList())
+            val ft: FragmentTransaction = childFragmentManager.beginTransaction()
+            val prev: Fragment? = childFragmentManager.findFragmentByTag(monthFragment.tag)
+            if (prev != null) {
+                ft.remove(prev)
+            }
+            ft.addToBackStack(null)
+
+            monthFragment.show(ft, monthFragment.tag)
+            monthFragment.setFragmentResultListener("chosenItem") { _, bundle ->
+                val chosenMonth: String? = bundle.getString("chosenItem")
+                val chosenDate = dates.filter { it.year == yearLabel.text }
+                    .first { it.toDate().month.name == chosenMonth }
+                monthLabel.text = chosenDate.toDate().month.name
+
+                runBlocking {
+                    workoutListView.adapter = WorkoutListViewAdapter().apply {
+                        loadData(
+                            requireContext(),
+                            mapOf(
+                                "start" to chosenDate.toDate().atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000,
+                                "end" to chosenDate.toDate().plusMonths(1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
         runBlocking {
-            workoutListViewAdapter.loadData(requireContext())
+            workoutListView.adapter = WorkoutListViewAdapter().apply {
+                loadData(
+                    requireContext(),
+                    mapOf(
+                        "start" to dates.first().toDate().atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000,
+                        "end" to dates.first().toDate().plusMonths(1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000
+                    )
+                )
+            }
         }
 
         requireView().findViewById<Button>(R.id.btn_AddNewWorkout)?.setOnClickListener {

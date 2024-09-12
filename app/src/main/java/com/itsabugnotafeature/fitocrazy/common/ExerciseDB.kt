@@ -182,6 +182,25 @@ data class MostCommonExerciseView(
     }
 }
 
+@DatabaseView("SELECT DISTINCT strftime('%Y-%m', date / 1000, 'unixepoch') AS display FROM workout ORDER BY display DESC")
+class WorkoutDatesView {
+    @Ignore lateinit var month: String
+
+    @Ignore lateinit var year: String
+
+    var display: String = ""
+        get() = field
+        set(value: String) {
+            value.split("-").let {
+                year = it[0]
+                month = it[1]
+            }
+            field = value
+        }
+
+    fun toDate(): LocalDate = LocalDate.of(year.toInt(), month.toInt(), 1)
+}
+
 @Entity
 data class Workout(
     @PrimaryKey(autoGenerate = true) var workoutId: Long,
@@ -386,8 +405,8 @@ interface ExerciseDao {
     @Update
     suspend fun updateWorkout(workout: Workout)
 
-    @Query("SELECT * FROM Workout ORDER BY date DESC")
-    suspend fun listWorkouts(): List<Workout>
+    @Query("SELECT * FROM Workout WHERE date >= :start AND date < :end ORDER BY date DESC")
+    suspend fun listWorkouts(start: Long = Long.MAX_VALUE, end: Long = 0): List<Workout>
 
     @Delete
     suspend fun deleteWorkout(workout: Workout)
@@ -400,16 +419,20 @@ interface ExerciseDao {
         today: LocalDate,
         existingExercises: List<Long> = emptyList()
     ): List<MostCommonExerciseView>
+
+    @Query("SELECT * FROM WorkoutDatesView")
+    suspend fun getMonthsPresentInData(): List<WorkoutDatesView>
 }
 
 @Database(
     entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class],
-    views = [SetRecordView::class, WorkoutRecordView::class, MostCommonExerciseView::class],
-    version = 15,
+    views = [SetRecordView::class, WorkoutRecordView::class, MostCommonExerciseView::class, WorkoutDatesView::class],
+    version = 16,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 13, to = 14),
         AutoMigration(from = 14, to = 15),
+        AutoMigration(from = 15, to = 16),
     ],
 )
 @TypeConverters(Converters::class)

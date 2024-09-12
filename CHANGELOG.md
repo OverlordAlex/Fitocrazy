@@ -1,7 +1,9 @@
-# 12 Sep 2024 
+# 12 Sep 2024 (Workout list filter by year + month)
 - Fixed total workout timer
 - manage time, and saving time
 - Bug: total set time doesn't count when in background
+- Added ability to select year + month to filter workout list
+
 
 # 04 Sep 2024 (Continue refactor)
 - refactored suggestion list to use displayAdapter

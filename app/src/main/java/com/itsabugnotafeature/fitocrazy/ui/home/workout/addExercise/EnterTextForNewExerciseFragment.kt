@@ -16,7 +16,10 @@ import androidx.fragment.app.setFragmentResult
 import com.itsabugnotafeature.fitocrazy.R
 
 
-class EnterTextForNewExerciseFragment(private val hintForExerciseComponentType: String, private val existingComponentText: String? = null) : DialogFragment() {
+class EnterTextForNewExerciseFragment(
+    private val hintForExerciseComponentType: String,
+    private val existingComponentText: String? = null
+) : DialogFragment() {
 
     private var userInputtedString: String? = null
 
@@ -31,7 +34,8 @@ class EnterTextForNewExerciseFragment(private val hintForExerciseComponentType: 
         super.onViewCreated(view, savedInstanceState)
         dialog?.window?.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
 
-        view.findViewById<TextView>(R.id.label_enterNewExerciseComponentText).text = getString(R.string.label_enterNewExerciseComponentText, hintForExerciseComponentType.lowercase())
+        view.findViewById<TextView>(R.id.label_enterNewExerciseComponentText).text =
+            getString(R.string.label_enterNewExerciseComponentText, hintForExerciseComponentType.lowercase())
         val editText = view.findViewById<EditText>(R.id.textEntry_newExerciseComponentText)
 
         if (!existingComponentText.isNullOrBlank()) editText.setText(existingComponentText)
@@ -52,7 +56,10 @@ class EnterTextForNewExerciseFragment(private val hintForExerciseComponentType: 
     }
 
     override fun dismiss() {
-        setFragmentResult("exerciseTextEntered", bundleOf("userInputtedString" to userInputtedString?.trim()?.uppercase()))
+        setFragmentResult(
+            "exerciseTextEntered",
+            bundleOf("userInputtedString" to userInputtedString?.trim()?.uppercase())
+        )
         super.dismiss()
     }
 

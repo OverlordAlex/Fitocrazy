@@ -1,5 +1,6 @@
 package com.itsabugnotafeature.fitocrazy.ui.home.workout
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.Dialog
@@ -32,6 +33,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.AddSetNotificationManager
+import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.Set
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity
 import kotlinx.coroutines.runBlocking
@@ -142,6 +144,7 @@ class WorkoutActivity : AppCompatActivity() {
                 )
             }
 
+            @SuppressLint("SetTextI18n")
             override fun onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {
                 // Date picker 0-indexes the month REEE
                 val userDate = LocalDate.of(year, month + 1, day)
@@ -166,9 +169,12 @@ class WorkoutActivity : AppCompatActivity() {
                 }
 
                 findViewById<TextView>(R.id.toolbar_title).text =
-                    "Fitocrazy - " + (if (today == Instant.ofEpochMilli(exerciseListViewAdapter.workout.date)
-                            .atZone(ZoneId.systemDefault()).toLocalDate()
-                    ) getString(R.string.today) else exerciseListViewAdapter.workout.date)
+                    "Fitocrazy - " + (if (today == Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault()).toLocalDate()
+                    ) getString(R.string.today) else {
+                        Converters.dateFormatter.format(
+                            Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault())
+                        )
+                    })
             }
         }
 
@@ -365,7 +371,9 @@ class WorkoutActivity : AppCompatActivity() {
 
         toolbarTitle.text =
             "Fitocrazy - " + (if (today == Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault())
-                    .toLocalDate()) getString(R.string.today) else exerciseListViewAdapter.workout.date)
+                    .toLocalDate()) getString(R.string.today) else Converters.dateFormatter.format(
+                Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault())
+            )) // TODO use short-form
         toolbarTitle.setOnClickListener { finish() }
         toolbarTitle.setOnLongClickListener {
             val datePicker = DatePickerFragment()

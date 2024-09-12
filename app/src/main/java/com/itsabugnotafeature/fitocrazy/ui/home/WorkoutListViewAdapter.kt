@@ -48,7 +48,10 @@ class WorkoutListViewAdapter : RecyclerView.Adapter<WorkoutListViewAdapter.ViewH
 
         withContext(Dispatchers.IO) {
             val db = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
-            dataList = db.listWorkouts().toMutableList()
+            dataList = db.listWorkouts(
+                start = (arguments?.get("start") ?: 0L) as Long,
+                end = (arguments?.get("end") ?: Long.MAX_VALUE) as Long
+            ).toMutableList()
             displayList.addAll(dataList)
             notifyItemRangeInserted(0, displayList.size)
 
@@ -85,7 +88,6 @@ class WorkoutListViewAdapter : RecyclerView.Adapter<WorkoutListViewAdapter.ViewH
                     Converters.dateFormatter.format(
                         Instant.ofEpochMilli(currentWorkout.date).atZone(ZoneId.systemDefault())
                     )
-                    //.format(Converters.dateFormatter)
                 }
 
             labelNumberOfExercises.text =
