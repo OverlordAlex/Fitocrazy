@@ -8,7 +8,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,6 +18,8 @@ import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.AddSetNotificationManager
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity
 import kotlinx.coroutines.runBlocking
+import java.time.LocalDate
+import java.time.Month
 
 
 class WorkoutListFragment : Fragment() {
@@ -41,11 +45,21 @@ class WorkoutListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
     }
 
+    class MonthSelectorAdapter(context: Context, resource: Int) : ArrayAdapter<Month>(context, resource) {
+
+    }
+
     override fun onResume() {
         super.onResume()
         // no workouts may be running on this screen
         (requireActivity().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(
             AddSetNotificationManager.NOTIFICATION_ID)
+
+        val monthSpinner = requireView().findViewById<Spinner>(R.id.spinner_monthSelector)
+        val monthSelectorAdapter = MonthSelectorAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line)
+        monthSpinner.adapter = monthSelectorAdapter
+        monthSelectorAdapter.addAll(LocalDate.now().month)
+        monthSelectorAdapter.addAll(LocalDate.now().month.minus(1))
 
         val workoutListView = requireView().findViewById<RecyclerView>(R.id.list_allWorkoutsHomepage)
         val workoutListViewAdapter = WorkoutListViewAdapter()

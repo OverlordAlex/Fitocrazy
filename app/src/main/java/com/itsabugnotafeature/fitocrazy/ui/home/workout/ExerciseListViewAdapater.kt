@@ -37,7 +37,9 @@ import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.Exercise
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.EnumSet
 
@@ -77,7 +79,7 @@ class ExerciseListViewAdapter(
 
         withContext(Dispatchers.IO) {
             val db = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
-            workout = db.getWorkout(arguments?.get("workoutId") as Long) ?: Workout(0, LocalDate.now())
+            workout = db.getWorkout(arguments?.get("workoutId") as Long) ?: Workout(0, Instant.now().atZone(ZoneId.systemDefault()).toEpochSecond()*1000)
             if (workout.workoutId == 0L) {
                 workout.workoutId = db.addWorkout(workout)
             }
@@ -134,7 +136,7 @@ class ExerciseListViewAdapter(
             val exercise = Exercise(
                 0,
                 exerciseModelId,
-                workout.date,
+                Instant.ofEpochMilli(workout.date).atZone(ZoneId.systemDefault()).toLocalDate(),
                 itemCount + 1,
                 workout.workoutId
             )
@@ -262,8 +264,8 @@ class ExerciseListViewAdapter(
         workout.recalculateWorkoutTotals(dataList)
     }
 
-    fun saveTimers(totalTimeTime: Long) {
-        if (LocalDate.now() == workout.date) {
+    fun updateTimers(totalTimeTime: Long) {
+        if (LocalDate.now() == Instant.ofEpochMilli(workout.date).atZone(ZoneId.systemDefault()).toLocalDate()) {
             workout.totalTime = SystemClock.elapsedRealtime() - totalTimeTime
             //workout.currentSetTime = SystemClock.elapsedRealtime() - currentSetTimeBase // , currentSetTimeBase: Long
         }
@@ -286,7 +288,7 @@ class ExerciseListViewAdapter(
 
         addSetNotificationManager.showNotification(
             totalExercises = workout.totalExercises,
-            date = workout.date,
+            date = Instant.ofEpochMilli(workout.date).atZone(ZoneId.systemDefault()).toLocalDate(),
             chronometerBase = SystemClock.elapsedRealtime(),
             chronometerRunning = chronometerRunning,
             exerciseId = mostRecent?.exercise?.exerciseId,

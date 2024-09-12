@@ -185,7 +185,7 @@ data class MostCommonExerciseView(
 @Entity
 data class Workout(
     @PrimaryKey(autoGenerate = true) var workoutId: Long,
-    var date: LocalDate,
+    var date: Long,
     var totalPoints: Int = 0,
     var totalExercises: Int = 0,
 
@@ -197,10 +197,6 @@ data class Workout(
 
     var topTags: String = "",
 ) : Comparable<Workout> {
-    @Ignore
-    var currentSetTime: Long = 0
-
-
     override fun compareTo(other: Workout): Int {
         return -this.date.compareTo(other.date)
     }

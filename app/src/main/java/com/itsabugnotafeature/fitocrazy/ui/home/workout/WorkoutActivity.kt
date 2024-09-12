@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
+import android.util.Log
 import android.view.animation.AccelerateInterpolator
 import android.widget.Chronometer
 import android.widget.DatePicker
@@ -34,11 +35,15 @@ import com.itsabugnotafeature.fitocrazy.common.AddSetNotificationManager
 import com.itsabugnotafeature.fitocrazy.common.Set
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity
 import kotlinx.coroutines.runBlocking
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 class WorkoutActivity : AppCompatActivity() {
 
-    private lateinit var workoutDate: LocalDate
     private var lastToast: Toast? = null
     private var setTimerIsActive = false
 
@@ -66,12 +71,15 @@ class WorkoutActivity : AppCompatActivity() {
     }*/
 
     override fun onDestroy() {
-        //Log.i(title.toString(), "onDestroy")
         super.onDestroy()
 
         if (broadcastReceiver != null) {
             //Log.i(title.toString(), "Unregister Receiver")
             applicationContext.unregisterReceiver(broadcastReceiver)
+        }
+
+        runBlocking {
+            exerciseListViewAdapter.saveWorkout(applicationContext)
         }
     }
 
@@ -94,13 +102,12 @@ class WorkoutActivity : AppCompatActivity() {
         val totalTimeTimer = findViewById<Chronometer>(R.id.timer_totalTime)
 
         // TODO fix timer
-
-        if (exerciseListViewAdapter.workout.date == LocalDate.now()) {
-            // if it's today, we keep the timer running in the background
-            totalTimeTimer.base = exerciseListViewAdapter.workout.totalTime
+        val workoutDate = Instant.ofEpochMilli(exerciseListViewAdapter.workout.date)
+        // if its today, and we haven't clicked "save"
+        if (workoutDate.atZone(ZoneId.systemDefault()).toLocalDate() == LocalDate.now() && exerciseListViewAdapter.workout.totalTime == 0L) {
+            totalTimeTimer.base = workoutDate.toEpochMilli() - System.currentTimeMillis() + SystemClock.elapsedRealtime()
             totalTimeTimer.start()
         } else {
-            // otherwise the total time is fixed, in the past
             totalTimeTimer.base = SystemClock.elapsedRealtime() - exerciseListViewAdapter.workout.totalTime
         }
         val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
@@ -113,7 +120,6 @@ class WorkoutActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        //Log.i(title.toString(), "onCreate")
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
@@ -123,36 +129,46 @@ class WorkoutActivity : AppCompatActivity() {
 
         class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener {
             override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-                // Use the current workoutDate as the default date in the picker.
+                // Use the current workout Date as the default date in the picker.
                 // Create a new instance of DatePickerDialog and return it.
+                val date = Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault())
+                    .toLocalDate()
                 return DatePickerDialog(
                     requireContext(),
                     this,
-                    workoutDate.year,
-                    workoutDate.monthValue - 1,
-                    workoutDate.dayOfMonth
+                    date.year,
+                    date.monthValue - 1,
+                    date.dayOfMonth
                 )
             }
 
             override fun onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {
                 // Date picker 0-indexes the month REEE
                 val userDate = LocalDate.of(year, month + 1, day)
-                if (userDate == workoutDate) return
+                if (userDate == Instant.ofEpochMilli(exerciseListViewAdapter.workout.date)
+                        .atZone(ZoneId.systemDefault()).toLocalDate()
+                ) return
 
                 if (userDate > today) {
                     Toast.makeText(applicationContext, "We are not presently in the future", Toast.LENGTH_SHORT).show()
                     return
                 }
 
-                workoutDate = userDate
-                exerciseListViewAdapter.workout.date = userDate
+                exerciseListViewAdapter.workout.date = ZonedDateTime.of(
+                    userDate,
+                    Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault())
+                        .toLocalTime(),
+                    ZoneId.systemDefault()
+                ).toEpochSecond()
                 runBlocking {
                     exerciseListViewAdapter.saveWorkout(applicationContext)
                     exerciseListViewAdapter.updateExerciseDates(applicationContext, userDate)
                 }
 
                 findViewById<TextView>(R.id.toolbar_title).text =
-                    "Fitocrazy - " + (if (today == workoutDate) getString(R.string.today) else workoutDate)
+                    "Fitocrazy - " + (if (today == Instant.ofEpochMilli(exerciseListViewAdapter.workout.date)
+                            .atZone(ZoneId.systemDefault()).toLocalDate()
+                    ) getString(R.string.today) else exerciseListViewAdapter.workout.date)
             }
         }
 
@@ -187,7 +203,9 @@ class WorkoutActivity : AppCompatActivity() {
                 totalRepsLabel.text = exerciseListViewAdapter.workout.totalReps.toString()
                 totalPointsLabel.text = exerciseListViewAdapter.workout.totalPoints.toString()
 
-                if (today == exerciseListViewAdapter.workout.date) {
+                if (today == Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                ) {
                     // only do set timer if we're currently working out
                     setTimeTimer.base = SystemClock.elapsedRealtime()
                     setTimeTimer.setTextColor(applicationContext.getColor(R.color.black))
@@ -228,7 +246,6 @@ class WorkoutActivity : AppCompatActivity() {
                 mapOf("workoutId" to intent.getLongExtra("workoutId", -1))
             )
         }
-        workoutDate = exerciseListViewAdapter.workout.date
 
         // exerciseListView.itemAnimator = null
         val exerciseListViewLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
@@ -262,6 +279,13 @@ class WorkoutActivity : AppCompatActivity() {
                         android.R.drawable.ic_media_play
                     ), null, null, null
                 )
+
+                // start the total timer again
+                totalTimeTimer.start()
+                exerciseListViewAdapter.workout.totalTime = 0L
+                runBlocking {
+                    exerciseListViewAdapter.saveWorkout(applicationContext)
+                }
             }
             setTimerIsActive = !setTimerIsActive
             exerciseListViewAdapter.showNotificationAgain(setTimeTimer.base, setTimerIsActive)
@@ -269,15 +293,10 @@ class WorkoutActivity : AppCompatActivity() {
 
         val endWorkoutBtn = findViewById<FloatingActionButton>(R.id.btn_endWorkout)
         endWorkoutBtn.setOnClickListener {
-            // TODO: save timer
-            exerciseListViewAdapter.saveTimers(totalTimeTimer.base)
+            exerciseListViewAdapter.updateTimers(totalTimeTimer.base)
             runBlocking {
                 exerciseListViewAdapter.saveWorkout(applicationContext)
             }
-
-            /*setTimeTimer.stop()  // needed?
-            setTimerIsActive = false
-            totalTimeTimer.stop()  // needed?*/
 
             intent.putExtra("dataUpdated", true)
             intent.putExtra("workoutId", exerciseListViewAdapter.workout.workoutId)
@@ -344,7 +363,9 @@ class WorkoutActivity : AppCompatActivity() {
         val toolbar = findViewById<Toolbar>(R.id.toolbar_workout)
         val toolbarTitle = toolbar.findViewById<TextView>(R.id.toolbar_title)
 
-        toolbarTitle.text = "Fitocrazy - " + (if (today == workoutDate) getString(R.string.today) else workoutDate)
+        toolbarTitle.text =
+            "Fitocrazy - " + (if (today == Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault())
+                    .toLocalDate()) getString(R.string.today) else exerciseListViewAdapter.workout.date)
         toolbarTitle.setOnClickListener { finish() }
         toolbarTitle.setOnLongClickListener {
             val datePicker = DatePickerFragment()

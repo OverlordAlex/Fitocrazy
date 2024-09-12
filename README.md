@@ -1,14 +1,11 @@
 # Known Bugs
 BUG: "enter" when creating a new exercise component does weird stuff (should trim+enter)
-BUG: focus is set to autocomplete on addnewexercise when a component has been added and popup closed
 BUG: adding first set is swallowed when rep edit text has focus (toast shows! inputs cleared) - related to achievements? worked on latest exercise but not earlier
 - BUG: I have animations turned off... lol
-Bug: total set time doesn't count when in background
 Bug: app not installed when starting from bottom bar icon
 
 
 # TODO
-- manage time, and saving time
 - Scroll to top when adding new exercise <- because no animations?
 - Total sets in exercise so far would be nice
 - Calculation should be based more heavily on weight over reps

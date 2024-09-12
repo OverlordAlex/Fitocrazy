@@ -1,5 +1,7 @@
-
-
+# 12 Sep 2024 
+- Fixed total workout timer
+- manage time, and saving time
+- Bug: total set time doesn't count when in background
 
 # 04 Sep 2024 (Continue refactor)
 - refactored suggestion list to use displayAdapter
@@ -40,6 +42,8 @@
   -  Items that can be gone, should be gone by default and shown only if necessary
   - Editing workouts date should default date selector to workout date and not today's date    
   - History not working could be related to the date of exercises added on same day but the date edit happens before or after they're added to the workout?
+  - BUG: focus is set to autocomplete on addnewexercise when a component has been added and popup closed
+
 
 # 02 Sep 2024 (Massive refactor)
 - refactor component list to use adapter

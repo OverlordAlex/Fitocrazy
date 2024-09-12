@@ -46,9 +46,9 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
     private lateinit var locationAdapter: ArrayAdapter<ExerciseComponentModel>
     private lateinit var movementAdapter: ArrayAdapter<ExerciseComponentModel>
 
-    //private lateinit var listOfSuggestedExercises: List<MostCommonExerciseView>
     private lateinit var suggestedExerciseAdapter: SuggestedExercisesListAdapter
 
+    // TODO: refactor out
     override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
         // When a spinner selects an item, we get the update and capture it
         parent.getItemAtPosition(pos)

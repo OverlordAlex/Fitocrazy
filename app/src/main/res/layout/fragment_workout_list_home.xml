@@ -8,6 +8,17 @@
     android:background="@color/orange_accent_light"
     tools:context=".ui.home.WorkoutListFragment">
 
+    <Spinner
+        android:id="@+id/spinner_monthSelector"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="4dp"
+        android:background="@drawable/rounded_corner_search_box"
+        app:layout_constraintBottom_toTopOf="@id/layout_workoutCardView"
+        app:layout_constraintEnd_toStartOf="@id/btn_AddNewWorkout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <Button
         android:id="@+id/btn_AddNewWorkout"
         android:layout_width="wrap_content"

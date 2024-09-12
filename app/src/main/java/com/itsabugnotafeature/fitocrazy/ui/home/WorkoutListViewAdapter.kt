@@ -26,7 +26,12 @@ import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -71,11 +76,17 @@ class WorkoutListViewAdapter : RecyclerView.Adapter<WorkoutListViewAdapter.ViewH
                 frameActionItems.visibility = LinearLayout.GONE
             }
 
-            itemView.findViewById<TextView>(R.id.label_workoutDate).text = if (LocalDate.now() == currentWorkout.date) {
-                itemView.context.getString(R.string.today)
-            } else {
-                currentWorkout.date.format(Converters.dateFormatter)
-            }
+            itemView.findViewById<TextView>(R.id.label_workoutDate).text =
+                if (LocalDate.now() == Instant.ofEpochMilli(currentWorkout.date).atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                ) {
+                    itemView.context.getString(R.string.today)
+                } else {
+                    Converters.dateFormatter.format(
+                        Instant.ofEpochMilli(currentWorkout.date).atZone(ZoneId.systemDefault())
+                    )
+                    //.format(Converters.dateFormatter)
+                }
 
             labelNumberOfExercises.text =
                 itemView.context.getString(R.string.number_of_exercises_in_workout, currentWorkout.totalExercises)
@@ -167,15 +178,20 @@ class WorkoutListViewAdapter : RecyclerView.Adapter<WorkoutListViewAdapter.ViewH
 
             itemView.findViewById<Button>(R.id.btnDuplicateWorkout).setOnClickListener {
                 val db = ExerciseDatabase.getInstance(itemView.context).exerciseDao()
-                val today = LocalDate.now()
+                val today = Instant.now()
+
                 runBlocking {
-                    val workout = Workout(0, today)
+                    val workout = Workout(0, today.toEpochMilli())
                     workout.workoutId = db.addWorkout(workout)
                     var exercisesAdded = 0
                     db.getListOfExerciseInWorkout(currentWorkout.workoutId).map { exercise ->
                         db.addExerciseSet(
                             Exercise(
-                                0, exercise.exerciseModelId, today, exercisesAdded++, workout.workoutId
+                                0,
+                                exercise.exerciseModelId,
+                                today.atZone(ZoneId.systemDefault()).toLocalDate(),
+                                exercisesAdded++,
+                                workout.workoutId
                             )
                         )
                     }
@@ -185,8 +201,8 @@ class WorkoutListViewAdapter : RecyclerView.Adapter<WorkoutListViewAdapter.ViewH
 
                     Toast.makeText(
                         itemView.context, "Copied $exercisesAdded exercises from ${
-                            currentWorkout.date.format(
-                                Converters.dateFormatter
+                            Converters.dateFormatter.format(
+                                Instant.ofEpochMilli(currentWorkout.date).atZone(ZoneId.systemDefault()).toLocalDate()
                             )
                         }", Toast.LENGTH_SHORT
                     ).show()
