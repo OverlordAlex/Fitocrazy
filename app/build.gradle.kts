@@ -18,8 +18,8 @@ android {
         minSdk = 29
         targetSdk = 34
         versionCode = 3
-        versionName = "3.0"
-//        version 14 of the DB
+        versionName = "4.0"
+//        version 16 of the DB
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

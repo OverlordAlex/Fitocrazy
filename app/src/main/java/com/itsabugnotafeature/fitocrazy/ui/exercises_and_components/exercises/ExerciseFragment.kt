@@ -1,4 +1,4 @@
-package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components
+package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.exercises
 
 import android.content.Intent
 import android.graphics.Paint
@@ -47,7 +47,7 @@ class ExerciseFragment: Fragment() {
 
         val exerciseListView = view.findViewById<RecyclerView>(R.id.list_exerciseComponents)
 
-        val exerciseListAdapter = ExerciseDisplayListAdapter()
+        val exerciseListAdapter = ExerciseDisplayListAdapter(childFragmentManager)
         exerciseListView.adapter = exerciseListAdapter
         exerciseListView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 

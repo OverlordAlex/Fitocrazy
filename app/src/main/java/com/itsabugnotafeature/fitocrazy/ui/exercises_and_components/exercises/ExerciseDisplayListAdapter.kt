@@ -1,4 +1,4 @@
-package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components
+package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.exercises
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -6,6 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -13,13 +17,13 @@ import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.DisplayListAdapter
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
-import com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.ExerciseFragment.ExerciseView
+import com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.exercises.ExerciseFragment.ExerciseView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
-class ExerciseDisplayListAdapter : RecyclerView.Adapter<ExerciseDisplayListAdapter.ViewHolder>(),
+class ExerciseDisplayListAdapter(val fragmentManager: FragmentManager) : RecyclerView.Adapter<ExerciseDisplayListAdapter.ViewHolder>(),
     DisplayListAdapter<ExerciseView> {
     override var dataList = emptyList<ExerciseView>().toMutableList()
     override var displayList = emptyList<ExerciseView>().toMutableList()
@@ -51,10 +55,22 @@ class ExerciseDisplayListAdapter : RecyclerView.Adapter<ExerciseDisplayListAdapt
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(exerciseView: ExerciseView) {
-            itemView.findViewById<Chip>(R.id.chip_exerciseCount).text = exerciseView.total?.toString() ?: "0"
-
             itemView.findViewById<TextView>(R.id.label_exerciseName).text =
                 exerciseView.exercise.displayName
+
+            val countChip = itemView.findViewById<Chip>(R.id.chip_exerciseCount)
+            countChip.text = exerciseView.total?.toString() ?: "0"
+            countChip.setOnClickListener {
+                val chartFragment: DialogFragment = ExerciseHistoryDialog(exerciseView.exercise)
+                val ft: FragmentTransaction = fragmentManager.beginTransaction()
+                val prev: Fragment? = fragmentManager.findFragmentByTag(chartFragment.tag)
+                if (prev != null) {
+                    ft.remove(prev)
+                }
+                ft.addToBackStack(null)
+
+                chartFragment.show(ft, chartFragment.tag)
+            }
 
             val maxWeight = itemView.findViewById<TextView>(R.id.label_exerciseMaxWeight)
             if (exerciseView.record?.maxWeight == null) {

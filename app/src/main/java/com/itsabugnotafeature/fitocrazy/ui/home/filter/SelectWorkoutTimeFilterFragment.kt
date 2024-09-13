@@ -12,9 +12,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
 import com.itsabugnotafeature.fitocrazy.R
 
-class SelectWorkoutTimeFilterFragment(
-    private val dataList: List<String>,
-    ) : DialogFragment() {
+class SelectWorkoutTimeFilterFragment(private val dataList: List<String>) : DialogFragment() {
 
         private var chosenItem: String? = null
 

@@ -1,4 +1,4 @@
-package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components
+package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.components
 
 import android.graphics.Paint
 import android.os.Bundle

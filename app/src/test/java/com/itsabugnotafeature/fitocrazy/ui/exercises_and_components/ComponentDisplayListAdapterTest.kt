@@ -1,6 +1,8 @@
 package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components
 
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
+import com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.components.ComponentDisplayListAdapter
+import com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.components.ComponentFragment
 import io.mockk.every
 import io.mockk.spyk
 import org.junit.jupiter.api.Assertions.*

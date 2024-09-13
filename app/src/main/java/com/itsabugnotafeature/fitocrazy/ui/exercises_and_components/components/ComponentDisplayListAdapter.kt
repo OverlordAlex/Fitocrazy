@@ -1,4 +1,4 @@
-package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components
+package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.components
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -18,7 +18,7 @@ import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentModel
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.DisplayListAdapter
-import com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.ComponentFragment.ComponentView
+import com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.components.ComponentFragment.ComponentView
 import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.EnterTextForNewExerciseFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking

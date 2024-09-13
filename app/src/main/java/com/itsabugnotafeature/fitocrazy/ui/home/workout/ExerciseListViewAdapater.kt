@@ -1,6 +1,5 @@
 package com.itsabugnotafeature.fitocrazy.ui.home.workout
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.os.SystemClock
 import android.util.Log
@@ -8,7 +7,6 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager.LayoutParams
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
@@ -17,7 +15,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity.INPUT_METHOD_SERVICE
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -204,7 +201,7 @@ class ExerciseListViewAdapter(
 
         exercise.sets.add(set) // dont need to add to displaylist as the underlying object is the same!
         val newPoints = Workout.calculatePoints(exercise)
-        exercise.exercise.recordsAchieved?.addAll(newPoints.records.map { it.recordType })
+        exercise.exercise.addRecords(newPoints.records)
 
         withContext(Dispatchers.IO) {
             exercise.record = db.getRecord(exercise.exercise.exerciseModelId)
@@ -343,11 +340,11 @@ class ExerciseListViewAdapter(
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(currentExercise: ExerciseView) {
             val exerciseNameOnCard = itemView.findViewById<TextView>(R.id.label_exerciseNameOnCard)
-            exerciseNameOnCard.text = currentExercise.displayName
+            exerciseNameOnCard.text = currentExercise.displayName + if (currentExercise.sets.isEmpty()) "" else " ["+currentExercise.sets.size+"]"
 
             val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
             if (chipGroup.childCount == 0) {
-                currentExercise.tags.forEach { chipName ->
+                currentExercise.tags.sorted().forEach { chipName ->
                     val newChip = Chip(itemView.context)
                     newChip.text = chipName
                     newChip.setChipBackgroundColorResource(R.color.blue_accent_light)

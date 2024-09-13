@@ -88,15 +88,15 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
                 val enteredText: String? = bundle.getString("userInputtedString")
                 if (!enteredText.isNullOrBlank()) {
                     runBlocking {
-                        val db = ExerciseDatabase.getInstance(applicationContext)
-                        val existing = db.exerciseDao().getExerciseComponent(enteredText, exerciseComponentType)
+                        val db = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
+                        val existing = db.getExerciseComponent(enteredText, exerciseComponentType)
                         if (existing == null) {
                             val newComponent = ExerciseComponentModel(
                                 0,
                                 enteredText,
                                 exerciseComponentType
                             )
-                            newComponent.componentId = db.exerciseDao().addExerciseComponent(newComponent)
+                            newComponent.componentId = db.addExerciseComponent(newComponent)
                             updateSpinnerData()
                             // without animate it doesn't work??
                             spinner.setSelection(equipmentAdapter.getPosition(newComponent), true)

@@ -1,8 +1,19 @@
+# 14 Sep 2024 (Graph exercise records) v4.0 (db v16)
+- Total sets in exercise so far would be nice
+- bodyparts are now ordered during the workout
+- up next, charts!
+- added graphs to exercise history
+- fixed adding records
+
+
 # 12 Sep 2024 (Workout list filter by year + month)
 - Fixed total workout timer
 - manage time, and saving time
 - Bug: total set time doesn't count when in background
 - Added ability to select year + month to filter workout list
+Presumed fixed:
+- Scroll to top when adding new exercise <- because no animations?
+- Changing date on workout should set total time to 0
 
 
 # 04 Sep 2024 (Continue refactor)
@@ -16,7 +27,7 @@
 - Make "done" button on adding exercises floating so that it's always on screen and easy to hit
 
 
-# 02 Sep 2024 (Continue refactor)
+# 03 Sep 2024 (Continue refactor)
 - added notifications
 - moved achievements to the Exercise object
 - Bugs assumed fixed:

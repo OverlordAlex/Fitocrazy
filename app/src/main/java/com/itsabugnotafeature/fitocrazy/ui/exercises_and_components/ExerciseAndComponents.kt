@@ -10,6 +10,8 @@ import androidx.fragment.app.FragmentTransaction
 import com.google.android.material.tabs.TabLayout
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
+import com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.components.ComponentFragment
+import com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.exercises.ExerciseFragment
 
 class ExerciseAndComponents : Fragment() {
 

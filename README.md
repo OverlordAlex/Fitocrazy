@@ -6,13 +6,9 @@ Bug: app not installed when starting from bottom bar icon
 
 
 # TODO
-- Scroll to top when adding new exercise <- because no animations?
-- Total sets in exercise so far would be nice
 - Calculation should be based more heavily on weight over reps
-- Changing date on workout should set total time to 0
 - When going to old exercise and back, then should scroll to where it was clicked from in the list
 - add exercise to current workout from search in other list
-- up next, charts!
 - multiple of same set should show better in current workout (collapse?)
 - move from a group selecter to a difficulty selector that includes bodyweight
 - action bar on workout could use better styling (, back button, etc)

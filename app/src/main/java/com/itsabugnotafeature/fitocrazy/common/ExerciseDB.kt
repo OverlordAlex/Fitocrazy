@@ -126,6 +126,12 @@ class Exercise(
             field = value
         }
 
+    fun addRecords(records: List<ExerciseRecord>) {
+        if (records.isEmpty()) return
+        dirty = true
+        recordsAchieved?.addAll(records.map { it.recordType }) ?: EnumSet.copyOf(records.map { it.recordType })
+    }
+
     @Ignore
     private var dirty: Boolean = false
     fun isDirty() = dirty
@@ -385,7 +391,7 @@ interface ExerciseDao {
     suspend fun deleteExercisesInWorkout(workoutId: Long)
 
     @Query("SELECT * FROM `Set` as s JOIN (SELECT * FROM Exercise ORDER BY date DESC) as E ON s.exerciseId=E.exerciseId WHERE E.exerciseModelId=:exerciseModelId AND workoutId in (SELECT workoutId FROM Exercise EX WHERE EX.exerciseModelId = :exerciseModelId AND EX.date < :excludeDate GROUP BY EX.workoutId ORDER BY EX.date DESC LIMIT :nSets)")
-    suspend fun getHistoricalSets(exerciseModelId: Long, nSets: Int, excludeDate: Long? = 0): Map<Exercise, List<Set>>
+    suspend fun getHistoricalSets(exerciseModelId: Long, nSets: Int = Int.MAX_VALUE, excludeDate: Long? = Long.MAX_VALUE): Map<Exercise, List<Set>>
 
     @Query("SELECT * FROM Exercise WHERE workoutId = :workoutId")
     suspend fun getListOfExerciseInWorkout(workoutId: Long): List<Exercise>
