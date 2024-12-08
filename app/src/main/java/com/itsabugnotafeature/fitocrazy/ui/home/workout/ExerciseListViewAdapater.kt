@@ -201,7 +201,11 @@ class ExerciseListViewAdapter(
 
         exercise.sets.add(set) // dont need to add to displaylist as the underlying object is the same!
         val newPoints = Workout.calculatePoints(exercise)
-        exercise.exercise.addRecords(newPoints.records)
+        if (exercise.exercise.date < LocalDate.now()) {
+            // you can only set records in the past!
+            // TODO written but not tested - solves BUG with records
+            exercise.exercise.addRecords(newPoints.records)
+        }
 
         withContext(Dispatchers.IO) {
             exercise.record = db.getRecord(exercise.exercise.exerciseModelId)
@@ -448,7 +452,7 @@ class ExerciseListViewAdapter(
             val exerciseSetsScrollLayout = itemView.findViewById<LinearLayout>(R.id.layout_listOfSetsOnExerciseCard)
             exerciseSetsScrollLayout.removeAllViews()
 
-            currentExercise.historicalSets.forEach { (workoutDate, setList) ->
+            currentExercise.historicalSets.reversed().forEach { (workoutDate, setList) ->
                 val setListView = LayoutInflater.from(itemView.context).inflate(
                     R.layout.container_workout_exercise_set_list_horizontal, itemView.rootView as ViewGroup, false
                 )

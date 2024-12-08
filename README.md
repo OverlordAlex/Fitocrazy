@@ -3,9 +3,19 @@ BUG: "enter" when creating a new exercise component does weird stuff (should tri
 BUG: adding first set is swallowed when rep edit text has focus (toast shows! inputs cleared) - related to achievements? worked on latest exercise but not earlier
 - BUG: I have animations turned off... lol
 Bug: app not installed when starting from bottom bar icon
-
+BUG: Screen recording of bodypart chips behaving weird on adding exercise - Bodypart chips in workout act weird - top exercise gets chips of second if second has a set added
+BUG: Search is not working
+BUG: Exercise names on cards don't actually wrap correctly (if word is too long half is cut off but next word starts on new line)
+BUG: New exercise can still get awards if going up in weight within the same set group
+BUG:  Not getting awards at all??
+Bug? setting date goes back to 1970?
 
 # TODO
+- be able to toggle sort most common exercises by date desc/asc
+- Exercise should change colour when it's ready to work again, and grey when super old and likely not being done
+- Workout Bodypart summary chips should be based on sets done, not just exercises
+- Home screen months should have an "all" option- or better visual separation of months..?
+- Really missing max per exercise during workout
 - Calculation should be based more heavily on weight over reps
 - When going to old exercise and back, then should scroll to where it was clicked from in the list
 - add exercise to current workout from search in other list

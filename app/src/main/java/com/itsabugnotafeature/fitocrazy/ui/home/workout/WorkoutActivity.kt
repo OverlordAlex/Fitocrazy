@@ -337,6 +337,11 @@ class WorkoutActivity : AppCompatActivity() {
                     //exerciseListViewAdapter.showNotification()
                     exerciseListView.visibility = RecyclerView.VISIBLE
                     labelForEmptyExerciseList.visibility = TextView.GONE
+
+                    // start the timer fresh
+                    setTimeTimer.base = SystemClock.elapsedRealtime()
+                    setTimeTimer.setTextColor(applicationContext.getColor(R.color.black))
+                    setTimeTimer.stop() // stop it if it's running? might revist later based on experience
                 }
             }
 

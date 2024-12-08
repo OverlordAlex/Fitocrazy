@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 16,
-    "identityHash": "c3fc03bdad5dea39b0133aac6738ff9c",
+    "version": 17,
+    "identityHash": "a7a07bb1c05505e2e146ed29a4303529",
     "entities": [
       {
         "tableName": "ExerciseModel",
@@ -277,7 +277,7 @@
       },
       {
         "viewName": "MostCommonExerciseView",
-        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT E.exerciseId AS exerciseModelId, displayName, max(date), COUNT(DISTINCT workoutId) AS count, bodyPartChips FROM (SELECT * FROM ExerciseModel) AS E LEFT JOIN Exercise on Exercise.exerciseModelId=E.exerciseId GROUP BY E.exerciseId ORDER BY count DESC, date DESC"
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT E.exerciseId AS exerciseModelId, displayName, max(date) as date, COUNT(DISTINCT workoutId) AS count, bodyPartChips FROM (SELECT * FROM ExerciseModel) AS E LEFT JOIN Exercise on Exercise.exerciseModelId=E.exerciseId GROUP BY E.exerciseId ORDER BY count DESC, date DESC"
       },
       {
         "viewName": "WorkoutDatesView",
@@ -286,7 +286,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c3fc03bdad5dea39b0133aac6738ff9c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a7a07bb1c05505e2e146ed29a4303529')"
     ]
   }
 }

@@ -1,3 +1,11 @@
+# 07 Dec 2024
+- BUG: Historical sets in workout are in reverse order
+- BUG: Max graph taking the last set in the exercise instead of max
+- Improved graphs - should accurately draw max weight and max moved
+- BUG: Last performed date in adding new exercises is wrong (shows when exercise first added, not last done)
+- Adding new exercise should reset and pause timer
+
+
 # 14 Sep 2024 (Graph exercise records) v4.0 (db v16)
 - Total sets in exercise so far would be nice
 - bodyparts are now ordered during the workout

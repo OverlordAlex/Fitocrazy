@@ -174,7 +174,7 @@ data class WorkoutRecordView(
     val avgTotalPoints: Double
 )
 
-@DatabaseView("SELECT E.exerciseId AS exerciseModelId, displayName, date, COUNT(DISTINCT workoutId) AS count, bodyPartChips FROM (SELECT * FROM ExerciseModel) AS E LEFT JOIN Exercise on Exercise.exerciseModelId=E.exerciseId GROUP BY E.exerciseId ORDER BY count DESC, date DESC")
+@DatabaseView("SELECT E.exerciseId AS exerciseModelId, displayName, max(date) as date, COUNT(DISTINCT workoutId) AS count, bodyPartChips FROM (SELECT * FROM ExerciseModel) AS E LEFT JOIN Exercise on Exercise.exerciseModelId=E.exerciseId GROUP BY E.exerciseId ORDER BY count DESC, date DESC")
 data class MostCommonExerciseView(
     val exerciseModelId: Long,
     val displayName: String,
@@ -420,7 +420,7 @@ interface ExerciseDao {
     @Query("SELECT * FROM WorkoutRecordView LIMIT 1")
     suspend fun getWorkoutStats(): WorkoutRecordView?
 
-    @Query("SELECT * FROM MostCommonExerciseView WHERE (date < :today OR date IS NULL) AND exerciseModelId NOT IN (:existingExercises) ORDER BY date ASC, displayName ASC")
+    @Query("SELECT * FROM MostCommonExerciseView WHERE (date < :today OR date IS NULL) AND exerciseModelId NOT IN (:existingExercises) ORDER BY date DESC, displayName ASC")
     suspend fun getMostCommonExercises(
         today: LocalDate,
         existingExercises: List<Long> = emptyList()
@@ -433,12 +433,13 @@ interface ExerciseDao {
 @Database(
     entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class],
     views = [SetRecordView::class, WorkoutRecordView::class, MostCommonExerciseView::class, WorkoutDatesView::class],
-    version = 16,
+    version = 17,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 13, to = 14),
         AutoMigration(from = 14, to = 15),
         AutoMigration(from = 15, to = 16),
+        AutoMigration(from = 16, to = 17),
     ],
 )
 @TypeConverters(Converters::class)

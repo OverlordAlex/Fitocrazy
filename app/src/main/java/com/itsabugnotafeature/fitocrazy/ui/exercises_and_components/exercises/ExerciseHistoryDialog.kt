@@ -1,5 +1,8 @@
 package com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.exercises
 
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -7,12 +10,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager.LayoutParams
 import androidx.fragment.app.DialogFragment
+import com.github.mikephil.charting.animation.ChartAnimator
 import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.charts.CombinedChart.DrawOrder
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.ScatterChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.CombinedData
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -20,6 +27,12 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.data.ScatterData
 import com.github.mikephil.charting.data.ScatterDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.interfaces.dataprovider.BarDataProvider
+import com.github.mikephil.charting.renderer.BarChartRenderer
+import com.github.mikephil.charting.renderer.CombinedChartRenderer
+import com.github.mikephil.charting.utils.MPPointF
+import com.github.mikephil.charting.utils.Utils
+import com.github.mikephil.charting.utils.ViewPortHandler
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.Exercise
@@ -31,6 +44,49 @@ import java.time.LocalDate
 import java.util.SortedMap
 
 class ExerciseHistoryDialog(val exercise: ExerciseModel) : DialogFragment() {
+
+    class CombinedChartRenderer(chart: CombinedChart, animator: ChartAnimator, viewPortHandler: ViewPortHandler) :
+        com.github.mikephil.charting.renderer.CombinedChartRenderer(chart, animator, viewPortHandler) {
+        override fun createRenderers() {
+            super.createRenderers()
+            val removedChart = mRenderers.indexOfFirst { it is BarChartRenderer }
+            mRenderers.removeIf { it is BarChartRenderer }
+            mRenderers.add(removedChart, MyBarChartRenderer(mChart.get() as CombinedChart, mAnimator, mViewPortHandler))
+        }
+
+        class MyBarChartRenderer(
+            chart: BarDataProvider,
+            animator: ChartAnimator,
+            viewPortHandler: ViewPortHandler,
+        ) : BarChartRenderer(chart, animator, viewPortHandler) {
+
+            init {
+                initBuffers() // Initialize the buffers in the constructor, chart will crash without it
+            }
+
+            override fun drawValue(canvas: Canvas?, valueText: String?, x: Float, y: Float, color: Int) {
+                val paint = mDrawPaint
+                paint.textSize = 32F
+                paint.textAlign = Paint.Align.LEFT
+                paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+                paint.color = color
+
+                valueText?.let {
+                    Utils.drawXAxisValue(
+                        canvas,
+                        it,
+                        x - 16F,
+                        // bar buffers contains the coordinates for the rectangles, we're interested in the bottom right
+                        //      this should be the zero line
+                        this.mBarBuffers.first().buffer[3] - paint.textSize * 1.5F,
+                        paint,
+                        MPPointF.getInstance(),
+                        0f
+                    )
+                }
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,13 +101,15 @@ class ExerciseHistoryDialog(val exercise: ExerciseModel) : DialogFragment() {
         val setData: SortedMap<Exercise, List<Set>> = runBlocking {
             val db = ExerciseDatabase.getInstance(requireContext()).exerciseDao()
             db.getHistoricalSets(exercise.exerciseId)
-        }.toSortedMap()
+        }.toList().groupBy { it.first.exerciseId }.map { it.value.first().first to it.value.flatMap { v -> v.second } }
+            .toMap().toSortedMap()
 
         val sets = setData.map { it.key.date to it.value }.toMap()
         if (sets.isEmpty()) return
 
-        val setDates = sets.map { it.key }.sorted()
+        val setDates = sets.map { it.key }.sorted().toMutableList()
         val setWeights = sets.map { set -> set.value.maxOf { it.weight } }
+        val setTotals = sets.map { set -> set.value.sumOf { it.weight * it.reps } }
 
         val chart = view.findViewById<CombinedChart>(R.id.chart_exerciseHistory)
         chart.description.isEnabled = false
@@ -61,9 +119,24 @@ class ExerciseHistoryDialog(val exercise: ExerciseModel) : DialogFragment() {
         chart.setTouchEnabled(false)
         chart.setOnTouchListener { view, motionEvent -> dismiss(); true }
 
-        val maxWeightData = LineDataSet(setDates.mapIndexed { i, date ->
+        val totalWeightData = BarDataSet(List(setDates.size) { i ->
+            BarEntry(
+                i.toFloat(),
+                setTotals[i].toFloat()
+            )
+        }, "Total Moved")
+        totalWeightData.color = requireContext().getColor(R.color.blue_accent_light)
+        totalWeightData.formLineWidth = 4f
+        totalWeightData.axisDependency = YAxis.AxisDependency.RIGHT
+        totalWeightData.setDrawValues(true)
+
+        val barData = BarData(totalWeightData)
+        barData.setValueTextSize(16f)
+        //barData.setDrawValues(true)
+
+        val maxWeightData = LineDataSet(List(setDates.size) { i ->
             Entry(
-                date.toEpochDay().toFloat(),
+                i.toFloat(),
                 setWeights[i].toFloat()
             )
         }, "KG")
@@ -73,7 +146,8 @@ class ExerciseHistoryDialog(val exercise: ExerciseModel) : DialogFragment() {
         maxWeightData.lineWidth = 2f
         maxWeightData.setDrawValues(true)
         maxWeightData.axisDependency = YAxis.AxisDependency.LEFT
-        //maxWeightData.mode = LineDataSet.Mode.CUBIC_BEZIER;
+        maxWeightData.mode = LineDataSet.Mode.LINEAR;
+        maxWeightData.iconsOffset
 
         val lineData = LineData(maxWeightData)
         lineData.setValueTextSize(16f)
@@ -92,32 +166,42 @@ class ExerciseHistoryDialog(val exercise: ExerciseModel) : DialogFragment() {
         scatterData.addDataSet(prData)
 
         val combinedData = CombinedData()
+        combinedData.setData(barData)
         combinedData.setData(lineData)
         combinedData.setData(scatterData)
-        chart.drawOrder = arrayOf(DrawOrder.SCATTER, DrawOrder.LINE)
+
         chart.data = combinedData
+        chart.renderer = CombinedChartRenderer(chart, chart.animator, chart.viewPortHandler)
+        //chart.setExtraOffsets(50F, 0F, 50F, 0F)
 
         val xAxis = chart.xAxis
-        xAxis.valueFormatter = object: ValueFormatter() {
+        xAxis.axisMinimum = barData.xMin - 1
+        xAxis.axisMaximum = barData.xMax + 1
+
+        setDates.add(0, LocalDate.ofEpochDay((setDates.first().toEpochDay().toFloat() - 0.864).toLong()))
+        setDates.add(LocalDate.ofEpochDay((setDates.last().toEpochDay().toFloat() + 0.864).toLong()))
+
+        xAxis.valueFormatter = object : ValueFormatter() {
             override fun getFormattedValue(value: Float): String {
-                return Converters.dateFormatter.format(LocalDate.ofEpochDay(value.toLong()))
+                if ((value.toInt() < 0) || (value.toInt() >= setDates.size - 2)) return ""
+                return Converters.dateFormatter.format(setDates[value.toInt() + 1])
             }
         }
-        xAxis.axisMinimum = setDates.first().toEpochDay().toFloat() - 0.864f
-        xAxis.axisMaximum = setDates.last().toEpochDay().toFloat() + 0.864f
         xAxis.setDrawGridLines(false)
-        xAxis.granularity = 0.864f
+        xAxis.granularity = 1F
         xAxis.position = XAxis.XAxisPosition.BOTTOM
-        xAxis.setCenterAxisLabels(true)
+        //xAxis.setCenterAxisLabels(true)
         xAxis.labelRotationAngle = 30f
 
         val yAxis = chart.axisLeft
-        yAxis.axisMinimum = setWeights.min().toFloat() - 5
-        yAxis.axisMaximum = setWeights.max().toFloat() + 5
+        yAxis.axisMinimum = 0F
+        yAxis.setDrawZeroLine(true)
         yAxis.granularity = 5f
 
         val rightAxis = chart.axisRight
         rightAxis.isEnabled = false
+        rightAxis.axisMinimum = 0f
+        rightAxis.isGranularityEnabled = false
 
         dialog?.setCanceledOnTouchOutside(true)
         //dialog?.window?.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
