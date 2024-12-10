@@ -1,4 +1,11 @@
-# 07 Dec 2024
+# 10 Dec 2024
+- BUG: New exercise can still get awards if going up in weight within the same set group
+- BUG: Exercise names on cards don't actually wrap correctly (if word is too long half is cut off but next word starts on new line)
+  - solved with Marquee, but may be revisited if not working without animations 
+- Workout Bodypart summary chips should be based on sets done, not just exercises
+
+
+# 07 Dec 2024 (Improved graphs)
 - BUG: Historical sets in workout are in reverse order
 - BUG: Max graph taking the last set in the exercise instead of max
 - Improved graphs - should accurately draw max weight and max moved

@@ -15,6 +15,8 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity.INPUT_METHOD_SERVICE
+import androidx.cardview.widget.CardView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -163,7 +165,6 @@ class ExerciseListViewAdapter(
                     basePoints = exerciseModel?.exercise?.basePoints ?: 10,
                 )
             )
-            workout.topTags = getTopTags()
             workout.totalExercises = itemCount
             saveWorkout(context)
         }
@@ -201,9 +202,8 @@ class ExerciseListViewAdapter(
 
         exercise.sets.add(set) // dont need to add to displaylist as the underlying object is the same!
         val newPoints = Workout.calculatePoints(exercise)
-        if (exercise.exercise.date < LocalDate.now()) {
-            // you can only set records in the past!
-            // TODO written but not tested - solves BUG with records
+        if (exercise.historicalSets.isNotEmpty()) {
+            // you can only set records on exercises that have been done before
             exercise.exercise.addRecords(newPoints.records)
         }
 
@@ -273,6 +273,8 @@ class ExerciseListViewAdapter(
     }
 
     suspend fun saveWorkout(context: Context) {
+        // whenever we save the workout is when the top tags are actually calculated
+        workout.topTags = getTopTags()
         withContext(Dispatchers.IO) {
             val db = ExerciseDatabase.getInstance(context).exerciseDao()
             db.updateWorkout(workout)
@@ -308,7 +310,7 @@ class ExerciseListViewAdapter(
 
     private fun getTopTags(): String {
         return dataList
-            .fold(emptyList<String>()) { ongoing, item -> ongoing + item.tags }
+            .fold(mutableListOf<String>()) { ongoing, item -> repeat(item.sets.size) {ongoing.addAll( item.tags )}; ongoing }
             .groupingBy { it }
             .eachCount().asIterable()
             .sortedBy { it.value }.reversed()
@@ -345,6 +347,7 @@ class ExerciseListViewAdapter(
         fun bind(currentExercise: ExerciseView) {
             val exerciseNameOnCard = itemView.findViewById<TextView>(R.id.label_exerciseNameOnCard)
             exerciseNameOnCard.text = currentExercise.displayName + if (currentExercise.sets.isEmpty()) "" else " ["+currentExercise.sets.size+"]"
+            exerciseNameOnCard.isSelected = true  // required for marquee
 
             val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
             if (chipGroup.childCount == 0) {
