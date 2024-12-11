@@ -34,9 +34,13 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
             android:textColor="@color/slate_dark"
             android:textSize="20sp"
             android:textStyle="bold"
+            app:layout_constrainedWidth="true"
             app:layout_constraintStart_toEndOf="@+id/chip_exercisePoints"
             app:layout_constraintTop_toTopOf="parent" />
 

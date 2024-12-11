@@ -350,13 +350,12 @@ class ExerciseListViewAdapter(
             exerciseNameOnCard.isSelected = true  // required for marquee
 
             val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
-            if (chipGroup.childCount == 0) {
-                currentExercise.tags.sorted().forEach { chipName ->
-                    val newChip = Chip(itemView.context)
-                    newChip.text = chipName
-                    newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
-                    chipGroup.addView(newChip)
-                }
+            chipGroup.removeAllViews()
+            currentExercise.tags.sorted().forEach { chipName ->
+                val newChip = Chip(itemView.context)
+                newChip.text = chipName
+                newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
+                chipGroup.addView(newChip)
             }
 
             val points = Workout.calculatePoints(currentExercise)

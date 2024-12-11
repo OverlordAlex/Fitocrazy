@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.core.view.children
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -77,13 +78,12 @@ class SuggestedExercisesListAdapter() :
             }
 
             val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipgroup_suggestedExerciseBodyParts)
-            if (chipGroup.childCount == 0) {
-                suggestion.bodyPartChips.split(" ").sorted().forEach { chipName ->
-                    val newChip = Chip(itemView.context)
-                    newChip.text = chipName
-                    newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
-                    chipGroup.addView(newChip)
-                }
+            chipGroup.removeAllViews()
+            suggestion.bodyPartChips.split(" ").sorted().forEach { chipName ->
+                val newChip = Chip(itemView.context)
+                newChip.text = chipName
+                newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
+                chipGroup.addView(newChip)
             }
 
             val btn = itemView.findViewById<Button>(R.id.btn_exerciseSuggestionAddExercise)
@@ -91,7 +91,6 @@ class SuggestedExercisesListAdapter() :
                 if (suggestion.exerciseModelId in selectedItems) {
                     selectedItems.remove(suggestion.exerciseModelId)
                     //itemView.isSelected = false // TODO: necessary?
-
                 } else {
                     selectedItems.add(suggestion.exerciseModelId)
                     //itemView.isSelected = true

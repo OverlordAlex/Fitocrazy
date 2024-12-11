@@ -1,3 +1,8 @@
+# 11 Dec 2024
+BUG: Screen recording of bodypart chips behaving weird on adding exercise - Bodypart chips in workout act weird - top exercise gets chips of second if second has a set added
+Further guarding against long names
+
+
 # 10 Dec 2024
 - BUG: New exercise can still get awards if going up in weight within the same set group
 - BUG: Exercise names on cards don't actually wrap correctly (if word is too long half is cut off but next word starts on new line)

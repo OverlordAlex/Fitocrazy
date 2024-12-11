@@ -3,7 +3,6 @@ BUG: "enter" when creating a new exercise component does weird stuff (should tri
 BUG: adding first set is swallowed when rep edit text has focus (toast shows! inputs cleared) - related to achievements? worked on latest exercise but not earlier
 - BUG: I have animations turned off... lol
 Bug: app not installed when starting from bottom bar icon
-BUG: Screen recording of bodypart chips behaving weird on adding exercise - Bodypart chips in workout act weird - top exercise gets chips of second if second has a set added
 BUG: Search is not working
 BUG:  Not getting awards at all??
 Bug? setting date goes back to 1970?
