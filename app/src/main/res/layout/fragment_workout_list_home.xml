@@ -35,6 +35,7 @@
         android:padding="6dp"
         android:textColor="@color/slate_dark"
         android:textSize="20sp"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/layout_workoutCardView"
         app:layout_constraintStart_toEndOf="@id/label_year"
         app:layout_constraintTop_toTopOf="parent" />

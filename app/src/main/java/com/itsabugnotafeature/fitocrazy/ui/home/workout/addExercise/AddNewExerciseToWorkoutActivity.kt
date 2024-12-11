@@ -99,7 +99,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
                             newComponent.componentId = db.addExerciseComponent(newComponent)
                             updateSpinnerData()
                             // without animate it doesn't work??
-                            spinner.setSelection(equipmentAdapter.getPosition(newComponent), true)
+                            spinner.setSelection((spinner.adapter as ArrayAdapter<ExerciseComponentModel>).getPosition(newComponent), true)
                         } else {
                             spinner.setSelection(
                                 (spinner.adapter as ArrayAdapter<ExerciseComponentModel>).getPosition(

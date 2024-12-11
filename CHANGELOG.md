@@ -1,6 +1,10 @@
 # 11 Dec 2024
-BUG: Screen recording of bodypart chips behaving weird on adding exercise - Bodypart chips in workout act weird - top exercise gets chips of second if second has a set added
-Further guarding against long names
+- BUG: Screen recording of bodypart chips behaving weird on adding exercise - Bodypart chips in workout act weird - top exercise gets chips of second if second has a set added
+- Further guarding against long names
+- Added set records to every set
+- BUG: adding an exercise component in a spinner does not select the added component
+- BUG: setting date goes back to 1970?
+- Home screen months should have an "all" option- or better visual separation of months..? - just removed "months" :D
 
 
 # 10 Dec 2024

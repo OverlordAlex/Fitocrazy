@@ -68,7 +68,7 @@ class WorkoutListFragment : Fragment() {
         workoutListView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
         val yearLabel = requireView().findViewById<TextView>(R.id.label_year)
-        val monthLabel = requireView().findViewById<TextView>(R.id.label_month)
+        //val monthLabel = requireView().findViewById<TextView>(R.id.label_month)
 
         val dates = runBlocking {
             val db = ExerciseDatabase.getInstance(requireContext()).exerciseDao()
@@ -76,10 +76,10 @@ class WorkoutListFragment : Fragment() {
         }
         dates.first().let {
             yearLabel.text = it.year
-            monthLabel.text = it.toDate().month.name
+            //monthLabel.text = it.toDate().month.name
         }
         yearLabel.setOnClickListener {
-            val yearFragment: DialogFragment = SelectWorkoutTimeFilterFragment(dates.map { it.year }.toSet().toList())
+            val yearFragment: DialogFragment = SelectWorkoutTimeFilterFragment(dates.map { it.year }.toSet().toList(), yearLabel.text.toString())
             val ft: FragmentTransaction = childFragmentManager.beginTransaction()
             val prev: Fragment? = childFragmentManager.findFragmentByTag(yearFragment.tag)
             if (prev != null) {
@@ -93,6 +93,7 @@ class WorkoutListFragment : Fragment() {
                 Log.i("TEXT", "chose $chosenYear")
                 val chosenDate = dates.first { it.year === chosenYear }
                 yearLabel.text = chosenDate.year
+                chosenDate.month = "1"
 
                 runBlocking {
                     workoutListView.adapter = WorkoutListViewAdapter().apply {
@@ -100,7 +101,7 @@ class WorkoutListFragment : Fragment() {
                             requireContext(),
                             mapOf(
                                 "start" to chosenDate.toDate().atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000,
-                                "end" to chosenDate.toDate().plusMonths(1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000
+                                "end" to chosenDate.toDate().plusMonths(12).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000
                             )
                         )
                     }
@@ -108,7 +109,7 @@ class WorkoutListFragment : Fragment() {
             }
         }
 
-        monthLabel.setOnClickListener {
+        /*monthLabel.setOnClickListener {
             val monthFragment: DialogFragment =
                 SelectWorkoutTimeFilterFragment(dates.filter { it.year == yearLabel.text }
                     .map { it.toDate().month.name }.toSet().toList())
@@ -138,15 +139,29 @@ class WorkoutListFragment : Fragment() {
                     }
                 }
             }
-        }
+        }*/
 
-        runBlocking {
+        /*runBlocking {
             workoutListView.adapter = WorkoutListViewAdapter().apply {
                 loadData(
                     requireContext(),
                     mapOf(
                         "start" to dates.first().toDate().atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000,
-                        "end" to dates.first().toDate().plusMonths(1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000
+                        "end" to dates.first().toDate().plusMonths(12).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000
+                    )
+                )
+            }
+        }*/
+        runBlocking {
+            val yearToLoad = dates.first()
+            yearToLoad.month = "1"
+
+            workoutListView.adapter = WorkoutListViewAdapter().apply {
+                loadData(
+                    requireContext(),
+                    mapOf(
+                        "start" to yearToLoad.toDate().atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000,
+                        "end" to yearToLoad.toDate().plusMonths(12).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000
                     )
                 )
             }

@@ -12,7 +12,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
 import com.itsabugnotafeature.fitocrazy.R
 
-class SelectWorkoutTimeFilterFragment(private val dataList: List<String>) : DialogFragment() {
+class SelectWorkoutTimeFilterFragment(private val dataList: List<String>, private val selectedYear: String) : DialogFragment() {
 
         private var chosenItem: String? = null
 
@@ -30,6 +30,7 @@ class SelectWorkoutTimeFilterFragment(private val dataList: List<String>) : Dial
             selector.minValue = 0
             selector.maxValue = dataList.size - 1
             selector.displayedValues = dataList.toTypedArray()
+            selector.value = dataList.indexOf(selectedYear)
 
             selector.setOnClickListener {
                 Log.i("TEXT", "clicked on ${selector.value}")

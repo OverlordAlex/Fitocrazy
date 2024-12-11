@@ -168,7 +168,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/achivement_most_weight_moved"
-                android:visibility="gone"
+                android:visibility="invisible"
                 app:srcCompat="@drawable/achievement_mostmoved" />
 
             <ImageView
@@ -176,7 +176,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/achivement_most_reps"
-                android:visibility="gone"
+                android:visibility="invisible"
                 app:srcCompat="@drawable/achievement_mostreps" />
 
             <ImageView
@@ -184,7 +184,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/achivement_max_weight"
-                android:visibility="gone"
+                android:visibility="invisible"
                 app:srcCompat="@drawable/achievement_mostweight" />
         </LinearLayout>
 

@@ -106,8 +106,11 @@ class WorkoutActivity : AppCompatActivity() {
         // TODO fix timer
         val workoutDate = Instant.ofEpochMilli(exerciseListViewAdapter.workout.date)
         // if its today, and we haven't clicked "save"
-        if (workoutDate.atZone(ZoneId.systemDefault()).toLocalDate() == LocalDate.now() && exerciseListViewAdapter.workout.totalTime == 0L) {
-            totalTimeTimer.base = workoutDate.toEpochMilli() - System.currentTimeMillis() + SystemClock.elapsedRealtime()
+        if (workoutDate.atZone(ZoneId.systemDefault())
+                .toLocalDate() == LocalDate.now() && exerciseListViewAdapter.workout.totalTime == 0L
+        ) {
+            totalTimeTimer.base =
+                workoutDate.toEpochMilli() - System.currentTimeMillis() + SystemClock.elapsedRealtime()
             totalTimeTimer.start()
         } else {
             totalTimeTimer.base = SystemClock.elapsedRealtime() - exerciseListViewAdapter.workout.totalTime
@@ -148,9 +151,13 @@ class WorkoutActivity : AppCompatActivity() {
             override fun onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {
                 // Date picker 0-indexes the month REEE
                 val userDate = LocalDate.of(year, month + 1, day)
-                if (userDate == Instant.ofEpochMilli(exerciseListViewAdapter.workout.date)
-                        .atZone(ZoneId.systemDefault()).toLocalDate()
-                ) return
+                if (userDate ==
+                    Instant.ofEpochMilli(exerciseListViewAdapter.workout.date)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                ) {
+                    return
+                }
 
                 if (userDate > today) {
                     Toast.makeText(applicationContext, "We are not presently in the future", Toast.LENGTH_SHORT).show()
@@ -162,14 +169,15 @@ class WorkoutActivity : AppCompatActivity() {
                     Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault())
                         .toLocalTime(),
                     ZoneId.systemDefault()
-                ).toEpochSecond()
+                ).toEpochSecond() * 1000
                 runBlocking {
                     exerciseListViewAdapter.saveWorkout(applicationContext)
                     exerciseListViewAdapter.updateExerciseDates(applicationContext, userDate)
                 }
 
                 findViewById<TextView>(R.id.toolbar_title).text =
-                    "Fitocrazy - " + (if (today == Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault()).toLocalDate()
+                    "Fitocrazy - " + (if (today == Instant.ofEpochMilli(exerciseListViewAdapter.workout.date)
+                            .atZone(ZoneId.systemDefault()).toLocalDate()
                     ) getString(R.string.today) else {
                         Converters.dateFormatter.format(
                             Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault())
@@ -375,8 +383,10 @@ class WorkoutActivity : AppCompatActivity() {
         val toolbarTitle = toolbar.findViewById<TextView>(R.id.toolbar_title)
 
         toolbarTitle.text =
-            "Fitocrazy - " + (if (today == Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault())
-                    .toLocalDate()) getString(R.string.today) else Converters.dateFormatter.format(
+            "Fitocrazy - " + (if (today == Instant.ofEpochMilli(exerciseListViewAdapter.workout.date)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+            ) getString(R.string.today) else Converters.dateFormatter.format(
                 Instant.ofEpochMilli(exerciseListViewAdapter.workout.date).atZone(ZoneId.systemDefault())
             )) // TODO use short-form
         toolbarTitle.setOnClickListener { finish() }

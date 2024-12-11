@@ -78,7 +78,10 @@ class ExerciseListViewAdapter(
 
         withContext(Dispatchers.IO) {
             val db = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
-            workout = db.getWorkout(arguments?.get("workoutId") as Long) ?: Workout(0, Instant.now().atZone(ZoneId.systemDefault()).toEpochSecond()*1000)
+            workout = db.getWorkout(arguments?.get("workoutId") as Long) ?: Workout(
+                0,
+                Instant.now().atZone(ZoneId.systemDefault()).toEpochSecond() * 1000
+            )
             if (workout.workoutId == 0L) {
                 workout.workoutId = db.addWorkout(workout)
             }
@@ -287,7 +290,10 @@ class ExerciseListViewAdapter(
 
     private fun showNotification(chronometerRunning: Boolean = false) {
         val mostRecent = getMostRecentlyAdded()
-        Log.i("TEST", "Asked to show notification, most recent: ${mostRecent?.displayName} and timer is running $chronometerRunning")
+        Log.i(
+            "TEST",
+            "Asked to show notification, most recent: ${mostRecent?.displayName} and timer is running $chronometerRunning"
+        )
 
         addSetNotificationManager.showNotification(
             totalExercises = workout.totalExercises,
@@ -310,7 +316,7 @@ class ExerciseListViewAdapter(
 
     private fun getTopTags(): String {
         return dataList
-            .fold(mutableListOf<String>()) { ongoing, item -> repeat(item.sets.size) {ongoing.addAll( item.tags )}; ongoing }
+            .fold(mutableListOf<String>()) { ongoing, item -> repeat(item.sets.size) { ongoing.addAll(item.tags) }; ongoing }
             .groupingBy { it }
             .eachCount().asIterable()
             .sortedBy { it.value }.reversed()
@@ -346,7 +352,8 @@ class ExerciseListViewAdapter(
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(currentExercise: ExerciseView) {
             val exerciseNameOnCard = itemView.findViewById<TextView>(R.id.label_exerciseNameOnCard)
-            exerciseNameOnCard.text = currentExercise.displayName + if (currentExercise.sets.isEmpty()) "" else " ["+currentExercise.sets.size+"]"
+            exerciseNameOnCard.text =
+                currentExercise.displayName + if (currentExercise.sets.isEmpty()) "" else " [" + currentExercise.sets.size + "]"
             exerciseNameOnCard.isSelected = true  // required for marquee
 
             val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
@@ -453,6 +460,21 @@ class ExerciseListViewAdapter(
 
             val exerciseSetsScrollLayout = itemView.findViewById<LinearLayout>(R.id.layout_listOfSetsOnExerciseCard)
             exerciseSetsScrollLayout.removeAllViews()
+
+            //currentExercise.record.
+            val recordListView = LayoutInflater.from(itemView.context).inflate(
+                R.layout.container_workout_exercise_set_list_horizontal, itemView.rootView as ViewGroup, false
+            )
+            val recordTypes = listOf("Weight", "Reps", "Moved").joinToString("\n")
+            val recordValues = listOf(
+                currentExercise.record?.maxWeight,
+                currentExercise.record?.maxReps,
+                currentExercise.record?.mostWeightMoved
+            ).joinToString("\n")
+            recordListView.findViewById<TextView>(R.id.label_setDate).text = "Records"
+            recordListView.findViewById<TextView>(R.id.textlist_weightInSet).text = recordTypes
+            recordListView.findViewById<TextView>(R.id.textlist_repsInSet).text = recordValues
+            exerciseSetsScrollLayout.addView(recordListView)
 
             currentExercise.historicalSets.reversed().forEach { (workoutDate, setList) ->
                 val setListView = LayoutInflater.from(itemView.context).inflate(
