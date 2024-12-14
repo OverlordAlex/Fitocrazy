@@ -8,6 +8,9 @@ BUG:  Not getting awards at all??
 
 
 # TODO
+- build a workout by body parts
+    - done by offering the next exercise based on past stats? (should I be copying workouts more)
+- suggest sets based on past experience
 - Failed weight can't be tracked
 - Removing a set shouldn't clear inputs
 - New award for most points?

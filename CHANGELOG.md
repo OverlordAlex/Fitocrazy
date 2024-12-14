@@ -1,4 +1,4 @@
-# 11 Dec 2024
+# 11 Dec 2024 (Finally added set records) v5.0 (db v17)
 - BUG: Screen recording of bodypart chips behaving weird on adding exercise - Bodypart chips in workout act weird - top exercise gets chips of second if second has a set added
 - Further guarding against long names
 - Added set records to every set
@@ -7,7 +7,7 @@
 - Home screen months should have an "all" option- or better visual separation of months..? - just removed "months" :D
 
 
-# 10 Dec 2024
+# 10 Dec 2024 (Better bodypart summaries)
 - BUG: New exercise can still get awards if going up in weight within the same set group
 - BUG: Exercise names on cards don't actually wrap correctly (if word is too long half is cut off but next word starts on new line)
   - solved with Marquee, but may be revisited if not working without animations 
