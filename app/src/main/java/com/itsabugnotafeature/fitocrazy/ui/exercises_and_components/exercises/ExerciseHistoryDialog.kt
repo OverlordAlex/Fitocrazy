@@ -9,12 +9,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager.LayoutParams
+import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.github.mikephil.charting.animation.ChartAnimator
 import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.charts.CombinedChart.DrawOrder
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.ScatterChart
+import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.BarData
@@ -97,6 +99,9 @@ class ExerciseHistoryDialog(val exercise: ExerciseModel) : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val exerciseName = view.findViewById<TextView>(R.id.label_exerciseName)
+        exerciseName.text = exercise.displayName
 
         val setData: SortedMap<Exercise, List<Set>> = runBlocking {
             val db = ExerciseDatabase.getInstance(requireContext()).exerciseDao()
@@ -194,13 +199,13 @@ class ExerciseHistoryDialog(val exercise: ExerciseModel) : DialogFragment() {
         xAxis.labelRotationAngle = 30f
 
         val yAxis = chart.axisLeft
-        yAxis.axisMinimum = 0F
-        yAxis.setDrawZeroLine(true)
+        //yAxis.axisMinimum = 0F
+        //yAxis.setDrawZeroLine(true)
         yAxis.granularity = 5f
 
         val rightAxis = chart.axisRight
         rightAxis.isEnabled = false
-        rightAxis.axisMinimum = 0f
+        //rightAxis.axisMinimum = 0f
         rightAxis.isGranularityEnabled = false
 
         dialog?.setCanceledOnTouchOutside(true)

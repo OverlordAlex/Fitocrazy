@@ -22,6 +22,8 @@
             android:textColor="@color/black"
             android:textSize="28sp"
             app:layout_constrainedWidth="true"
+            app:layout_constraintEnd_toStartOf="@id/btn_deleteComponent"
+            app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -39,8 +41,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btn_deleteComponent"
-            tools:layout_editor_absoluteX="1dp" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/label_componentName" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

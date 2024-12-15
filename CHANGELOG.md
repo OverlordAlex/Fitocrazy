@@ -1,3 +1,10 @@
+# 15 Dec 2024
+- Playing around with label text (not going well) 
+- Added exercise name to charts
+- Removed horizontal 0-axis from graph
+- Sort new exercise suggestions by 
+
+
 # 11 Dec 2024 (Finally added set records) v5.0 (db v17)
 - BUG: Screen recording of bodypart chips behaving weird on adding exercise - Bodypart chips in workout act weird - top exercise gets chips of second if second has a set added
 - Further guarding against long names

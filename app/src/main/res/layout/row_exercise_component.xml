@@ -14,19 +14,17 @@
 
         <TextView
             android:id="@+id/label_exerciseName"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:ellipsize="marquee"
             android:fadingEdgeLength="40sp"
             android:marqueeRepeatLimit="marquee_forever"
-            android:maxWidth="250sp"
-            android:maxLines="2"
             android:singleLine="true"
             android:textColor="@color/black"
             android:textSize="24sp"
             app:layout_constrainedWidth="true"
             app:layout_constraintBottom_toTopOf="@id/chipgroup_Bodyparts"
-            app:layout_constraintEnd_toStartOf="@id/btn_deleteExercise"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -38,7 +36,7 @@
             android:layout_marginEnd="16dp"
             android:text="@string/btn_minus"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/label_exerciseName" />
 
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipgroup_Bodyparts"
