@@ -1,7 +1,6 @@
 package com.itsabugnotafeature.fitocrazy.ui.workouts.filter
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,7 +31,6 @@ class SelectWorkoutTimeFilterFragment(private val dataList: List<String>, privat
             selector.value = dataList.indexOf(selectedYear)
 
             selector.setOnClickListener {
-                Log.i("TEXT", "clicked on ${selector.value}")
                 chosenItem = dataList[selector.value]
                 dismiss()
             }

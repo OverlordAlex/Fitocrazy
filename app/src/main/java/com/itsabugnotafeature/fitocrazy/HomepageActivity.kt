@@ -50,7 +50,6 @@ class HomepageActivity : AppCompatActivity() {
 
         /*var lastView:View? =null
         navView.setOnItemSelectedListener { item ->
-            Log.i("TEST", "${item.isChecked} ${item.isEnabled}")
             lastView?.setBackgroundColor(applicationContext.getColor(R.color.purple_main))
             lastView = findViewById<View>(item.itemId)
             lastView?.setBackgroundColor(applicationContext.getColor(R.color.blue_main))

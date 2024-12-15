@@ -56,7 +56,6 @@ class WorkoutActivity : AppCompatActivity() {
     }
 
     /*override fun onPause() {
-        //Log.i(title.toString(), "onPause")
         super.onPause()
 
         val totalTimeTimer = findViewById<Chronometer>(R.id.timer_totalTime)
@@ -73,7 +72,6 @@ class WorkoutActivity : AppCompatActivity() {
         super.onDestroy()
 
         if (broadcastReceiver != null) {
-            //Log.i(title.toString(), "Unregister Receiver")
             applicationContext.unregisterReceiver(broadcastReceiver)
         }
 
@@ -83,7 +81,6 @@ class WorkoutActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        //Log.i(title.toString(), "onResume")
         super.onResume()
 
         // TODO: refresh the exercise that was shown in the notification in case the user added more sets

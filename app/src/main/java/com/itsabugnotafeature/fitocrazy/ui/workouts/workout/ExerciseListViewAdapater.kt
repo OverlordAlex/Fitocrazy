@@ -2,7 +2,6 @@ package com.itsabugnotafeature.fitocrazy.ui.workouts.workout
 
 import android.content.Context
 import android.os.SystemClock
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -101,7 +100,6 @@ class ExerciseListViewAdapter(
             }.sorted().toMutableList()
         }
         displayList.addAll(dataList)
-        //Log.i("Fitocrazy", displayList.joinToString { it.exercise.toString() })
         notifyItemRangeInserted(0, displayList.size)
         lastAdded = displayList.lastOrNull()
 
@@ -154,7 +152,6 @@ class ExerciseListViewAdapter(
                     .toList().groupBy { it.first.date }
                     .map { Pair(it.key, it.value.map { sec -> sec.second }.flatten()) }
             }
-            //Log.i("TEXT", "Historical ${exerciseModel?.exercise?.exerciseId} sets: ${historicalSets.size}")
             addNewItem(
                 ExerciseView(
                     displayName = exerciseModel?.exercise?.displayName,
@@ -217,7 +214,6 @@ class ExerciseListViewAdapter(
         saveExercises(context)
 
         notifyItemChanged(idx)
-        Log.i("TEST", "showing notification from adding a set")
         showNotification(true)
         notifier.setAdded(exercise, set)
     }
@@ -288,10 +284,6 @@ class ExerciseListViewAdapter(
 
     private fun showNotification(chronometerRunning: Boolean = false) {
         val mostRecent = getMostRecentlyAdded()
-        Log.i(
-            "TEST",
-            "Asked to show notification, most recent: ${mostRecent?.displayName} and timer is running $chronometerRunning"
-        )
 
         addSetNotificationManager.showNotification(
             totalExercises = workout.totalExercises,
@@ -509,7 +501,6 @@ class ExerciseListViewAdapter(
 
             val setWeightString = StringBuilder()
             val setRepsString = StringBuilder()
-            // Log.i("TEST", "Rendering ${currentExercise.sets.size} sets")
             for (set in currentExercise.sets) {
                 setWeightString.appendLine("${Converters.formatDoubleWeight(set.weight)} x")
                 setRepsString.appendLine(set.reps)
@@ -569,7 +560,6 @@ class ExerciseListViewAdapter(
                 runBlocking {
                     addSet(itemView.context, set)
                 }
-                if (!dataList[adapterPosition].exercise.recordsAchieved.isNullOrEmpty()) Log.i("TEST", "ADDED RECPRD")
                 //showNotification(true)
             }
         }

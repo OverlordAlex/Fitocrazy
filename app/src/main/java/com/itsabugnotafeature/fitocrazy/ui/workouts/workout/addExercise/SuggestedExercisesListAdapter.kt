@@ -29,7 +29,6 @@ class SuggestedExercisesListAdapter() :
 
     override suspend fun loadData(applicationContext: Context, arguments: Map<String, Any>?) {
         if (dataList.isNotEmpty()) throw InstantiationException("Suggested exercises already populated!")
-        //Log.i("TEXT", "loading data for ${(arguments?.get("currentExercisesInWorkout") as LongArray).toList()}")
 
         val db = ExerciseDatabase.getInstance(applicationContext).exerciseDao()
         var currentExercises = arguments?.get("currentExercisesInWorkout")

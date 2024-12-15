@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -90,7 +89,6 @@ class WorkoutListFragment : Fragment() {
             yearFragment.show(ft, yearFragment.tag)
             yearFragment.setFragmentResultListener("chosenItem") { _, bundle ->
                 val chosenYear: String? = bundle.getString("chosenItem")
-                Log.i("TEXT", "chose $chosenYear")
                 val chosenDate = dates.first { it.year === chosenYear }
                 yearLabel.text = chosenDate.year
                 chosenDate.month = "1"

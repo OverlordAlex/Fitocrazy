@@ -260,7 +260,6 @@ data class Workout(
             val exerciseMaxWeight = exercise.record?.maxWeight ?: maxWeightThisSet
             val exerciseMaxReps = exercise.record?.maxReps ?: maxRepsThisSet
             val exerciseMaxMoved = exercise.record?.mostWeightMoved ?: maxMovedThisSet
-            //Log.i("TEXT", "$maxWeightThisSet VS $exerciseMaxWeight\n $maxRepsThisSet VS $exerciseMaxReps\n $maxMovedThisSet vs $exerciseMaxMoved")
 
             if (maxWeightThisSet > exerciseMaxWeight) {
                 points += 75
