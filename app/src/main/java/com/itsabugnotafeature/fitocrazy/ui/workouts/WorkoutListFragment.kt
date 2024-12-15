@@ -20,9 +20,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.AddSetNotificationManager
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
+import com.itsabugnotafeature.fitocrazy.common.WorkoutDatesView
 import com.itsabugnotafeature.fitocrazy.ui.workouts.filter.SelectWorkoutTimeFilterFragment
 import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.WorkoutActivity
 import kotlinx.coroutines.runBlocking
+import java.time.LocalDate
 import java.time.ZoneId
 
 
@@ -62,16 +64,22 @@ class WorkoutListFragment : Fragment() {
         val yearLabel = requireView().findViewById<TextView>(R.id.label_year)
         //val monthLabel = requireView().findViewById<TextView>(R.id.label_month)
 
-        val dates = runBlocking {
+        var dates = runBlocking {
             val db = ExerciseDatabase.getInstance(requireContext()).exerciseDao()
             db.getMonthsPresentInData()
         }
+        if (dates.isEmpty()) dates =
+            listOf(WorkoutDatesView().apply {
+                year = LocalDate.now().year.toString()
+                month = LocalDate.now().month.toString()
+            })
         dates.first().let {
             yearLabel.text = it.year
             //monthLabel.text = it.toDate().month.name
         }
         yearLabel.setOnClickListener {
-            val yearFragment: DialogFragment = SelectWorkoutTimeFilterFragment(dates.map { it.year }.toSet().toList(), yearLabel.text.toString())
+            val yearFragment: DialogFragment =
+                SelectWorkoutTimeFilterFragment(dates.map { it.year }.toSet().toList(), yearLabel.text.toString())
             val ft: FragmentTransaction = childFragmentManager.beginTransaction()
             val prev: Fragment? = childFragmentManager.findFragmentByTag(yearFragment.tag)
             if (prev != null) {
@@ -92,8 +100,10 @@ class WorkoutListFragment : Fragment() {
                         loadData(
                             requireContext(),
                             mapOf(
-                                "start" to chosenDate.toDate().atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000,
-                                "end" to chosenDate.toDate().plusMonths(12).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000
+                                "start" to chosenDate.toDate().atStartOfDay(ZoneId.systemDefault())
+                                    .toEpochSecond() * 1000,
+                                "end" to chosenDate.toDate().plusMonths(12).atStartOfDay(ZoneId.systemDefault())
+                                    .toEpochSecond() * 1000
                             )
                         )
                     }
@@ -152,8 +162,9 @@ class WorkoutListFragment : Fragment() {
                 loadData(
                     requireContext(),
                     mapOf(
-                        "start" to yearToLoad.toDate().atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000,
-                        "end" to yearToLoad.toDate().plusMonths(12).atStartOfDay(ZoneId.systemDefault()).toEpochSecond()*1000
+                        "start" to yearToLoad.toDate().atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000,
+                        "end" to yearToLoad.toDate().plusMonths(12).atStartOfDay(ZoneId.systemDefault())
+                            .toEpochSecond() * 1000
                     )
                 )
             }
