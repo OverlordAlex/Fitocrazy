@@ -19,7 +19,7 @@ import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.DisplayListAdapter
 import com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.components.ComponentFragment.ComponentView
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.EnterTextForNewExerciseFragment
+import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.addExercise.EnterTextForNewExerciseFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext

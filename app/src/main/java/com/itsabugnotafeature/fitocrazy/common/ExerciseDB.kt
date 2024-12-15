@@ -1,7 +1,6 @@
 package com.itsabugnotafeature.fitocrazy.common
 
 import android.content.Context
-import android.util.Log
 import androidx.room.AutoMigration
 import androidx.room.ColumnInfo
 import androidx.room.Dao
@@ -18,10 +17,9 @@ import androidx.room.Query
 import androidx.room.Relation
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.Transaction
 import androidx.room.TypeConverters
 import androidx.room.Update
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.ExerciseListViewAdapter
+import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.ExerciseListViewAdapter
 import java.time.LocalDate
 import java.util.EnumSet
 import kotlin.math.max

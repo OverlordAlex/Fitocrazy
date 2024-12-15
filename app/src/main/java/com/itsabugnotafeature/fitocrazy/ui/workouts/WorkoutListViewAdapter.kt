@@ -1,4 +1,4 @@
-package com.itsabugnotafeature.fitocrazy.ui.home
+package com.itsabugnotafeature.fitocrazy.ui.workouts
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
@@ -22,16 +22,13 @@ import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.common.WorkoutRecordView
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity
+import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.WorkoutActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 

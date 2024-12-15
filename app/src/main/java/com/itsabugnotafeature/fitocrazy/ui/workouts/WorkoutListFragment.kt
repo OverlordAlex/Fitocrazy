@@ -1,18 +1,15 @@
-package com.itsabugnotafeature.fitocrazy.ui.home
+package com.itsabugnotafeature.fitocrazy.ui.workouts
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.database.DataSetObserver
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.Spinner
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
@@ -22,16 +19,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.AddSetNotificationManager
-import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
-import com.itsabugnotafeature.fitocrazy.ui.home.filter.SelectWorkoutTimeFilterFragment
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity
+import com.itsabugnotafeature.fitocrazy.ui.workouts.filter.SelectWorkoutTimeFilterFragment
+import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.WorkoutActivity
 import kotlinx.coroutines.runBlocking
-import java.time.Instant
-import java.time.LocalDate
-import java.time.Month
 import java.time.ZoneId
-import java.time.ZoneOffset
 
 
 class WorkoutListFragment : Fragment() {

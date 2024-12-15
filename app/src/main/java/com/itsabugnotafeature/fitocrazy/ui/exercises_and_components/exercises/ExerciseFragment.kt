@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.ExerciseModel
 import com.itsabugnotafeature.fitocrazy.common.SetRecordView
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity
+import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.addExercise.AddNewExerciseToWorkoutActivity
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 

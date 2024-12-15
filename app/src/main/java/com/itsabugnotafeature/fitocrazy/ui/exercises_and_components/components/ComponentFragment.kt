@@ -20,7 +20,7 @@ import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentModel
 import com.itsabugnotafeature.fitocrazy.common.ExerciseComponentType
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseModel
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.EnterTextForNewExerciseFragment
+import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.addExercise.EnterTextForNewExerciseFragment
 import kotlinx.coroutines.runBlocking
 
 class ComponentFragment(private val type: ExerciseComponentType?) : Fragment() {

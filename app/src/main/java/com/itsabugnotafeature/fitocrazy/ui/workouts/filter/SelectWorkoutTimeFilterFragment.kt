@@ -1,11 +1,10 @@
-package com.itsabugnotafeature.fitocrazy.ui.home.filter
+package com.itsabugnotafeature.fitocrazy.ui.workouts.filter
 
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager.LayoutParams
 import android.widget.NumberPicker
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment

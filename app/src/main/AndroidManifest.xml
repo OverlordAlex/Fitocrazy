@@ -25,7 +25,7 @@
         </activity>
 
         <activity
-            android:name=".ui.home.workout.WorkoutActivity"
+            android:name=".ui.workouts.workout.WorkoutActivity"
             android:exported="true"
             android:parentActivityName=".HomepageActivity"
             android:launchMode="singleTop"
@@ -33,9 +33,9 @@
             android:windowSoftInputMode="adjustPan" />
 
         <activity
-            android:name=".ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity"
+            android:name=".ui.workouts.workout.addExercise.AddNewExerciseToWorkoutActivity"
             android:exported="true"
-            android:parentActivityName=".ui.home.workout.WorkoutActivity"
+            android:parentActivityName=".ui.workouts.workout.WorkoutActivity"
             android:launchMode="standard" />
     </application>
 

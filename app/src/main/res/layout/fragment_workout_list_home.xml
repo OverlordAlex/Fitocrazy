@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/orange_accent_light"
-    tools:context=".ui.home.WorkoutListFragment">
+    tools:context=".ui.workouts.WorkoutListFragment">
 
     <TextView
         android:id="@+id/label_year"

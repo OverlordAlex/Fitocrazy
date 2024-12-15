@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/navigation_workoutList"
-        android:name="com.itsabugnotafeature.fitocrazy.ui.home.WorkoutListFragment"
+        android:name="com.itsabugnotafeature.fitocrazy.ui.workouts.WorkoutListFragment"
         android:label="@string/navigation_workout_list" />
 
     <fragment
@@ -18,7 +18,7 @@
 
     <fragment
         android:id="@+id/navigation_profile"
-        android:name="com.itsabugnotafeature.fitocrazy.ui.notifications.NotificationsFragment"
+        android:name="com.itsabugnotafeature.fitocrazy.ui.profile.Profile"
         android:label="@string/title_profile"
-        tools:layout="@layout/fragment_notifications" />
+        tools:layout="@layout/fragment_profile" />
 </navigation>

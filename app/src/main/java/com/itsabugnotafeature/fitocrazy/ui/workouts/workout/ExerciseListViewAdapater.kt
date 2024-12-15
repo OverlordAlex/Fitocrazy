@@ -1,4 +1,4 @@
-package com.itsabugnotafeature.fitocrazy.ui.home.workout
+package com.itsabugnotafeature.fitocrazy.ui.workouts.workout
 
 import android.content.Context
 import android.os.SystemClock
@@ -15,8 +15,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity.INPUT_METHOD_SERVICE
-import androidx.cardview.widget.CardView
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -31,8 +29,8 @@ import com.itsabugnotafeature.fitocrazy.common.RecordType
 import com.itsabugnotafeature.fitocrazy.common.Set
 import com.itsabugnotafeature.fitocrazy.common.SetRecordView
 import com.itsabugnotafeature.fitocrazy.common.Workout
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.ExerciseListViewAdapter.ExerciseView
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.WorkoutActivity.ExerciseNotification
+import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.ExerciseListViewAdapter.ExerciseView
+import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.WorkoutActivity.ExerciseNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext

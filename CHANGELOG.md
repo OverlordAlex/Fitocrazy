@@ -2,7 +2,7 @@
 - Playing around with label text (not going well) 
 - Added exercise name to charts
 - Removed horizontal 0-axis from graph
-- Sort new exercise suggestions by 
+- Sort new exercise suggestions by count
 
 
 # 11 Dec 2024 (Finally added set records) v5.0 (db v17)

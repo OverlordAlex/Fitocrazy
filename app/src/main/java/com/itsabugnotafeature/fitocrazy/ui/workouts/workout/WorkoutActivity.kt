@@ -1,4 +1,4 @@
-package com.itsabugnotafeature.fitocrazy.ui.home.workout
+package com.itsabugnotafeature.fitocrazy.ui.workouts.workout
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
-import android.util.Log
 import android.view.animation.AccelerateInterpolator
 import android.widget.Chronometer
 import android.widget.DatePicker
@@ -35,13 +34,11 @@ import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.AddSetNotificationManager
 import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.Set
-import com.itsabugnotafeature.fitocrazy.ui.home.workout.addExercise.AddNewExerciseToWorkoutActivity
+import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.addExercise.AddNewExerciseToWorkoutActivity
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalTime
 import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 class WorkoutActivity : AppCompatActivity() {
