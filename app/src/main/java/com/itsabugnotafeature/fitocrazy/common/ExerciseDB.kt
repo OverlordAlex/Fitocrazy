@@ -118,7 +118,8 @@ class Exercise(
             dirty = true
             field = value
         }
-    @ColumnInfo(defaultValue = "0.0") var recordsAchieved: EnumSet<RecordType>? = recordsAchieved
+    @ColumnInfo(defaultValue = "0.0")
+    var recordsAchieved: EnumSet<RecordType>? = recordsAchieved
         set(value: EnumSet<RecordType>?) {
             dirty = true
             field = value
@@ -126,8 +127,12 @@ class Exercise(
 
     fun addRecords(records: List<ExerciseRecord>) {
         if (records.isEmpty()) return
+        if (recordsAchieved == null) {
+            recordsAchieved = EnumSet.copyOf(records.map { it.recordType })
+        } else {
+            recordsAchieved?.addAll(records.map { it.recordType }) ?: {}
+        }
         dirty = true
-        recordsAchieved?.addAll(records.map { it.recordType }) ?: EnumSet.copyOf(records.map { it.recordType })
     }
 
     @Ignore
@@ -188,9 +193,11 @@ data class MostCommonExerciseView(
 
 @DatabaseView("SELECT DISTINCT strftime('%Y-%m', date / 1000, 'unixepoch') AS display FROM workout ORDER BY display DESC")
 class WorkoutDatesView {
-    @Ignore lateinit var month: String
+    @Ignore
+    lateinit var month: String
 
-    @Ignore lateinit var year: String
+    @Ignore
+    lateinit var year: String
 
     var display: String = ""
         get() = field
@@ -395,7 +402,11 @@ interface ExerciseDao {
     suspend fun deleteExercisesInWorkout(workoutId: Long)
 
     @Query("SELECT * FROM `Set` as s JOIN (SELECT * FROM Exercise ORDER BY date DESC) as E ON s.exerciseId=E.exerciseId WHERE E.exerciseModelId=:exerciseModelId AND workoutId in (SELECT workoutId FROM Exercise EX WHERE EX.exerciseModelId = :exerciseModelId AND EX.date < :excludeDate GROUP BY EX.workoutId ORDER BY EX.date DESC LIMIT :nSets)")
-    suspend fun getHistoricalSets(exerciseModelId: Long, nSets: Int = Int.MAX_VALUE, excludeDate: Long? = Long.MAX_VALUE): Map<Exercise, List<Set>>
+    suspend fun getHistoricalSets(
+        exerciseModelId: Long,
+        nSets: Int = Int.MAX_VALUE,
+        excludeDate: Long? = Long.MAX_VALUE
+    ): Map<Exercise, List<Set>>
 
     @Query("SELECT * FROM Exercise WHERE workoutId = :workoutId")
     suspend fun getListOfExerciseInWorkout(workoutId: Long): List<Exercise>

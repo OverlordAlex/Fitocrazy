@@ -1,9 +1,10 @@
-# 15 Dec 2024
+# 15 Dec 2024 (Weight tracking on profile page)
 - Playing around with label text (not going well) 
 - Added exercise name to charts
 - Removed horizontal 0-axis from graph
 - Sort new exercise suggestions by count
-
+- Added weight tracking to profile page, including a graph
+- BUG: Not getting awards at all??
 
 # 11 Dec 2024 (Finally added set records) v5.0 (db v17)
 - BUG: Screen recording of bodypart chips behaving weird on adding exercise - Bodypart chips in workout act weird - top exercise gets chips of second if second has a set added

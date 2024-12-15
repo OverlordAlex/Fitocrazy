@@ -26,7 +26,6 @@ import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -80,7 +79,12 @@ class Profile : Fragment() {
             override fun getFormattedValue(value: Float): String {
                 if ((value.toInt() < 0) || (value.toInt() >= recordingDates.size - 2)) return ""
 
-                return Converters.dateFormatter.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(recordingDates[value.toInt() + 1]), ZoneId.systemDefault()))
+                return Converters.dateFormatter.format(
+                    LocalDateTime.ofInstant(
+                        Instant.ofEpochMilli(recordingDates[value.toInt() + 1]),
+                        ZoneId.systemDefault()
+                    )
+                )
             }
         }
         xAxis.setDrawGridLines(false)
@@ -107,7 +111,7 @@ class Profile : Fragment() {
         dateLabel.text = Converters.dateFormatter.format(
             Instant.ofEpochMilli(Instant.now().toEpochMilli()).atZone(ZoneId.systemDefault())
         )
-        
+
         val chart = view.findViewById<CombinedChart>(R.id.chart_weightHistory)
 
         val btnEnterWeight = view.findViewById<Button>(R.id.btn_enterWeight)

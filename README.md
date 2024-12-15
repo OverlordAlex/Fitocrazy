@@ -2,17 +2,17 @@
 BUG: "enter" when creating a new exercise component does weird stuff (should trim+enter)
 BUG: adding first set is swallowed when rep edit text has focus (toast shows! inputs cleared) - related to achievements? worked on latest exercise but not earlier
 BUG: I have animations turned off... lol
-Bug: app not installed when starting from bottom bar icon
+[no longer triggers] Bug: app not installed when starting from bottom bar icon
 BUG: Search is not working
-BUG:  Not getting awards at all??
+
 
 
 # TODO
+- Removing a set shouldn't clear inputs (fixed at some point?)
 - build a workout by body parts
     - done by offering the next exercise based on past stats? (should I be copying workouts more)
 - suggest sets based on past experience
 - Failed weight can't be tracked
-- Removing a set shouldn't clear inputs
 - New award for most points?
 - Workouts should also shine if new records set
 - set records should use proper localisation and formatting

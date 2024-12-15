@@ -415,9 +415,9 @@ class ExerciseListViewAdapter(
             val mostWeight = itemView.findViewById<ImageView>(R.id.img_achievementMostWeight)
             val mostReps = itemView.findViewById<ImageView>(R.id.img_achievementMostReps)
             val mostMoved = itemView.findViewById<ImageView>(R.id.img_achievementMostMoved)
-            mostWeight.visibility = ImageView.GONE
-            mostReps.visibility = ImageView.GONE
-            mostMoved.visibility = ImageView.GONE
+            mostWeight.visibility = ImageView.INVISIBLE
+            mostReps.visibility = ImageView.INVISIBLE
+            mostMoved.visibility = ImageView.INVISIBLE
 
             currentExercise.exercise.recordsAchieved?.forEach {
                 when (it) {
@@ -430,6 +430,7 @@ class ExerciseListViewAdapter(
                     null -> TODO("Not implemented")
                 }
             }
+            //if (currentExercise.exercise.recordsAchieved?.isNotEmpty() == true) notifyItemChanged(adapterPosition)
 
             val weightEditText = itemView.findViewById<EditText>(R.id.numberEntry_addKilogramsToThisExercise)
             val lastSet = currentExercise.sets.lastOrNull()
@@ -459,7 +460,6 @@ class ExerciseListViewAdapter(
             val exerciseSetsScrollLayout = itemView.findViewById<LinearLayout>(R.id.layout_listOfSetsOnExerciseCard)
             exerciseSetsScrollLayout.removeAllViews()
 
-            //currentExercise.record.
             val recordListView = LayoutInflater.from(itemView.context).inflate(
                 R.layout.container_workout_exercise_set_list_horizontal, itemView.rootView as ViewGroup, false
             )
@@ -569,6 +569,7 @@ class ExerciseListViewAdapter(
                 runBlocking {
                     addSet(itemView.context, set)
                 }
+                if (!dataList[adapterPosition].exercise.recordsAchieved.isNullOrEmpty()) Log.i("TEST", "ADDED RECPRD")
                 //showNotification(true)
             }
         }
