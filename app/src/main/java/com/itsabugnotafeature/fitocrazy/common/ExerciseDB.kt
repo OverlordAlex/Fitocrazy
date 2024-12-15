@@ -305,6 +305,12 @@ data class Workout(
     }
 }
 
+@Entity
+data class BodyWeightRecord(
+    @PrimaryKey val timestamp: Long,
+    val weight: Double,
+)
+
 @Dao
 interface ExerciseDao {
 // do joins need @Transaction ?
@@ -426,18 +432,28 @@ interface ExerciseDao {
 
     @Query("SELECT * FROM WorkoutDatesView")
     suspend fun getMonthsPresentInData(): List<WorkoutDatesView>
+
+    @Insert
+    suspend fun addBodyWeightRecord(record: BodyWeightRecord)
+
+    @Query("SELECT * FROM BodyWeightRecord ORDER BY timestamp ASC")
+    suspend fun getBodyWeightRecords(): List<BodyWeightRecord>
+
+    @Query("DELETE FROM BodyWeightRecord WHERE timestamp = (SELECT MAX(timestamp) FROM BodyWeightRecord)")
+    suspend fun deleteLastBodyWeightRecord()
 }
 
 @Database(
-    entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class],
+    entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class, BodyWeightRecord::class],
     views = [SetRecordView::class, WorkoutRecordView::class, MostCommonExerciseView::class, WorkoutDatesView::class],
-    version = 17,
+    version = 18,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 13, to = 14),
         AutoMigration(from = 14, to = 15),
         AutoMigration(from = 15, to = 16),
         AutoMigration(from = 16, to = 17),
+        AutoMigration(from = 17, to = 18),
     ],
 )
 @TypeConverters(Converters::class)

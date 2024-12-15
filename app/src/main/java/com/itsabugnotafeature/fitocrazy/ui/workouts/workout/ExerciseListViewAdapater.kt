@@ -465,9 +465,9 @@ class ExerciseListViewAdapter(
             )
             val recordTypes = listOf("Weight", "Reps", "Moved").joinToString("\n")
             val recordValues = listOf(
-                currentExercise.record?.maxWeight,
-                currentExercise.record?.maxReps,
-                currentExercise.record?.mostWeightMoved
+                currentExercise.record?.maxWeight ?: "-",
+                currentExercise.record?.maxReps ?: "-",
+                currentExercise.record?.mostWeightMoved ?: "-"
             ).joinToString("\n")
             recordListView.findViewById<TextView>(R.id.label_setDate).text = "Records"
             recordListView.findViewById<TextView>(R.id.textlist_weightInSet).text = recordTypes

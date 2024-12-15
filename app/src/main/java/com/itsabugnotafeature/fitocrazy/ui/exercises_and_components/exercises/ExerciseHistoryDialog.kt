@@ -151,8 +151,7 @@ class ExerciseHistoryDialog(val exercise: ExerciseModel) : DialogFragment() {
         maxWeightData.lineWidth = 2f
         maxWeightData.setDrawValues(true)
         maxWeightData.axisDependency = YAxis.AxisDependency.LEFT
-        maxWeightData.mode = LineDataSet.Mode.LINEAR;
-        maxWeightData.iconsOffset
+        maxWeightData.mode = LineDataSet.Mode.LINEAR
 
         val lineData = LineData(maxWeightData)
         lineData.setValueTextSize(16f)
