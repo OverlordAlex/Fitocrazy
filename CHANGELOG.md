@@ -144,7 +144,7 @@ Presumed fixed:
 - cannot get achievements first time ever doing set
 - - dont show achievements on first instance of that exercise ever (no history)
 - - should achievements be per-row? or at least on the set card itself?
-- BUG: achievement icons overlapp with chips
+- BUG: achievement icons overlap with chips
 - BUG: points toast shows weird values
 - icon to indicate time can be paused
 

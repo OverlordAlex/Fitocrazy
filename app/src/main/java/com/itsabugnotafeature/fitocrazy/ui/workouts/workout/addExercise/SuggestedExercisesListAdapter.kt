@@ -18,7 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
-class SuggestedExercisesListAdapter() :
+class SuggestedExercisesListAdapter :
     RecyclerView.Adapter<SuggestedExercisesListAdapter.ViewHolder>(),
     DisplayListAdapter<MostCommonExerciseView> {
 

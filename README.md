@@ -6,8 +6,8 @@ BUG: I have animations turned off... lol
 BUG: Search is not working
 
 
-
 # TODO
+- Use quantity strings https://developer.android.com/guide/topics/resources/string-resource#Plurals
 - Removing a set shouldn't clear inputs (fixed at some point?)
 - build a workout by body parts
     - done by offering the next exercise based on past stats? (should I be copying workouts more)

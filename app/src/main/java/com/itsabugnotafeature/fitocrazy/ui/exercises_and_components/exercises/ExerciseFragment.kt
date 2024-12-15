@@ -43,7 +43,7 @@ class ExerciseFragment: Fragment() {
 
         val componentTypeLabel = view.findViewById<TextView>(R.id.label_componentType)
         componentTypeLabel.paintFlags = componentTypeLabel.paintFlags.or(Paint.UNDERLINE_TEXT_FLAG)
-        componentTypeLabel.text = "Exercises"
+        componentTypeLabel.text = requireContext().getString(R.string.navigation_exercise_and_components)
 
         val exerciseListView = view.findViewById<RecyclerView>(R.id.list_exerciseComponents)
 

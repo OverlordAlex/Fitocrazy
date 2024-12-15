@@ -343,7 +343,7 @@ class WorkoutActivity : AppCompatActivity() {
                     // start the timer fresh
                     setTimeTimer.base = SystemClock.elapsedRealtime()
                     setTimeTimer.setTextColor(applicationContext.getColor(R.color.black))
-                    setTimeTimer.stop() // stop it if it's running? might revist later based on experience
+                    setTimeTimer.stop() // stop it if it's running? might revisit later based on experience
                 }
             }
 

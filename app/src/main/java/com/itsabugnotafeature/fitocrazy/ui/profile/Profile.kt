@@ -36,7 +36,7 @@ class Profile : Fragment() {
             val db = ExerciseDatabase.getInstance(requireContext()).exerciseDao()
             db.getBodyWeightRecords()
         }
-        if (weightRecordings.isNullOrEmpty()) return
+        if (weightRecordings.isEmpty()) return
 
         val recordingDates = weightRecordings.map { it.timestamp }.toMutableList()
         val weights = weightRecordings.map { it.weight }

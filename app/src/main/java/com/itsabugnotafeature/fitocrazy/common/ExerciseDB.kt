@@ -109,18 +109,18 @@ class Exercise(
     recordsAchieved: EnumSet<RecordType>? = null
 ) : Comparable<Exercise> {
     var date: LocalDate = date
-        set(value: LocalDate) {
+        set(value) {
             dirty = true
             field = value
         }
     var order: Int = order
-        set(value: Int) {
+        set(value) {
             dirty = true
             field = value
         }
     @ColumnInfo(defaultValue = "0.0")
     var recordsAchieved: EnumSet<RecordType>? = recordsAchieved
-        set(value: EnumSet<RecordType>?) {
+        set(value) {
             dirty = true
             field = value
         }
@@ -200,8 +200,7 @@ class WorkoutDatesView {
     lateinit var year: String
 
     var display: String = ""
-        get() = field
-        set(value: String) {
+        set(value) {
             value.split("-").let {
                 year = it[0]
                 month = it[1]
@@ -250,7 +249,7 @@ data class Workout(
         fun calculatePoints(exercise: ExerciseListViewAdapter.ExerciseView): PointsResult {
             if (exercise.sets.isEmpty()) return PointsResult(0, emptyList())
 
-            var points: Double = 0.0
+            var points = 0.0
             val records: MutableList<ExerciseRecord> = mutableListOf()
 
             val maxWeightThisSet = exercise.sets.maxOf { it.weight }

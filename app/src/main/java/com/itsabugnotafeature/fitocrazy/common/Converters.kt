@@ -25,10 +25,10 @@ class Converters {
     @TypeConverter
     fun fromLong(value: Long?): EnumSet<RecordType> {
         if (value == null || value == 0L) return EnumSet.noneOf(RecordType::class.java)
-        var result = mutableListOf<RecordType>()
-        var bitflag = value ?: 0  // not required, except to make xor happy
+        val result = mutableListOf<RecordType>()
+        var bitflag = value  // not required, except to make xor happy
         while (bitflag != 0L) {
-            val ordinal = bitflag.takeLowestOneBit()
+            val ordinal = bitflag!!.takeLowestOneBit()
 
             result.add(RecordType.entries[ordinal.countTrailingZeroBits()])
             bitflag = bitflag.xor(ordinal)

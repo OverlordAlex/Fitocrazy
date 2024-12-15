@@ -282,6 +282,7 @@ class ExerciseListViewAdapter(
         addSetNotificationManager.showNotificationAgain(chronometerBase, chronometerRunning)
     }
 
+    @Suppress("SameParameterValue")
     private fun showNotification(chronometerRunning: Boolean = false) {
         val mostRecent = getMostRecentlyAdded()
 
@@ -455,6 +456,7 @@ class ExerciseListViewAdapter(
             val recordListView = LayoutInflater.from(itemView.context).inflate(
                 R.layout.container_workout_exercise_set_list_horizontal, itemView.rootView as ViewGroup, false
             )
+            // TODO: internationalisation of these
             val recordTypes = listOf("Weight", "Reps", "Moved").joinToString("\n")
             val recordValues = listOf(
                 currentExercise.record?.maxWeight ?: "-",

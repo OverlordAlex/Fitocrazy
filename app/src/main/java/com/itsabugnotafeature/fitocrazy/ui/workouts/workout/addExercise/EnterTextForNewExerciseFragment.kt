@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
 import android.widget.Button
 import android.widget.EditText
@@ -42,7 +41,7 @@ class EnterTextForNewExerciseFragment(
 
         editText.hint = hintForExerciseComponentType
         editText.requestFocus()
-        requireDialog().window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        requireDialog().window?.setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
 
         editText.doOnTextChanged { text, _, _, _ ->
             userInputtedString = text?.toString()

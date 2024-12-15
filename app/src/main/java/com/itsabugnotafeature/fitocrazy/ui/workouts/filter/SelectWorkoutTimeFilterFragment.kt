@@ -47,12 +47,7 @@ class SelectWorkoutTimeFilterFragment(private val dataList: List<String>, privat
             super.dismiss()
         }
 
-        override fun onCreate(savedInstanceState: Bundle?) {
-            super.onCreate(savedInstanceState)
-            //setStyle(STYLE_NO_TITLE, R.style.Dialog_NewExercise)
-        }
-
-        companion object {
+    companion object {
             const val TAG = "SelectWorkoutTimeFilterFragment_dialog"
         }
     }

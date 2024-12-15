@@ -11,7 +11,6 @@
     <string name="label_addExercise">Add exercise:</string>
     <string name="btn_add">+</string>
     <string name="btn_minus">-</string>
-    <string name="autocomplete_addExercise">select an existing exercise</string>
     <string name="label_enterNewExerciseComponentText">Create a new %1$s:</string>
     <string name="kilograms">KG</string>
     <string name="btn_removeLastSet">-</string>
@@ -38,7 +37,6 @@
     <string name="exercise_last_seen">Last seen: %1$s (%2$d days ago)</string>
     <string name="exercise_last_seen_today">Last seen: %1$s (today)</string>
     <string name="exercise_last_seen_never">[never done]</string>
-    <string name="btn_edit">Edit</string>
 
     <string name="title_profile">Profile</string>
     <string name="description_end_timing_of_workout">End timing of workout</string>
