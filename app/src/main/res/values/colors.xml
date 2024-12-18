@@ -11,6 +11,7 @@
     <color name="black">#000000</color>
 
     <color name="slate_dark">#2B3856</color>
+    <color name="grey_light">#FAFAFA</color>
 
     <color name="orange_gradient1">#FFBF78</color>
     <color name="orange_gradient2">#FFEEA9</color>
@@ -25,6 +26,9 @@
 
     <color name="blue_accent_light">#CCDEFF</color>
     <color name="blue_accent_lightest">#FAFCFF</color>
+
+    <color name="green_lightest">#F0FCF0</color>
+
 
 
 </resources>

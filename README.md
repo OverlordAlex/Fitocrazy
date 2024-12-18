@@ -4,11 +4,12 @@ BUG: adding first set is swallowed when rep edit text has focus (toast shows! in
 BUG: I have animations turned off... lol
 [no longer triggers] Bug: app not installed when starting from bottom bar icon
 BUG: Search is not working
+BUG: transitioning draw state clears edittexts
 
 
 # TODO
+- fail color should be applied to the specific line, not title
 - Use quantity strings https://developer.android.com/guide/topics/resources/string-resource#Plurals
-- Removing a set shouldn't clear inputs (fixed at some point?)
 - build a workout by body parts
     - done by offering the next exercise based on past stats? (should I be copying workouts more)
 - suggest sets based on past experience
@@ -18,7 +19,6 @@ BUG: Search is not working
 - set records should use proper localisation and formatting
 - add record type for "best set" which explains the most-moved record
 - be able to toggle sort most common exercises by date desc/asc
-- Exercise should change colour when it's ready to work again, and grey when super old and likely not being done
 - Calculation should be based more heavily on weight over reps
 - When going to old exercise and back, then should scroll to where it was clicked from in the list
 - add exercise to current workout from search in other list

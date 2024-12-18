@@ -1,7 +1,12 @@
 package com.itsabugnotafeature.fitocrazy.ui.workouts.workout
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
+import android.text.Editable
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +19,10 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity.INPUT_METHOD_SERVICE
+import androidx.cardview.widget.CardView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.widget.addTextChangedListener
+import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -31,6 +40,7 @@ import com.itsabugnotafeature.fitocrazy.common.Workout
 import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.ExerciseListViewAdapter.ExerciseView
 import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.WorkoutActivity.ExerciseNotification
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.time.Instant
@@ -48,8 +58,21 @@ class ExerciseListViewAdapter(
     override var displayList = emptyList<ExerciseView>().toMutableList()
     private var inReorderMode: Boolean = false
     private var lastAdded: ExerciseView? = null
+    private val taskHandler: Handler = Handler(Looper.getMainLooper())
 
     lateinit var workout: Workout
+
+    enum class DrawState {
+        READY,
+        RESTING,
+        IN_PROGRESS,
+        OLD
+    }
+
+    data class ExerciseInputCache(
+        var weight: String? = null,
+        var reps: String? = null,
+    )
 
     data class ExerciseView(
         val displayName: String?,
@@ -59,9 +82,21 @@ class ExerciseListViewAdapter(
         var record: SetRecordView?,
         val historicalSets: List<Pair<LocalDate, List<Set>>>,
         val basePoints: Int,
-    ) : Comparable<ExerciseView> {
+
+        var drawState: DrawState = DrawState.OLD,
+        var timerTasks: List<Runnable> = emptyList(),
+        var editTextValues: ExerciseInputCache = ExerciseInputCache()
+        
+        ) : Comparable<ExerciseView> {
         override fun compareTo(other: ExerciseView): Int {
             return this.exercise.order.compareTo(other.exercise.order)
+        }
+
+        fun lastSetIsFail(): Boolean {
+            if (sets.size < 2) return false
+
+            val lastTwo = sets.takeLast(2)
+            return (lastTwo.last().weight == lastTwo.first().weight) && (lastTwo.last().reps < lastTwo.first().reps)
         }
     }
 
@@ -209,6 +244,28 @@ class ExerciseListViewAdapter(
             exercise.record = db.getRecord(exercise.exercise.exerciseModelId)
         }
 
+        exercise.drawState = DrawState.RESTING
+        val readyToWorkTask = Runnable {
+            exercise.drawState = DrawState.READY
+            notifyItemChanged(idx)
+        }
+        val inProgressTask = Runnable {
+            exercise.drawState = DrawState.IN_PROGRESS
+            notifyItemChanged(idx)
+        }
+        val oldTask = Runnable {
+            exercise.drawState = DrawState.OLD
+            notifyItemChanged(idx)
+        }
+
+        // ready after 1 minute, assumed working after 2, old after 3.5
+        exercise.timerTasks.map { taskHandler.removeCallbacks(it) }
+        taskHandler.postDelayed(readyToWorkTask,60_000)
+        taskHandler.postDelayed(inProgressTask,120_000)
+        taskHandler.postDelayed(oldTask,210_000)
+        exercise.timerTasks = listOf(readyToWorkTask, inProgressTask, oldTask)
+        displayList[idx] = dataList[idx]
+
         updateWorkoutPoints()
         saveWorkout(context)
         saveExercises(context)
@@ -341,6 +398,7 @@ class ExerciseListViewAdapter(
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        @SuppressLint("ClickableViewAccessibility")
         fun bind(currentExercise: ExerciseView) {
             val exerciseNameOnCard = itemView.findViewById<TextView>(R.id.label_exerciseNameOnCard)
             exerciseNameOnCard.text =
@@ -423,28 +481,51 @@ class ExerciseListViewAdapter(
                     null -> TODO("Not implemented")
                 }
             }
-            //if (currentExercise.exercise.recordsAchieved?.isNotEmpty() == true) notifyItemChanged(adapterPosition)
 
             val weightEditText = itemView.findViewById<EditText>(R.id.numberEntry_addKilogramsToThisExercise)
-            val lastSet = currentExercise.sets.lastOrNull()
-            if (lastSet == null) {
+            weightEditText.setText(currentExercise.editTextValues.weight)
+            weightEditText.setOnTouchListener { _,_ ->
+                // clear text on touch
                 weightEditText.text = null
-            } else {
-                weightEditText.setText(Converters.formatDoubleWeight(lastSet.weight))
+                false
+            }
+            weightEditText.doOnTextChanged { text, start, before, count ->
+                if (!text.isNullOrEmpty()) {
+                    currentExercise.editTextValues.weight = Converters.formatDoubleWeight(weightEditText.text.toString().toDouble())
+                }
             }
             weightEditText.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) weightEditText.text = null  // clear text on focus
-                else if (weightEditText.text.toString().isNotEmpty()) {
+                if (hasFocus) {
+                    weightEditText.post {
+                        // wild that this required
+                        weightEditText.setSelection(weightEditText.text.length)
+                    }
+                } else if (weightEditText.text.toString().isNotEmpty()) {
                     // when losing focus, format text
                     weightEditText.setText(Converters.formatDoubleWeight(weightEditText.text.toString().toDouble()))
                 }
             }
 
             val repsEditText = itemView.findViewById<EditText>(R.id.numberEntry_addRepsToThisExercise)
-            repsEditText.setText(currentExercise.sets.lastOrNull()?.reps?.toString())
+            repsEditText.setText(currentExercise.editTextValues.reps)
+            repsEditText.setOnTouchListener { _,_ ->
+                // clear text on touch
+                repsEditText.text = null
+                false
+            }
+            repsEditText.doOnTextChanged { text, start, before, count ->
+                if (!text.isNullOrEmpty()) {
+                    currentExercise.editTextValues.reps = repsEditText.text.toString()
+                }
+            }
+
             repsEditText.setOnFocusChangeListener { _, hasFocus ->
-                if (hasFocus) repsEditText.text = null  // clear text on focus
-                else if (repsEditText.text.toString().isNotEmpty()) {
+                if (hasFocus) {
+                    repsEditText.post {
+                        // wild that this required
+                        repsEditText.setSelection(repsEditText.text.length)
+                    }
+                } else if (repsEditText.text.toString().isNotEmpty()) {
                     // when losing focus, format text
                     repsEditText.setText(repsEditText.text.toString().toInt().toString())
                 }
@@ -507,6 +588,11 @@ class ExerciseListViewAdapter(
                 setWeightString.appendLine("${Converters.formatDoubleWeight(set.weight)} x")
                 setRepsString.appendLine(set.reps)
             }
+            // set the color of the "today" if the last set failed (not permanent, not super useful TODO)
+            if (currentExercise.lastSetIsFail()) {
+                setListView.findViewById<TextView>(R.id.label_setDate).setTextColor(itemView.context.getColor(R.color.purple_accent))
+            }
+
             setWeightString.append("KG *")
             setListView.findViewById<TextView>(R.id.textlist_weightInSet).gravity = Gravity.END
             setListView.findViewById<TextView>(R.id.textlist_weightInSet).text = setWeightString
@@ -530,6 +616,33 @@ class ExerciseListViewAdapter(
             } else {
                 pointsChip.setChipBackgroundColorResource(R.color.blue_accent_lightest)
                 pointsChip.setTextColor(itemView.context.getColor(R.color.slate_dark))
+            }
+
+            if (currentExercise.sets.isEmpty()) {
+                currentExercise.drawState = DrawState.READY
+            }
+
+
+            val card = itemView.findViewById<CardView>(R.id.card_workoutRow)
+            val cardContents = itemView.findViewById<ConstraintLayout>(R.id.layout_workoutRowConstraint)
+
+            when (currentExercise.drawState) {
+                DrawState.RESTING -> {
+                    cardContents.setBackgroundColor(itemView.context.getColor(R.color.white))
+                    card.setCardBackgroundColor(itemView.context.getColor(R.color.white))
+                }
+                DrawState.READY -> {
+                    cardContents.setBackgroundColor(itemView.context.getColor(R.color.blue_accent_lightest))
+                    card.setCardBackgroundColor(itemView.context.getColor(R.color.blue_accent_lightest))
+                }
+                DrawState.IN_PROGRESS -> {
+                    cardContents.setBackgroundColor(itemView.context.getColor(R.color.orange_accent_light))
+                    card.setCardBackgroundColor(itemView.context.getColor(R.color.orange_accent_light))
+                }
+                DrawState.OLD -> {
+                    cardContents.setBackgroundColor(itemView.context.getColor(R.color.grey_light))
+                    card.setCardBackgroundColor(itemView.context.getColor(R.color.grey_light))
+                }
             }
 
             itemView.findViewById<Button>(R.id.btn_removeLastSetFromThisExercise).setOnClickListener {

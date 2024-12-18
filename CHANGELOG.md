@@ -1,3 +1,9 @@
+# 18 Dec 2024 (Set changes colors + save text inputs) v"5.0.18" (app 6, db 18)
+- Removing a set shouldn't clear inputs
+- Failed reps changes color of "today"
+- Exercise should change colour when it's ready to work again, and grey when super old and likely not being done
+
+
 # 15 Dec 2024 (Weight tracking on profile page)
 - Playing around with label text (not going well) 
 - Added exercise name to charts
@@ -5,6 +11,7 @@
 - Sort new exercise suggestions by count
 - Added weight tracking to profile page, including a graph
 - BUG: Not getting awards at all??
+
 
 # 11 Dec 2024 (Finally added set records) v5.0 (db v17)
 - BUG: Screen recording of bodypart chips behaving weird on adding exercise - Bodypart chips in workout act weird - top exercise gets chips of second if second has a set added
