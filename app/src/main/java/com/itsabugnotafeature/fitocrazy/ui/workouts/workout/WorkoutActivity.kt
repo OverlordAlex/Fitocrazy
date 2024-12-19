@@ -260,6 +260,7 @@ class WorkoutActivity : AppCompatActivity() {
         exerciseListViewLayoutManager.stackFromEnd = true
         exerciseListView.layoutManager = exerciseListViewLayoutManager
         exerciseListView.adapter = exerciseListViewAdapter
+        exerciseListView.scrollToPosition(exerciseListViewAdapter.getNextReadyExerciseIdx())
 
         broadcastReceiver = SetAddedBroadcastReceiver()
         val filter = IntentFilter(AddSetNotificationManager.NOTIFICATION_ACTION_COMPLETE_SET)

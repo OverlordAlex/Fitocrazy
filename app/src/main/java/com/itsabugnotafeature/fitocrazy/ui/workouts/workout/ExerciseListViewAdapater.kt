@@ -159,6 +159,10 @@ class ExerciseListViewAdapter(
 
     private fun getMostRecentlyAdded(): ExerciseView? = lastAdded ?: dataList.lastOrNull()
 
+    fun getNextReadyExerciseIdx(): Int {
+        return dataList.indexOfFirst { it.sets.isEmpty() }
+    }
+
     suspend fun updateExerciseDates(context: Context, newDate: LocalDate) {
         dataList.forEach { it.exercise.date = newDate }
         saveExercises(context)

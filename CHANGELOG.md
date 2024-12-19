@@ -1,4 +1,10 @@
-# 18 Dec 2024 (Set changes colors + save text inputs) v"5.0.18" (app 6, db 18)
+# 19 Dec 2024
+- Scroll to exercise in workout that's ready
+- Added weight trend line which uses last 5 values (but draws over whole graph)
+- BUG: adding new exercise text is see-through
+
+
+# 18 Dec 2024 (Set changes colors) v"6.0.18" (app 6, db 18)
 - Removing a set shouldn't clear inputs
 - Failed reps changes color of "today"
 - Exercise should change colour when it's ready to work again, and grey when super old and likely not being done

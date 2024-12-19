@@ -8,6 +8,7 @@ BUG: transitioning draw state clears edittexts
 
 
 # TODO
+- colors for resting and ready should be slightly more obvious 
 - fail color should be applied to the specific line, not title
 - Use quantity strings https://developer.android.com/guide/topics/resources/string-resource#Plurals
 - build a workout by body parts

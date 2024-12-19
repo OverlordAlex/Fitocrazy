@@ -3,6 +3,7 @@ package com.itsabugnotafeature.fitocrazy.ui.profile
 import android.content.Context
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,6 +29,7 @@ import kotlinx.coroutines.runBlocking
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import kotlin.math.pow
 
 class Profile : Fragment() {
 
@@ -64,9 +66,40 @@ class Profile : Fragment() {
             }
         })
 
+
+
+        if (weights.size > 2) {
+            val lastFiveWeights = weightDataSet.values.takeLast(5).toList()
+            // Calculations source: https://math.stackexchange.com/a/204021
+            val slope =
+                ((lastFiveWeights.size * lastFiveWeights.sumOf { it.x.toLong() * it.y.toLong() }) -
+                        (lastFiveWeights.sumOf { it.x.toLong() } * lastFiveWeights.sumOf { it.y.toLong() })) /
+                        ((lastFiveWeights.size * lastFiveWeights.sumOf { it.x.pow(2).toLong() }) -
+                                (lastFiveWeights.sumOf { it.x.toDouble() }.pow(2))
+                                )
+            val offset =
+                (lastFiveWeights.sumOf { it.y.toLong() } - slope * (lastFiveWeights.sumOf { it.x.toLong() })) / lastFiveWeights.size
+
+            val trendLineData = LineDataSet(
+                listOf(
+                    Entry(
+                        weightDataSet.values.first().x - 1,
+                        (lastFiveWeights.first().x * slope + offset).toFloat()
+                    ),
+                    Entry(
+                        lastFiveWeights.last().x + 1,
+                        (lastFiveWeights.last().x * slope + offset).toFloat()
+                    )
+                ), "trend"
+            )
+            //Log.i("TEXT", "${trendLineData.values[0]} :: ${trendLineData.values[1]}")
+            val trendLine = LineData(trendLineData)
+            trendLine.setDrawValues(false)
+            lineData.addDataSet(trendLineData)
+        }
+
         val combinedData = CombinedData()
         combinedData.setData(lineData)
-
         chart.data = combinedData
 
         val xAxis = chart.xAxis
