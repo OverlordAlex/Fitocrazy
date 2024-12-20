@@ -5,8 +5,6 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.text.Editable
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -21,7 +19,6 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity.INPUT_METHOD_SERVICE
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.widget.addTextChangedListener
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
@@ -86,8 +83,8 @@ class ExerciseListViewAdapter(
         var drawState: DrawState = DrawState.OLD,
         var timerTasks: List<Runnable> = emptyList(),
         var editTextValues: ExerciseInputCache = ExerciseInputCache()
-        
-        ) : Comparable<ExerciseView> {
+
+    ) : Comparable<ExerciseView> {
         override fun compareTo(other: ExerciseView): Int {
             return this.exercise.order.compareTo(other.exercise.order)
         }
@@ -264,9 +261,9 @@ class ExerciseListViewAdapter(
 
         // ready after 1 minute, assumed working after 2, old after 3.5
         exercise.timerTasks.map { taskHandler.removeCallbacks(it) }
-        taskHandler.postDelayed(readyToWorkTask,60_000)
-        taskHandler.postDelayed(inProgressTask,120_000)
-        taskHandler.postDelayed(oldTask,210_000)
+        taskHandler.postDelayed(readyToWorkTask, 60_000)
+        taskHandler.postDelayed(inProgressTask, 120_000)
+        taskHandler.postDelayed(oldTask, 210_000)
         exercise.timerTasks = listOf(readyToWorkTask, inProgressTask, oldTask)
         displayList[idx] = dataList[idx]
 
@@ -307,7 +304,6 @@ class ExerciseListViewAdapter(
             notifier.setRemoved(exercise, removedSet)
         }
     }
-
 
     private suspend fun saveExercises(context: Context) {
         val db = ExerciseDatabase.getInstance(context).exerciseDao()
@@ -402,30 +398,46 @@ class ExerciseListViewAdapter(
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val card = itemView.findViewById<CardView>(R.id.card_workoutRow)
+        private val cardContents = itemView.findViewById<ConstraintLayout>(R.id.layout_workoutRowConstraint)
+
+        private val btnMoveUp = itemView.findViewById<Button>(R.id.btn_moveSetUpInExercise)
+        private val btnMoveDown = itemView.findViewById<Button>(R.id.btn_moveSetDownInExercise)
+
+        private val pointsChip = itemView.findViewById<Chip>(R.id.chip_exercisePoints)
+        private var exerciseNameOnCard = itemView.findViewById<TextView>(R.id.label_exerciseNameOnCard)
+        private val bodyPartsChipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
+
+        private val exerciseSetsScrollLayout = itemView.findViewById<LinearLayout>(R.id.layout_listOfSetsOnExerciseCard)
+        private val listOfSetsScrollView = itemView.findViewById<HorizontalScrollView>(R.id.scrollview_listOfSetsOnExerciseCard)
+
+        private val mostWeightAchievementBadge = itemView.findViewById<ImageView>(R.id.img_achievementMostWeight)
+        private val mostRepsAchivementBadge = itemView.findViewById<ImageView>(R.id.img_achievementMostReps)
+        private val mostMovedAchivementBadge = itemView.findViewById<ImageView>(R.id.img_achievementMostMoved)
+
+        private val btnAddSet = itemView.findViewById<Button>(R.id.btn_addSetToThisExercise)
+        private val btnRemoveLastSet = itemView.findViewById<Button>(R.id.btn_removeLastSetFromThisExercise)
+        private val repsEditText = itemView.findViewById<EditText>(R.id.numberEntry_addRepsToThisExercise)
+        private val weightEditText = itemView.findViewById<EditText>(R.id.numberEntry_addKilogramsToThisExercise)
+        
         @SuppressLint("ClickableViewAccessibility")
         fun bind(currentExercise: ExerciseView) {
-            val exerciseNameOnCard = itemView.findViewById<TextView>(R.id.label_exerciseNameOnCard)
             exerciseNameOnCard.text =
                 currentExercise.displayName + if (currentExercise.sets.isEmpty()) "" else " [" + currentExercise.sets.size + "]"
             exerciseNameOnCard.isSelected = true  // required for marquee
 
-            val chipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
-            chipGroup.removeAllViews()
+            bodyPartsChipGroup.removeAllViews()
             currentExercise.tags.sorted().forEach { chipName ->
                 val newChip = Chip(itemView.context)
                 newChip.text = chipName
                 newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
-                chipGroup.addView(newChip)
+                bodyPartsChipGroup.addView(newChip)
             }
 
             val points = Workout.calculatePoints(currentExercise)
-            val pointsChip = itemView.findViewById<Chip>(R.id.chip_exercisePoints)
             pointsChip.text = points.points.toString()
 
             if (inReorderMode) {
-                val btnMoveUp = itemView.findViewById<Button>(R.id.btn_moveSetUpInExercise)
-                val btnMoveDown = itemView.findViewById<Button>(R.id.btn_moveSetDownInExercise)
-
                 when (adapterPosition) {
                     // it is laid out in reverse order, hence the end of the list is at the "top"
                     displayList.size - 1 -> {
@@ -450,7 +462,6 @@ class ExerciseListViewAdapter(
                     btnMoveDown.visibility = Button.INVISIBLE
                 }
 
-                // TODO: change ORDER and call re-order
                 btnMoveUp.setOnClickListener {
                     swapNext(adapterPosition)
                     runBlocking {
@@ -467,35 +478,32 @@ class ExerciseListViewAdapter(
                 return  // don't have to waste time rendering further
             }
 
-            val mostWeight = itemView.findViewById<ImageView>(R.id.img_achievementMostWeight)
-            val mostReps = itemView.findViewById<ImageView>(R.id.img_achievementMostReps)
-            val mostMoved = itemView.findViewById<ImageView>(R.id.img_achievementMostMoved)
-            mostWeight.visibility = ImageView.INVISIBLE
-            mostReps.visibility = ImageView.INVISIBLE
-            mostMoved.visibility = ImageView.INVISIBLE
+            mostWeightAchievementBadge.visibility = ImageView.INVISIBLE
+            mostRepsAchivementBadge.visibility = ImageView.INVISIBLE
+            mostMovedAchivementBadge.visibility = ImageView.INVISIBLE
 
             currentExercise.exercise.recordsAchieved?.forEach {
                 when (it) {
-                    RecordType.MAX_WEIGHT -> mostWeight.visibility = ImageView.VISIBLE
+                    RecordType.MAX_WEIGHT -> mostWeightAchievementBadge.visibility = ImageView.VISIBLE
 
-                    RecordType.MAX_REPS -> mostReps.visibility = ImageView.VISIBLE
+                    RecordType.MAX_REPS -> mostRepsAchivementBadge.visibility = ImageView.VISIBLE
 
-                    RecordType.MAX_WEIGHT_MOVED -> mostMoved.visibility = ImageView.VISIBLE
+                    RecordType.MAX_WEIGHT_MOVED -> mostMovedAchivementBadge.visibility = ImageView.VISIBLE
 
                     null -> TODO("Not implemented")
                 }
             }
 
-            val weightEditText = itemView.findViewById<EditText>(R.id.numberEntry_addKilogramsToThisExercise)
             weightEditText.setText(currentExercise.editTextValues.weight)
-            weightEditText.setOnTouchListener { _,_ ->
+            weightEditText.setOnTouchListener { _, _ ->
                 // clear text on touch
                 weightEditText.text = null
                 false
             }
             weightEditText.doOnTextChanged { text, start, before, count ->
                 if (!text.isNullOrEmpty()) {
-                    currentExercise.editTextValues.weight = Converters.formatDoubleWeight(weightEditText.text.toString().toDouble())
+                    currentExercise.editTextValues.weight =
+                        Converters.formatDoubleWeight(weightEditText.text.toString().toDouble())
                 }
             }
             weightEditText.setOnFocusChangeListener { _, hasFocus ->
@@ -510,9 +518,8 @@ class ExerciseListViewAdapter(
                 }
             }
 
-            val repsEditText = itemView.findViewById<EditText>(R.id.numberEntry_addRepsToThisExercise)
             repsEditText.setText(currentExercise.editTextValues.reps)
-            repsEditText.setOnTouchListener { _,_ ->
+            repsEditText.setOnTouchListener { _, _ ->
                 // clear text on touch
                 repsEditText.text = null
                 false
@@ -535,7 +542,6 @@ class ExerciseListViewAdapter(
                 }
             }
 
-            val exerciseSetsScrollLayout = itemView.findViewById<LinearLayout>(R.id.layout_listOfSetsOnExerciseCard)
             exerciseSetsScrollLayout.removeAllViews()
 
             val recordListView = LayoutInflater.from(itemView.context).inflate(
@@ -594,7 +600,8 @@ class ExerciseListViewAdapter(
             }
             // set the color of the "today" if the last set failed (not permanent, not super useful TODO)
             if (currentExercise.lastSetIsFail()) {
-                setListView.findViewById<TextView>(R.id.label_setDate).setTextColor(itemView.context.getColor(R.color.purple_accent))
+                setListView.findViewById<TextView>(R.id.label_setDate)
+                    .setTextColor(itemView.context.getColor(R.color.purple_accent))
             }
 
             setWeightString.append("KG *")
@@ -610,9 +617,7 @@ class ExerciseListViewAdapter(
             setListView.minimumWidth = 250  // TODO: 1/4 of screen width?
 
             exerciseSetsScrollLayout.addView(setListView)
-
-            val scrollView = itemView.findViewById<HorizontalScrollView>(R.id.scrollview_listOfSetsOnExerciseCard)
-            scrollView.post { scrollView.scrollX = setListView.left }
+            listOfSetsScrollView.post { listOfSetsScrollView.scrollX = setListView.left }
 
             if (currentExercise.historicalSets.isEmpty()) {
                 pointsChip.setChipBackgroundColorResource(R.color.blue_accent)
@@ -626,40 +631,38 @@ class ExerciseListViewAdapter(
                 currentExercise.drawState = DrawState.READY
             }
 
-
-            val card = itemView.findViewById<CardView>(R.id.card_workoutRow)
-            val cardContents = itemView.findViewById<ConstraintLayout>(R.id.layout_workoutRowConstraint)
-
             when (currentExercise.drawState) {
                 DrawState.RESTING -> {
                     cardContents.setBackgroundColor(itemView.context.getColor(R.color.white))
                     card.setCardBackgroundColor(itemView.context.getColor(R.color.white))
                 }
+
                 DrawState.READY -> {
                     cardContents.setBackgroundColor(itemView.context.getColor(R.color.blue_accent_lightest))
                     card.setCardBackgroundColor(itemView.context.getColor(R.color.blue_accent_lightest))
                 }
+
                 DrawState.IN_PROGRESS -> {
                     cardContents.setBackgroundColor(itemView.context.getColor(R.color.orange_accent_light))
                     card.setCardBackgroundColor(itemView.context.getColor(R.color.orange_accent_light))
                 }
+
                 DrawState.OLD -> {
                     cardContents.setBackgroundColor(itemView.context.getColor(R.color.grey_light))
                     card.setCardBackgroundColor(itemView.context.getColor(R.color.grey_light))
                 }
             }
 
-            itemView.findViewById<Button>(R.id.btn_removeLastSetFromThisExercise).setOnClickListener {
+            btnRemoveLastSet.setOnClickListener {
                 val imm = itemView.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(itemView.windowToken, 0)
 
                 runBlocking {
                     deleteLastSet(itemView.context, adapterPosition)
                 }
-                //showNotification()
             }
 
-            itemView.findViewById<Button>(R.id.btn_addSetToThisExercise).setOnClickListener {
+            btnAddSet.setOnClickListener {
                 val imm = itemView.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(itemView.windowToken, 0)
                 itemView.clearFocus()
@@ -679,11 +682,11 @@ class ExerciseListViewAdapter(
                 runBlocking {
                     addSet(itemView.context, set)
                 }
-                //showNotification(true)
             }
         }
     }
 
+    // We always have a suggestion box
     override fun getItemCount() = displayList.size
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
