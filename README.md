@@ -4,7 +4,7 @@ BUG: adding first set is swallowed when rep edit text has focus (toast shows! in
 BUG: I have animations turned off... lol
 [no longer triggers] Bug: app not installed when starting from bottom bar icon
 BUG: Search is not working
-BUG: transitioning draw state clears edittexts
+
 
 
 # TODO

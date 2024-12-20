@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -69,6 +70,7 @@ class ExerciseListViewAdapter(
     data class ExerciseInputCache(
         var weight: String? = null,
         var reps: String? = null,
+        var order: Int? = null,
     )
 
     data class ExerciseView(
@@ -259,11 +261,16 @@ class ExerciseListViewAdapter(
             notifyItemChanged(idx)
         }
 
+        exercise.editTextValues = ExerciseInputCache(Converters.formatDoubleWeight(set.weight.toString().toDouble()), set.reps.toString(), -1)
+
         // ready after 1 minute, assumed working after 2, old after 3.5
         exercise.timerTasks.map { taskHandler.removeCallbacks(it) }
-        taskHandler.postDelayed(readyToWorkTask, 60_000)
-        taskHandler.postDelayed(inProgressTask, 120_000)
-        taskHandler.postDelayed(oldTask, 210_000)
+//        taskHandler.postDelayed(readyToWorkTask, 60_000)
+//        taskHandler.postDelayed(inProgressTask, 120_000)
+//        taskHandler.postDelayed(oldTask, 210_000)
+        taskHandler.postDelayed(readyToWorkTask, 5_000)
+        taskHandler.postDelayed(inProgressTask, 10_000)
+        taskHandler.postDelayed(oldTask, 15_000)
         exercise.timerTasks = listOf(readyToWorkTask, inProgressTask, oldTask)
         displayList[idx] = dataList[idx]
 
@@ -303,6 +310,14 @@ class ExerciseListViewAdapter(
             notifyItemChanged(position)
             notifier.setRemoved(exercise, removedSet)
         }
+    }
+
+    fun saveWeightAndRepsEditTexts(exerciseId: Long, weight: String?, reps: String?) {
+        val idx = dataList.indexOfFirst { it.exercise.exerciseId == exerciseId }
+        val exercise = dataList[idx]
+        exercise.editTextValues.weight = weight ?: exercise.editTextValues.weight
+        exercise.editTextValues.reps = reps ?: exercise.editTextValues.reps
+        displayList[idx] = dataList[idx]
     }
 
     private suspend fun saveExercises(context: Context) {
@@ -419,7 +434,7 @@ class ExerciseListViewAdapter(
         private val btnRemoveLastSet = itemView.findViewById<Button>(R.id.btn_removeLastSetFromThisExercise)
         private val repsEditText = itemView.findViewById<EditText>(R.id.numberEntry_addRepsToThisExercise)
         private val weightEditText = itemView.findViewById<EditText>(R.id.numberEntry_addKilogramsToThisExercise)
-        
+
         @SuppressLint("ClickableViewAccessibility")
         fun bind(currentExercise: ExerciseView) {
             exerciseNameOnCard.text =
@@ -502,8 +517,9 @@ class ExerciseListViewAdapter(
             }
             weightEditText.doOnTextChanged { text, start, before, count ->
                 if (!text.isNullOrEmpty()) {
-                    currentExercise.editTextValues.weight =
+                    dataList[adapterPosition].editTextValues.weight =
                         Converters.formatDoubleWeight(weightEditText.text.toString().toDouble())
+                    dataList[adapterPosition].editTextValues.order = adapterPosition
                 }
             }
             weightEditText.setOnFocusChangeListener { _, hasFocus ->
@@ -518,15 +534,22 @@ class ExerciseListViewAdapter(
                 }
             }
 
+            if (currentExercise.editTextValues.order != adapterPosition) {
+                Log.i("TEST", "ORDER MISMATCH ${currentExercise.editTextValues} vs actual $adapterPosition")
+            } else {
+                Log.i("TEST", "all good ${currentExercise.editTextValues} vs actual $adapterPosition")
+
+            }
             repsEditText.setText(currentExercise.editTextValues.reps)
             repsEditText.setOnTouchListener { _, _ ->
                 // clear text on touch
                 repsEditText.text = null
                 false
             }
-            repsEditText.doOnTextChanged { text, start, before, count ->
+            repsEditText.doOnTextChanged { text, _, _, _ ->
                 if (!text.isNullOrEmpty()) {
-                    currentExercise.editTextValues.reps = repsEditText.text.toString()
+                    dataList[adapterPosition].editTextValues.reps = repsEditText.text.toString()
+                    dataList[adapterPosition].editTextValues.order = adapterPosition
                 }
             }
 
@@ -575,7 +598,6 @@ class ExerciseListViewAdapter(
 
                 setListView.findViewById<TextView>(R.id.textlist_weightInSet).text = setWeightString
                 setListView.findViewById<TextView>(R.id.textlist_repsInSet).text = setRepsString
-                //setListView.layoutParams = LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1.0F)
                 exerciseSetsScrollLayout.addView(setListView)
             }
 
@@ -608,12 +630,6 @@ class ExerciseListViewAdapter(
             setListView.findViewById<TextView>(R.id.textlist_weightInSet).gravity = Gravity.END
             setListView.findViewById<TextView>(R.id.textlist_weightInSet).text = setWeightString
             setListView.findViewById<TextView>(R.id.textlist_repsInSet).text = setRepsString
-
-            //setListView.minimumWidth = (itemView.rootView.screen * 0.3).toInt()
-            //val constraintSet = ConstraintSet()
-            //constraintSet.constrainPercentWidth(setListView.id, 0.3F)
-            //exerciseSetsScrollLayout.width
-            //setListView.layoutParams = LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1.0F)
             setListView.minimumWidth = 250  // TODO: 1/4 of screen width?
 
             exerciseSetsScrollLayout.addView(setListView)

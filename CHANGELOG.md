@@ -2,6 +2,8 @@
 - Scroll to exercise in workout that's ready
 - Added weight trend line which uses last 5 values (but draws over whole graph)
 - BUG: adding new exercise text is see-through
+- Cache ViewIDs for list of exercises in workout
+- BUG: transitioning draw state clears edittexts
 
 
 # 18 Dec 2024 (Set changes colors) v"6.0.18" (app 6, db 18)
