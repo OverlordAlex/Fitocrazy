@@ -103,7 +103,6 @@ class WorkoutActivity : AppCompatActivity() {
         totalRepsLabel.text = exerciseListViewAdapter.workout.totalReps.toString()
         totalPointsLabel.text = exerciseListViewAdapter.workout.totalPoints.toString()
 
-        val labelForEmptyExerciseList = findViewById<TextView>(R.id.label_startWorkoutAddExercise)
         val totalTimeTimer = findViewById<Chronometer>(R.id.timer_totalTime)
 
         // TODO fix timer
@@ -122,8 +121,8 @@ class WorkoutActivity : AppCompatActivity() {
         exerciseListView.adapter = exerciseListViewAdapter
 
         if (exerciseListViewAdapter.itemCount == 0) {
+            // TODO this used to be a clickable label, it should instead be the new suggestion box?
             exerciseListView.visibility = RecyclerView.INVISIBLE
-            labelForEmptyExerciseList.visibility = TextView.VISIBLE
         }
     }
 
@@ -189,7 +188,6 @@ class WorkoutActivity : AppCompatActivity() {
             }
         }
 
-        val labelForEmptyExerciseList = findViewById<TextView>(R.id.label_startWorkoutAddExercise)
         val totalWeightLabel = findViewById<TextView>(R.id.totalWeightValue)
         val totalRepsLabel = findViewById<TextView>(R.id.totalRepsValue)
         val totalPointsLabel = findViewById<TextView>(R.id.totalPointsValue)
@@ -270,8 +268,8 @@ class WorkoutActivity : AppCompatActivity() {
 
             override fun exerciseDeleted() {
                 if (exerciseListViewAdapter.itemCount == 0) {
+                    // TODO label was also here
                     exerciseListView.visibility = RecyclerView.INVISIBLE
-                    labelForEmptyExerciseList.visibility = TextView.VISIBLE
                 }
                 updateExerciseSuggestions()
             }
@@ -380,7 +378,7 @@ class WorkoutActivity : AppCompatActivity() {
                     }
                     //exerciseListViewAdapter.showNotification()
                     exerciseListView.visibility = RecyclerView.VISIBLE
-                    labelForEmptyExerciseList.visibility = TextView.GONE
+                    // TODO label was also here
 
                     // start the timer fresh
                     setTimeTimer.base = SystemClock.elapsedRealtime()
@@ -398,13 +396,6 @@ class WorkoutActivity : AppCompatActivity() {
                     .putExtra(
                         "currentExercisesInWorkout", exerciseListViewAdapter.currentExerciseIds().toLongArray()
                     )
-            )
-        }
-        labelForEmptyExerciseList.setOnClickListener {
-            addExerciseResult.launch(
-                Intent(this, AddNewExerciseToWorkoutActivity::class.java)
-                    .setAction("addNewExerciseFromWorkout")
-                    .putExtra("workoutId", exerciseListViewAdapter.workout.workoutId)
             )
         }
 
