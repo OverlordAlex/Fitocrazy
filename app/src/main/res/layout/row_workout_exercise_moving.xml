@@ -10,7 +10,7 @@
     app:cardCornerRadius="20dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layout_workoutRowConstraint"
+        android:id="@+id/layout_suggestedNextExercises"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="2dp"

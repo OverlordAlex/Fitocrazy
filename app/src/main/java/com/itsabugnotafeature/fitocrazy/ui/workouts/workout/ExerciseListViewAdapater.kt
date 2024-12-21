@@ -5,7 +5,6 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -30,6 +29,7 @@ import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.DisplayListAdapter
 import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
+import com.itsabugnotafeature.fitocrazy.common.ExerciseModel
 import com.itsabugnotafeature.fitocrazy.common.ExerciseWithComponentModel
 import com.itsabugnotafeature.fitocrazy.common.RecordType
 import com.itsabugnotafeature.fitocrazy.common.Set
@@ -46,6 +46,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.EnumSet
+import kotlin.math.min
 
 // the parent list of exercises in a workout
 class ExerciseListViewAdapter(
@@ -54,6 +55,7 @@ class ExerciseListViewAdapter(
 ) : RecyclerView.Adapter<ExerciseListViewAdapter.ViewHolder>(), DisplayListAdapter<ExerciseView> {
     override var dataList = emptyList<ExerciseView>().toMutableList()
     override var displayList = emptyList<ExerciseView>().toMutableList()
+    private var suggestedExercisePerOrderPosition = emptyList<MutableList<ExerciseModel>>()
     private var inReorderMode: Boolean = false
     private var lastAdded: ExerciseView? = null
     private val taskHandler: Handler = Handler(Looper.getMainLooper())
@@ -132,6 +134,13 @@ class ExerciseListViewAdapter(
                     basePoints = thisExerciseModel.exercise.basePoints,
                 )
             }.sorted().toMutableList()
+
+            suggestedExercisePerOrderPosition = db.getExercisesWithOrders().map {
+                // count is used in SQL for ordering, returned as convenience
+                it.getCountPerExercise().map { (exerciseId, count) ->
+                    db.getExerciseDetails(exerciseId)!!.exercise
+                }.toMutableList()
+            }
         }
         displayList.addAll(dataList)
         notifyItemRangeInserted(0, displayList.size)
@@ -261,7 +270,8 @@ class ExerciseListViewAdapter(
             notifyItemChanged(idx)
         }
 
-        exercise.editTextValues = ExerciseInputCache(Converters.formatDoubleWeight(set.weight.toString().toDouble()), set.reps.toString(), -1)
+        exercise.editTextValues =
+            ExerciseInputCache(Converters.formatDoubleWeight(set.weight.toString().toDouble()), set.reps.toString(), -1)
 
         // ready after 1 minute, assumed working after 2, old after 3.5
         exercise.timerTasks.map { taskHandler.removeCallbacks(it) }
@@ -312,12 +322,32 @@ class ExerciseListViewAdapter(
         }
     }
 
-    fun saveWeightAndRepsEditTexts(exerciseId: Long, weight: String?, reps: String?) {
-        val idx = dataList.indexOfFirst { it.exercise.exerciseId == exerciseId }
-        val exercise = dataList[idx]
-        exercise.editTextValues.weight = weight ?: exercise.editTextValues.weight
-        exercise.editTextValues.reps = reps ?: exercise.editTextValues.reps
-        displayList[idx] = dataList[idx]
+    fun getSuggestedNextExercises(): List<ExerciseModel> {
+        // TODO: update list when item added or removed to datalist
+        val existingExercises = dataList.map { it.exercise.exerciseId }
+        val possibleSuggestions =
+            suggestedExercisePerOrderPosition
+                .map { it.filter { exerciseModel -> exerciseModel.exerciseId !in existingExercises } }
+                .toMutableList()
+        val position = min(itemCount, suggestedExercisePerOrderPosition.size) // for which position we are suggesting
+
+        val suggestions = possibleSuggestions
+            .subList(position, possibleSuggestions.size)
+            .flatten()
+            .toSet()
+            .take(3).toMutableList()
+        if (suggestions.size < 3) {
+            suggestions.addAll(
+                possibleSuggestions.subList(0, position)
+                    .reversed()
+                    .flatten()
+                    .toSet()
+                    .filter { it !in suggestions }
+                    .take(3 - suggestions.size)
+            )
+        }
+
+        return suggestions
     }
 
     private suspend fun saveExercises(context: Context) {
@@ -414,7 +444,7 @@ class ExerciseListViewAdapter(
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val card = itemView.findViewById<CardView>(R.id.card_workoutRow)
-        private val cardContents = itemView.findViewById<ConstraintLayout>(R.id.layout_workoutRowConstraint)
+        private val cardContents = itemView.findViewById<ConstraintLayout>(R.id.layout_suggestedNextExercises)
 
         private val btnMoveUp = itemView.findViewById<Button>(R.id.btn_moveSetUpInExercise)
         private val btnMoveDown = itemView.findViewById<Button>(R.id.btn_moveSetDownInExercise)
@@ -424,7 +454,8 @@ class ExerciseListViewAdapter(
         private val bodyPartsChipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
 
         private val exerciseSetsScrollLayout = itemView.findViewById<LinearLayout>(R.id.layout_listOfSetsOnExerciseCard)
-        private val listOfSetsScrollView = itemView.findViewById<HorizontalScrollView>(R.id.scrollview_listOfSetsOnExerciseCard)
+        private val listOfSetsScrollView =
+            itemView.findViewById<HorizontalScrollView>(R.id.scrollview_listOfSetsOnExerciseCard)
 
         private val mostWeightAchievementBadge = itemView.findViewById<ImageView>(R.id.img_achievementMostWeight)
         private val mostRepsAchivementBadge = itemView.findViewById<ImageView>(R.id.img_achievementMostReps)
@@ -515,8 +546,9 @@ class ExerciseListViewAdapter(
                 weightEditText.text = null
                 false
             }
-            weightEditText.doOnTextChanged { text, start, before, count ->
+            weightEditText.doOnTextChanged { text, _, _, _ ->
                 if (!text.isNullOrEmpty()) {
+                    // TODO: why datalist? and why doesnt it work in a method?
                     dataList[adapterPosition].editTextValues.weight =
                         Converters.formatDoubleWeight(weightEditText.text.toString().toDouble())
                     dataList[adapterPosition].editTextValues.order = adapterPosition
@@ -534,12 +566,6 @@ class ExerciseListViewAdapter(
                 }
             }
 
-            if (currentExercise.editTextValues.order != adapterPosition) {
-                Log.i("TEST", "ORDER MISMATCH ${currentExercise.editTextValues} vs actual $adapterPosition")
-            } else {
-                Log.i("TEST", "all good ${currentExercise.editTextValues} vs actual $adapterPosition")
-
-            }
             repsEditText.setText(currentExercise.editTextValues.reps)
             repsEditText.setOnTouchListener { _, _ ->
                 // clear text on touch
@@ -702,7 +728,7 @@ class ExerciseListViewAdapter(
         }
     }
 
-    // We always have a suggestion box
+    // We always have a suggestion box, hence + 1
     override fun getItemCount() = displayList.size
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

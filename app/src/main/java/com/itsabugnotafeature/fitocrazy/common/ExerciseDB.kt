@@ -37,6 +37,15 @@ enum class RecordType {
 
 data class ExerciseRecord(val oldBest: Number, val newBest: Number, val recordType: RecordType)
 data class PointsResult(val points: Int, val records: List<ExerciseRecord>)
+data class MostCommonExercisesAtWorkoutPosition(val order:Int, val exerciseIds: String, val counts: String) {
+    // TODO: could this be done with getters and setters?
+    private fun getExerciseIds() = exerciseIds.split(",").map { it.toLong() }
+    private fun getCounts() = counts.split(",").map { it.toInt() }
+    fun getCountPerExercise(): List<Pair<Long, Int>> {
+        val countCache = getCounts()
+        return getExerciseIds().mapIndexed { index, item -> Pair(item, countCache[index]) }
+    }
+}
 
 @Entity
 data class ExerciseComponentModel(
@@ -450,6 +459,11 @@ interface ExerciseDao {
 
     @Query("DELETE FROM BodyWeightRecord WHERE timestamp = (SELECT MAX(timestamp) FROM BodyWeightRecord)")
     suspend fun deleteLastBodyWeightRecord()
+
+
+    @Query("select `order`, group_concat(IDs) as exerciseIds, group_concat(Count) as counts  from (select  `order`, group_concat(distinct exerciseModelId) as IDs , count(exerciseModelId) as Count from Exercise E group by `order`, exerciseModelId order by Count desc)  group by `order` ")
+    suspend fun getExercisesWithOrders(): List<MostCommonExercisesAtWorkoutPosition>
+
 }
 
 @Database(

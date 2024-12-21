@@ -10,9 +10,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.widget.Chronometer
 import android.widget.DatePicker
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -29,6 +33,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.AddSetNotificationManager
@@ -253,6 +259,25 @@ class WorkoutActivity : AppCompatActivity() {
                 applicationContext,
                 mapOf("workoutId" to intent.getLongExtra("workoutId", -1))
             )
+            val suggestedExercises = exerciseListViewAdapter.getSuggestedNextExercises()
+            val suggestionsLayout = findViewById<LinearLayout>(R.id.layout_listSuggestedNextExercises)
+
+            for (exercise in suggestedExercises) {
+                val suggestedExerciseView = LayoutInflater.from(suggestionsLayout.context).inflate(
+                    R.layout.container_workout_exercise_suggestion_next, suggestionsLayout, false
+                )
+                suggestedExerciseView.findViewById<TextView>(R.id.label_exerciseNameOnCard).text = exercise.displayName
+                val chipGroup = suggestedExerciseView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
+                exercise.bodyPartChips?.split(" ")?.forEach { chipName ->
+                    val newChip = Chip(suggestedExerciseView.context)
+                    newChip.text = chipName
+                    newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
+                    chipGroup.addView(newChip)
+                }
+
+                suggestionsLayout.addView(suggestedExerciseView)
+                Log.i("TEST", "added $exercise")
+            }
         }
 
         // exerciseListView.itemAnimator = null
