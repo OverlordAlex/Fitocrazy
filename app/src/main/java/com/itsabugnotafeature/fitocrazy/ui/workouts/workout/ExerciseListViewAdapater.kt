@@ -147,6 +147,7 @@ class ExerciseListViewAdapter(
         lastAdded = displayList.lastOrNull()
 
         showNotification()
+        notifier.dataLoaded()
     }
 
     override fun filterDataList(filter: String): List<ExerciseView> {
@@ -213,6 +214,7 @@ class ExerciseListViewAdapter(
             workout.totalExercises = itemCount
             saveWorkout(context)
         }
+        notifier.exerciseAdded()
     }
 
     private suspend fun deleteExercise(context: Context, position: Int) {
@@ -324,7 +326,8 @@ class ExerciseListViewAdapter(
 
     fun getSuggestedNextExercises(): List<ExerciseModel> {
         // TODO: update list when item added or removed to datalist
-        val existingExercises = dataList.map { it.exercise.exerciseId }
+
+        val existingExercises = currentExerciseIds()
         val possibleSuggestions =
             suggestedExercisePerOrderPosition
                 .map { it.filter { exerciseModel -> exerciseModel.exerciseId !in existingExercises } }

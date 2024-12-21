@@ -56,9 +56,12 @@ class WorkoutActivity : AppCompatActivity() {
     private var broadcastReceiver: BroadcastReceiver? = null
 
     interface ExerciseNotification {
+        // TODO: why is this an interface?
         fun setAdded(exercise: ExerciseListViewAdapter.ExerciseView, set: Set)
         fun setRemoved(exercise: ExerciseListViewAdapter.ExerciseView, set: Set)
         fun exerciseDeleted()
+        fun exerciseAdded()
+        fun dataLoaded() // onDataLoaded?
     }
 
     /*override fun onPause() {
@@ -212,6 +215,29 @@ class WorkoutActivity : AppCompatActivity() {
         val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
 
         class Notifier : ExerciseNotification {
+            fun updateExerciseSuggestions() {
+                val suggestedExercises = exerciseListViewAdapter.getSuggestedNextExercises()
+                val suggestionsLayout = findViewById<LinearLayout>(R.id.layout_listSuggestedNextExercises)
+                suggestionsLayout.removeAllViews()
+
+                for (exercise in suggestedExercises) {
+                    val suggestedExerciseView = LayoutInflater.from(suggestionsLayout.context).inflate(
+                        R.layout.container_workout_exercise_suggestion_next, suggestionsLayout, false
+                    )
+                    suggestedExerciseView.findViewById<TextView>(R.id.label_exerciseNameOnCard).text = exercise.displayName
+                    val chipGroup = suggestedExerciseView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
+                    exercise.bodyPartChips?.split(" ")?.forEach { chipName ->
+                        val newChip = Chip(suggestedExerciseView.context)
+                        newChip.text = chipName
+                        newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
+                        chipGroup.addView(newChip)
+                    }
+
+                    suggestionsLayout.addView(suggestedExerciseView)
+                    //TODO Log.i("TEST", "added $exercise")
+                }
+            }
+
             override fun setAdded(exercise: ExerciseListViewAdapter.ExerciseView, set: Set) {
                 totalWeightLabel.text = exerciseListViewAdapter.workout.totalWeight.toString()
                 totalRepsLabel.text = exerciseListViewAdapter.workout.totalReps.toString()
@@ -247,6 +273,15 @@ class WorkoutActivity : AppCompatActivity() {
                     exerciseListView.visibility = RecyclerView.INVISIBLE
                     labelForEmptyExerciseList.visibility = TextView.VISIBLE
                 }
+                updateExerciseSuggestions()
+            }
+
+            override fun exerciseAdded() {
+                updateExerciseSuggestions()
+            }
+
+            override fun dataLoaded() {
+                updateExerciseSuggestions()
             }
         }
 
@@ -259,25 +294,6 @@ class WorkoutActivity : AppCompatActivity() {
                 applicationContext,
                 mapOf("workoutId" to intent.getLongExtra("workoutId", -1))
             )
-            val suggestedExercises = exerciseListViewAdapter.getSuggestedNextExercises()
-            val suggestionsLayout = findViewById<LinearLayout>(R.id.layout_listSuggestedNextExercises)
-
-            for (exercise in suggestedExercises) {
-                val suggestedExerciseView = LayoutInflater.from(suggestionsLayout.context).inflate(
-                    R.layout.container_workout_exercise_suggestion_next, suggestionsLayout, false
-                )
-                suggestedExerciseView.findViewById<TextView>(R.id.label_exerciseNameOnCard).text = exercise.displayName
-                val chipGroup = suggestedExerciseView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
-                exercise.bodyPartChips?.split(" ")?.forEach { chipName ->
-                    val newChip = Chip(suggestedExerciseView.context)
-                    newChip.text = chipName
-                    newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
-                    chipGroup.addView(newChip)
-                }
-
-                suggestionsLayout.addView(suggestedExerciseView)
-                Log.i("TEST", "added $exercise")
-            }
         }
 
         // exerciseListView.itemAnimator = null

@@ -1,3 +1,7 @@
+# 21 Dec 2024
+- Added section to suggest next exercises
+
+
 # 19 Dec 2024
 - Scroll to exercise in workout that's ready
 - Added weight trend line which uses last 5 values (but draws over whole graph)
