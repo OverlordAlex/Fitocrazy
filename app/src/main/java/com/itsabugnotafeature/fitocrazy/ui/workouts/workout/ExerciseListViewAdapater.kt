@@ -325,12 +325,19 @@ class ExerciseListViewAdapter(
     }
 
     fun getSuggestedNextExercises(): List<ExerciseModel> {
-        // TODO: update list when item added or removed to datalist
-
         val existingExercises = currentExerciseIds()
+        val lastExerciseBodyPartChips = lastAdded?.tags ?: emptyList()
         val possibleSuggestions =
             suggestedExercisePerOrderPosition
-                .map { it.filter { exerciseModel -> exerciseModel.exerciseId !in existingExercises } }
+                .map { suggestion ->
+                    suggestion.filter { exerciseModel ->
+                        exerciseModel.exerciseId !in existingExercises && lastExerciseBodyPartChips.none {
+                            exerciseModel.bodyPartChips?.contains(
+                                it
+                            ) == true
+                        }
+                    }
+                }
                 .toMutableList()
         val position = min(itemCount, suggestedExercisePerOrderPosition.size) // for which position we are suggesting
 

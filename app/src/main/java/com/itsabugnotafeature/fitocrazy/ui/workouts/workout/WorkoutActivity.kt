@@ -12,11 +12,16 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
+import android.widget.Button
 import android.widget.Chronometer
 import android.widget.DatePicker
+import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.LinearLayout.LayoutParams
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -25,6 +30,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -120,10 +126,10 @@ class WorkoutActivity : AppCompatActivity() {
         val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
         exerciseListView.adapter = exerciseListViewAdapter
 
-        if (exerciseListViewAdapter.itemCount == 0) {
+        /*if (exerciseListViewAdapter.itemCount == 0) {
             // TODO this used to be a clickable label, it should instead be the new suggestion box?
             exerciseListView.visibility = RecyclerView.INVISIBLE
-        }
+        }*/
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -216,7 +222,15 @@ class WorkoutActivity : AppCompatActivity() {
             fun updateExerciseSuggestions() {
                 val suggestedExercises = exerciseListViewAdapter.getSuggestedNextExercises()
                 val suggestionsLayout = findViewById<LinearLayout>(R.id.layout_listSuggestedNextExercises)
+                val suggestionsLayoutParent = findViewById<ScrollView>(R.id.layout_suggestedNextExercises)
                 suggestionsLayout.removeAllViews()
+
+                if (suggestedExercises.isEmpty()) {
+                    suggestionsLayoutParent.visibility = ScrollView.GONE
+                    return
+                } else {
+                    suggestionsLayoutParent.visibility = ScrollView.VISIBLE
+                }
 
                 for (exercise in suggestedExercises) {
                     val suggestedExerciseView = LayoutInflater.from(suggestionsLayout.context).inflate(
@@ -231,8 +245,15 @@ class WorkoutActivity : AppCompatActivity() {
                         chipGroup.addView(newChip)
                     }
 
+                    suggestedExerciseView.findViewById<Button>(R.id.btn_AddExercise).setOnClickListener {
+                        runBlocking {
+                            exerciseListViewAdapter.addExercises(applicationContext, listOf(exercise.exerciseId))
+                        }
+                    }
+
+                    // TODO: cannot get it to nicely show one at a time
+                    //suggestedExerciseView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, 1.0f)
                     suggestionsLayout.addView(suggestedExerciseView)
-                    //TODO Log.i("TEST", "added $exercise")
                 }
             }
 
@@ -267,15 +288,16 @@ class WorkoutActivity : AppCompatActivity() {
             }
 
             override fun exerciseDeleted() {
-                if (exerciseListViewAdapter.itemCount == 0) {
+                /*if (exerciseListViewAdapter.itemCount == 0) {
                     // TODO label was also here
                     exerciseListView.visibility = RecyclerView.INVISIBLE
-                }
+                }*/
                 updateExerciseSuggestions()
             }
 
             override fun exerciseAdded() {
                 updateExerciseSuggestions()
+                exerciseListView.scrollToPosition(exerciseListViewAdapter.getItemCount())
             }
 
             override fun dataLoaded() {
@@ -377,7 +399,7 @@ class WorkoutActivity : AppCompatActivity() {
                         exerciseListViewAdapter.addExercises(applicationContext, exerciseModelIds.reversed())
                     }
                     //exerciseListViewAdapter.showNotification()
-                    exerciseListView.visibility = RecyclerView.VISIBLE
+                    //exerciseListView.visibility = RecyclerView.VISIBLE
                     // TODO label was also here
 
                     // start the timer fresh
