@@ -17,9 +17,8 @@ android {
         applicationId = "com.itsabugnotafeature.fitocrazy"
         minSdk = 29
         targetSdk = 34
-        versionCode = 6
-        versionName = "6.0.18"
-//        version 18 of the DB
+        versionCode = 7
+        versionName = "7.0.18" // version 18 of the DB
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

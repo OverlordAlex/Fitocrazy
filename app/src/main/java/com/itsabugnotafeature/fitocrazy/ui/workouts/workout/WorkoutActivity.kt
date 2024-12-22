@@ -251,12 +251,13 @@ class WorkoutActivity : AppCompatActivity() {
                             exerciseListViewAdapter.addExercises(applicationContext, listOf(exercise.exerciseId))
                         }
                     }
-
-                    // TODO: cannot get it to nicely show one at a time
-                    //suggestedExerciseView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, 1.0f)
                     suggestionsLayout.addView(suggestedExerciseView)
                 }
-                Log.i("TEST", "called to update")
+                exerciseListView.postDelayed({
+                    val scrollTarget = exerciseListViewAdapter.getNextReadyExerciseIdx()
+                    if (scrollTarget < 0) return@postDelayed
+                    exerciseListView.smoothScrollToPosition(scrollTarget)
+                }, 250)
             }
 
             override fun setAdded(exercise: ExerciseListViewAdapter.ExerciseView, set: Set) {

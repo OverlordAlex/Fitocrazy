@@ -460,7 +460,7 @@ interface ExerciseDao {
     @Query("DELETE FROM BodyWeightRecord WHERE timestamp = (SELECT MAX(timestamp) FROM BodyWeightRecord)")
     suspend fun deleteLastBodyWeightRecord()
 
-
+    // TODO this should be moved to a view for performance
     @Query("select `order`, group_concat(IDs) as exerciseIds, group_concat(Count) as counts  from (select  `order`, group_concat(distinct exerciseModelId) as IDs , count(exerciseModelId) as Count from Exercise E group by `order`, exerciseModelId order by Count desc)  group by `order` ")
     suspend fun getExercisesWithOrders(): List<MostCommonExercisesAtWorkoutPosition>
 

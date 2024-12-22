@@ -277,12 +277,13 @@ class ExerciseListViewAdapter(
 
         // ready after 1 minute, assumed working after 2, old after 3.5
         exercise.timerTasks.map { taskHandler.removeCallbacks(it) }
-//        taskHandler.postDelayed(readyToWorkTask, 60_000)
-//        taskHandler.postDelayed(inProgressTask, 120_000)
-//        taskHandler.postDelayed(oldTask, 210_000)
-        taskHandler.postDelayed(readyToWorkTask, 5_000)
-        taskHandler.postDelayed(inProgressTask, 10_000)
-        taskHandler.postDelayed(oldTask, 15_000)
+        taskHandler.postDelayed(readyToWorkTask, 60_000)
+        taskHandler.postDelayed(inProgressTask, 120_000)
+        taskHandler.postDelayed(oldTask, 210_000)
+        // TODO: check env to set these when running debug/local builds
+//        taskHandler.postDelayed(readyToWorkTask, 5_000)
+//        taskHandler.postDelayed(inProgressTask, 10_000)
+//        taskHandler.postDelayed(oldTask, 15_000)
         exercise.timerTasks = listOf(readyToWorkTask, inProgressTask, oldTask)
         displayList[idx] = dataList[idx]
 
@@ -467,8 +468,7 @@ class ExerciseListViewAdapter(
         private val bodyPartsChipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
 
         private val exerciseSetsScrollLayout = itemView.findViewById<LinearLayout>(R.id.layout_listOfSetsOnExerciseCard)
-        private val listOfSetsScrollView =
-            itemView.findViewById<HorizontalScrollView>(R.id.scrollview_listOfSetsOnExerciseCard)
+        private val listOfSetsScrollView = itemView.findViewById<HorizontalScrollView>(R.id.scrollview_listOfSetsOnExerciseCard)
 
         private val mostWeightAchievementBadge = itemView.findViewById<ImageView>(R.id.img_achievementMostWeight)
         private val mostRepsAchivementBadge = itemView.findViewById<ImageView>(R.id.img_achievementMostReps)
@@ -688,13 +688,13 @@ class ExerciseListViewAdapter(
 
             when (currentExercise.drawState) {
                 DrawState.RESTING -> {
-                    cardContents.setBackgroundColor(itemView.context.getColor(R.color.white))
-                    card.setCardBackgroundColor(itemView.context.getColor(R.color.white))
+                    cardContents.setBackgroundColor(itemView.context.getColor(R.color.blue_accent_light))
+                    card.setCardBackgroundColor(itemView.context.getColor(R.color.blue_accent_light))
                 }
 
                 DrawState.READY -> {
-                    cardContents.setBackgroundColor(itemView.context.getColor(R.color.blue_accent_lightest))
-                    card.setCardBackgroundColor(itemView.context.getColor(R.color.blue_accent_lightest))
+                    cardContents.setBackgroundColor(itemView.context.getColor(R.color.white))
+                    card.setCardBackgroundColor(itemView.context.getColor(R.color.white))
                 }
 
                 DrawState.IN_PROGRESS -> {

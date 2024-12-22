@@ -1,8 +1,10 @@
-# 21 Dec 2024
+# 21 Dec 2024 v"7.0.18" (app 7, db 18)
 - Added section to suggest next exercises
   - should refresh suggestions after a reorder (or should simply always show at least 3 exercises)
 - BUG: lastadded is not updated when reordering
 - replace background of timer with a fade / border?
+- scroll to next exercise ready to work when adding from suggestions bar
+- colors for resting and ready should be slightly more obvious
 
 
 # 19 Dec 2024

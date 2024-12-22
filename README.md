@@ -6,9 +6,8 @@ BUG: I have animations turned off... lol
 BUG: Search is not working
 
 
-
 # TODO
-- colors for resting and ready should be slightly more obvious 
+- update SDK target (edge to edge, intents, and string formatting to be checked)
 - fail color should be applied to the specific line, not title
 - Use quantity strings https://developer.android.com/guide/topics/resources/string-resource#Plurals
 - build a workout by body parts
@@ -30,9 +29,7 @@ BUG: Search is not working
 - when pressing a chip for the number of times that exercise was done, open a view of the exercises when it was last seen
 - Bodyweight - what kg to enter?
 - add average weight per set and rep in the workout overview page
-- basic weight tracking
 - better icons for navigation panes
-- profile page
 - better text for the notification action
 - profile statistics
 - better logo and splash screen
