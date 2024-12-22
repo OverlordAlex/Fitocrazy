@@ -8,8 +8,6 @@ BUG: Search is not working
 
 
 # TODO
-- should refresh suggestions after a reorder (or should simply always show at least 3 exercises)
-- replace background of timer with a fade / border?
 - colors for resting and ready should be slightly more obvious 
 - fail color should be applied to the specific line, not title
 - Use quantity strings https://developer.android.com/guide/topics/resources/string-resource#Plurals

@@ -236,7 +236,8 @@ class WorkoutActivity : AppCompatActivity() {
                     val suggestedExerciseView = LayoutInflater.from(suggestionsLayout.context).inflate(
                         R.layout.container_workout_exercise_suggestion_next, suggestionsLayout, false
                     )
-                    suggestedExerciseView.findViewById<TextView>(R.id.label_exerciseNameOnCard).text = exercise.displayName
+                    suggestedExerciseView.findViewById<TextView>(R.id.label_exerciseNameOnCard).text =
+                        exercise.displayName
                     val chipGroup = suggestedExerciseView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
                     exercise.bodyPartChips?.split(" ")?.forEach { chipName ->
                         val newChip = Chip(suggestedExerciseView.context)
@@ -255,6 +256,7 @@ class WorkoutActivity : AppCompatActivity() {
                     //suggestedExerciseView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, 1.0f)
                     suggestionsLayout.addView(suggestedExerciseView)
                 }
+                Log.i("TEST", "called to update")
             }
 
             override fun setAdded(exercise: ExerciseListViewAdapter.ExerciseView, set: Set) {

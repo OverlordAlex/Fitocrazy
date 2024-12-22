@@ -435,6 +435,7 @@ class ExerciseListViewAdapter(
 
         inReorderMode = !inReorderMode
         notifyItemRangeChanged(0, displayList.size)
+        if (!inReorderMode) notifier.dataLoaded()
         return inReorderMode
     }
 
@@ -443,6 +444,7 @@ class ExerciseListViewAdapter(
         dataList[position + 1].exercise.order -= 1
 
         swap(position, position + 1)
+        lastAdded = dataList.last()
     }
 
     fun swapPrev(position: Int) {
@@ -450,6 +452,7 @@ class ExerciseListViewAdapter(
         dataList[position].exercise.order -= 1
 
         swap(position, position - 1)
+        lastAdded = dataList.last()
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

@@ -1,5 +1,8 @@
 # 21 Dec 2024
 - Added section to suggest next exercises
+  - should refresh suggestions after a reorder (or should simply always show at least 3 exercises)
+- BUG: lastadded is not updated when reordering
+- replace background of timer with a fade / border?
 
 
 # 19 Dec 2024
