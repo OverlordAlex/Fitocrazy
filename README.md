@@ -7,6 +7,7 @@ BUG: Search is not working
 
 
 # TODO
+- suggestions bar also needs to scroll to top after refreshing itself
 - update SDK target (edge to edge, intents, and string formatting to be checked)
 - fail color should be applied to the specific line, not title
 - Use quantity strings https://developer.android.com/guide/topics/resources/string-resource#Plurals

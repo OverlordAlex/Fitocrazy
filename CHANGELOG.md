@@ -1,4 +1,8 @@
-# 21 Dec 2024 v"7.0.18" (app 7, db 18)
+# 22 Dec 2024
+- scroll suggested exercise box
+
+
+# 21 Dec 2024 v"7.0.18" (Suggested next exercise bar) (app 7, db 18)
 - Added section to suggest next exercises
   - should refresh suggestions after a reorder (or should simply always show at least 3 exercises)
 - BUG: lastadded is not updated when reordering
@@ -7,7 +11,7 @@
 - colors for resting and ready should be slightly more obvious
 
 
-# 19 Dec 2024
+# 19 Dec 2024 (Weight trend line)
 - Scroll to exercise in workout that's ready
 - Added weight trend line which uses last 5 values (but draws over whole graph)
 - BUG: adding new exercise text is see-through

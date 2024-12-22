@@ -252,7 +252,9 @@ class WorkoutActivity : AppCompatActivity() {
                         }
                     }
                     suggestionsLayout.addView(suggestedExerciseView)
+
                 }
+                suggestionsLayoutParent.scrollTo(0,0)
                 exerciseListView.postDelayed({
                     val scrollTarget = exerciseListViewAdapter.getNextReadyExerciseIdx()
                     if (scrollTarget < 0) return@postDelayed
