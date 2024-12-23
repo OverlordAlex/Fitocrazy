@@ -1,4 +1,4 @@
-# 22 Dec 2024
+# 22 Dec 2024 (Styling suggestions box)
 - suggestions bar also needs to scroll to top after refreshing itself
 - suggestion box is max size when no exercises are in the list
 - moved search box to top of adding new exercise fragment
