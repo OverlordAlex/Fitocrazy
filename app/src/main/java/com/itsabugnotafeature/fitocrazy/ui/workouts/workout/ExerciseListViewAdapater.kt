@@ -326,6 +326,7 @@ class ExerciseListViewAdapter(
     }
 
     fun getSuggestedNextExercises(): List<ExerciseModel> {
+        // TODO: always ensure some suggestions when bodypart chips limit choices?
         val existingExercises = currentExerciseIds()
         val lastExerciseBodyPartChips = lastAdded?.tags ?: emptyList()
         val possibleSuggestions =

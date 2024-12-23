@@ -36,6 +36,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -47,7 +49,9 @@ import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.AddSetNotificationManager
 import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.Set
+import com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.exercises.ExerciseHistoryDialog
 import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.addExercise.AddNewExerciseToWorkoutActivity
+import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.currentStats.CurrentWorkoutStatisticsDialog
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
 import java.time.LocalDate
@@ -472,6 +476,19 @@ class WorkoutActivity : AppCompatActivity() {
 
             // reset adapter to change view
             exerciseListView.adapter = exerciseListViewAdapter
+        }
+
+        val workoutTotalsArea = findViewById<LinearLayout>(R.id.layout_workoutTotals)
+        workoutTotalsArea.setOnClickListener {
+            val currentWorkoutStatisticsDialog = CurrentWorkoutStatisticsDialog(exerciseListViewAdapter.dataList)
+            val ft: FragmentTransaction = supportFragmentManager.beginTransaction()
+            val prev: Fragment? = supportFragmentManager.findFragmentByTag(CurrentWorkoutStatisticsDialog.TAG)
+            if (prev != null) {
+                ft.remove(prev)
+            }
+            ft.addToBackStack(null)
+
+            currentWorkoutStatisticsDialog.show(ft, currentWorkoutStatisticsDialog.tag)
         }
 
         setSupportActionBar(toolbar)
