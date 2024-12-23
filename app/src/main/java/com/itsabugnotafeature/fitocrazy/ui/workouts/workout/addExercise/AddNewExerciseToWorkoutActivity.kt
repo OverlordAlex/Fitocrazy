@@ -236,7 +236,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
 
             override fun onQueryTextChange(query: String?): Boolean {
                 // once the suggestion is open, keep the height consistent
-                listExerciseSuggestions.minimumHeight = listExerciseSuggestions.height
+                // listExerciseSuggestions.minimumHeight = listExerciseSuggestions.height
 
                 if (query != null) {
                     suggestedExerciseAdapter.updateDisplayedItems(query.trim())

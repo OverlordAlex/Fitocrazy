@@ -23,6 +23,8 @@
         android:id="@+id/chipGroup_exerciseTags"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="2dp"
+        app:itemSpacing="1dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/btn_AddExercise"
         app:layout_constraintStart_toEndOf="@id/label_exerciseNameOnCard"

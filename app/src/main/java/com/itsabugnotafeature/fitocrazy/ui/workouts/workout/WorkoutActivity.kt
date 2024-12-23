@@ -11,6 +11,7 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -125,11 +126,6 @@ class WorkoutActivity : AppCompatActivity() {
         }
         val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
         exerciseListView.adapter = exerciseListViewAdapter
-
-        /*if (exerciseListViewAdapter.itemCount == 0) {
-            // TODO this used to be a clickable label, it should instead be the new suggestion box?
-            exerciseListView.visibility = RecyclerView.INVISIBLE
-        }*/
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -200,6 +196,9 @@ class WorkoutActivity : AppCompatActivity() {
         val totalTimeTimer = findViewById<Chronometer>(R.id.timer_totalTime)
         val setTimeTimer = findViewById<Chronometer>(R.id.timer_timeAfterLastSet)
 
+        val suggestionsLayout = findViewById<LinearLayout>(R.id.layout_listSuggestedNextExercises)
+        val suggestionsLayoutParent = findViewById<ScrollView>(R.id.layout_suggestedNextExercises)
+
         class SetAddedBroadcastReceiver : BroadcastReceiver() {
             override fun onReceive(context: Context?, incomingIntent: Intent?) {
                 val exerciseId = incomingIntent?.getLongExtra("exerciseId", -1L) ?: -1L
@@ -221,8 +220,7 @@ class WorkoutActivity : AppCompatActivity() {
         class Notifier : ExerciseNotification {
             fun updateExerciseSuggestions() {
                 val suggestedExercises = exerciseListViewAdapter.getSuggestedNextExercises()
-                val suggestionsLayout = findViewById<LinearLayout>(R.id.layout_listSuggestedNextExercises)
-                val suggestionsLayoutParent = findViewById<ScrollView>(R.id.layout_suggestedNextExercises)
+
                 suggestionsLayout.removeAllViews()
 
                 if (suggestedExercises.isEmpty()) {
@@ -254,7 +252,18 @@ class WorkoutActivity : AppCompatActivity() {
                     suggestionsLayout.addView(suggestedExerciseView)
 
                 }
-                suggestionsLayoutParent.scrollTo(0,0)
+                suggestionsLayoutParent.scrollTo(0, 0)
+
+                val currentParams = suggestionsLayoutParent.layoutParams as ConstraintLayout.LayoutParams
+
+                currentParams.matchConstraintMaxHeight =
+                    if (exerciseListViewAdapter.itemCount == 0) -1 else TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP,
+                        100F,
+                        resources.displayMetrics
+                    ).toInt()
+                suggestionsLayoutParent.layoutParams = currentParams
+
                 exerciseListView.postDelayed({
                     val scrollTarget = exerciseListViewAdapter.getNextReadyExerciseIdx()
                     if (scrollTarget < 0) return@postDelayed
@@ -293,10 +302,11 @@ class WorkoutActivity : AppCompatActivity() {
             }
 
             override fun exerciseDeleted() {
-                /*if (exerciseListViewAdapter.itemCount == 0) {
-                    // TODO label was also here
-                    exerciseListView.visibility = RecyclerView.INVISIBLE
-                }*/
+                if (exerciseListViewAdapter.itemCount == 0) {
+                    val currentParams = suggestionsLayoutParent.layoutParams as ConstraintLayout.LayoutParams
+                    currentParams.matchConstraintMaxHeight = -1
+                    suggestionsLayoutParent.layoutParams = currentParams
+                }
                 updateExerciseSuggestions()
             }
 
@@ -404,8 +414,10 @@ class WorkoutActivity : AppCompatActivity() {
                         exerciseListViewAdapter.addExercises(applicationContext, exerciseModelIds.reversed())
                     }
                     //exerciseListViewAdapter.showNotification()
-                    //exerciseListView.visibility = RecyclerView.VISIBLE
-                    // TODO label was also here
+
+                    val currentParams = suggestionsLayoutParent.layoutParams as ConstraintLayout.LayoutParams
+                    currentParams.matchConstraintMaxHeight = 100
+                    suggestionsLayoutParent.layoutParams = currentParams
 
                     // start the timer fresh
                     setTimeTimer.base = SystemClock.elapsedRealtime()

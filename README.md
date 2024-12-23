@@ -1,13 +1,8 @@
 # Known Bugs
-BUG: "enter" when creating a new exercise component does weird stuff (should trim+enter)
-BUG: adding first set is swallowed when rep edit text has focus (toast shows! inputs cleared) - related to achievements? worked on latest exercise but not earlier
-BUG: I have animations turned off... lol
-[no longer triggers] Bug: app not installed when starting from bottom bar icon
-BUG: Search is not working
-
 
 # TODO
-- suggestions bar also needs to scroll to top after refreshing itself
+- oh god adding sets makes noise??
+- exercises should use text entry to suggest next set
 - update SDK target (edge to edge, intents, and string formatting to be checked)
 - fail color should be applied to the specific line, not title
 - Use quantity strings https://developer.android.com/guide/topics/resources/string-resource#Plurals
@@ -43,9 +38,14 @@ BUG: Search is not working
 
 
 # Out of Scope
+- allow selection of colours for resting/work/etc
 - tint of chips should be per bodypart - right now its ordered by most frequent
 - bring points to the spinners on exercise type for more flexibility?
-- most common exercises should be based on similar exercises already in workout?
+[SOLVED!] most common exercises should be based on similar exercises already in workout?
 - BUG: buttons dont line up with spinners in adding exercise (problem only if the spinner is empty) - should happen once in entire app lifecycle
-- workout creation based on body part (not needed - can create via search by bodypart on adding exercises)
 - multiple of same set should show better in current workout - collapse? (not needed, is fine in practice)
+[no longer triggers] BUG: "enter" when creating a new exercise component does weird stuff (should trim+enter)
+[no longer triggers] BUG: adding first set is swallowed when rep edit text has focus (toast shows! inputs cleared) - related to achievements? worked on latest exercise but not earlier
+[no longer triggers] BUG: I have animations turned off... lol
+[no longer triggers] Bug: app not installed when starting from bottom bar icon
+[no longer triggers] BUG: Search is not working

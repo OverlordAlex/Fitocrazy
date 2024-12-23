@@ -1,5 +1,10 @@
 # 22 Dec 2024
-- scroll suggested exercise box
+- suggestions bar also needs to scroll to top after refreshing itself
+- suggestion box is max size when no exercises are in the list
+- moved search box to top of adding new exercise fragment
+  - recycler view also now shrinks as required
+- tweak resting colour to be a slightly different shade of blue
+- BUG: displayed totals on workout just show word "total"
 
 
 # 21 Dec 2024 v"7.0.18" (Suggested next exercise bar) (app 7, db 18)

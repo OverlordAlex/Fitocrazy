@@ -688,8 +688,8 @@ class ExerciseListViewAdapter(
 
             when (currentExercise.drawState) {
                 DrawState.RESTING -> {
-                    cardContents.setBackgroundColor(itemView.context.getColor(R.color.blue_accent_light))
-                    card.setCardBackgroundColor(itemView.context.getColor(R.color.blue_accent_light))
+                    cardContents.setBackgroundColor(itemView.context.getColor(R.color.blue_main_lighter))
+                    card.setCardBackgroundColor(itemView.context.getColor(R.color.blue_main_lighter))
                 }
 
                 DrawState.READY -> {

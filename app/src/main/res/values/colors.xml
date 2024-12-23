@@ -24,6 +24,7 @@
     <color name="blue_tertiary_lightest">#fdf7fb</color>
 
     <color name="blue_main_light">#588DEE</color>
+    <color name="blue_main_lighter">#86acf3</color>
 
     <color name="blue_accent_light">#CCDEFF</color>
     <color name="blue_accent_lightest">#FAFCFF</color>

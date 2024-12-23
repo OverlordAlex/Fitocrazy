@@ -28,9 +28,10 @@
         android:scrollIndicators="end"
         android:scrollbarAlwaysDrawVerticalTrack="true"
         android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@id/label_ExpandNewExerciseGroup"
+        app:layout_constrainedHeight="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_max="320dp"
+        app:layout_constraintHeight_min="50dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/search_addExercise" />
 
@@ -38,7 +39,6 @@
         android:id="@+id/label_ExpandNewExerciseGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
         android:text="@string/label_ExpandNewExerciseGroup"
         android:textColor="@color/slate_dark"
         android:textSize="24sp"
