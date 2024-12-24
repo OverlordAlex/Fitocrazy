@@ -31,16 +31,14 @@
                 android:layout_weight="1">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/layout_parent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
                     android:clipToPadding="true"
                     android:paddingHorizontal="20dp">
 
                     <androidx.constraintlayout.helper.widget.Flow
-                        android:id="@+id/chipgroup_Bodyparts2"
+                        android:id="@+id/flowlayout_bodypartChips"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
@@ -55,12 +53,6 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
 
-<!--            <androidx.constraintlayout.widget.ConstraintLayout-->
-<!--                android:id="@+id/chipgroup_Bodyparts2"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="match_parent"-->
-<!--                android:layout_gravity="center_horizontal"-->
-<!--                android:layout_weight="1" />-->
         </LinearLayout>
 
         <ImageView

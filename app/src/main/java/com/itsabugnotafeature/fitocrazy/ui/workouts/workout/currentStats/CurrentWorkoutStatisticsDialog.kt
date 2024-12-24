@@ -1,28 +1,36 @@
 package com.itsabugnotafeature.fitocrazy.ui.workouts.workout.currentStats
 
+import android.graphics.BlendMode
+import android.graphics.BlendModeColorFilter
+import android.graphics.ColorFilter
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager.LayoutParams
-import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.constraintlayout.helper.widget.Flow
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.view.setPadding
-import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.DialogFragment
+import com.github.mikephil.charting.charts.PieChart
+import com.github.mikephil.charting.charts.RadarChart
+import com.github.mikephil.charting.components.Description
+import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.data.PieData
+import com.github.mikephil.charting.data.PieDataSet
+import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.data.RadarData
+import com.github.mikephil.charting.data.RadarDataSet
+import com.github.mikephil.charting.data.RadarEntry
+import com.github.mikephil.charting.highlight.Highlight
 import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.ExerciseListViewAdapter.ExerciseView
 import kotlin.math.max
-import kotlin.reflect.typeOf
 
 class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : DialogFragment() {
 
@@ -36,13 +44,27 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val baseImage = ResourcesCompat.getDrawable(resources, R.drawable.muscles_bodylines, null)
+        val colorList = listOf(
+            R.color.blue_main,
+            R.color.blue_secondary,
+            R.color.blue_tertiary,
+            R.color.blue_main_lighter,
+            R.color.orange_main,
+            R.color.orange_accent,
+            R.color.purple_accent,
+        )
+
+        val bodypartsByExercise = exercises.map { it.tags }.flatten().groupingBy { it }.eachCount().toSortedMap()
+
         val exercisesBySets =
-            exercises.map {
-                (it.tags.joinToString(";") + ";").repeat(max(1, it.sets.size)).split(";").filterNot { it.isEmpty() }
+            exercises.map { exercise ->
+                (exercise.tags.joinToString(";") + ";").repeat(max(1, exercise.sets.size)).split(";").filterNot { it.isEmpty() }
             }
-                .flatten().groupingBy { it }.eachCount()
+                .flatten().groupingBy { it }.eachCount().toSortedMap()
+
+        val baseImage = ResourcesCompat.getDrawable(resources, R.drawable.muscles_bodylines, null)
         val values = exercisesBySets.map { it.value }
+        val total = values.sum()
         val min = values.min()
         val max = values.max()
         val leastAlpha = 100
@@ -52,8 +74,8 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
         val mostAlpha = 255
 
         val bodyparts: Array<Drawable?> = arrayOf(
-            *exercisesBySets.map {
-                when (it.key) {
+            *exercisesBySets.toSortedMap().toList().mapIndexed { index, (exercise, sets) ->
+                when (exercise) {
                     "shoulders" -> ResourcesCompat.getDrawable(resources, R.drawable.muscles_shoulders, null)
                     "biceps" -> ResourcesCompat.getDrawable(resources, R.drawable.muscles_biceps, null)
                     "triceps" -> ResourcesCompat.getDrawable(resources, R.drawable.muscles_triceps, null)
@@ -63,9 +85,9 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
                     "core" -> ResourcesCompat.getDrawable(resources, R.drawable.muscles_core, null)
                     else -> ResourcesCompat.getDrawable(resources, R.drawable.muscles_bodylines, null)
                 }.also { drawable ->
+                    drawable?.colorFilter = BlendModeColorFilter(view.context.getColor(colorList[index]), BlendMode.SRC_ATOP)
                     drawable?.alpha =
-                        if (it.value <= lowerBoundary) leastAlpha else if (it.value <= upperBoundary) mediumAlpha else mostAlpha
-                    Log.i("TEST", "${it.key} has ${it.value} and so has ${drawable?.alpha}")
+                        if (sets <= lowerBoundary) leastAlpha else if (sets <= upperBoundary) mediumAlpha else mostAlpha
                 }
             }.toTypedArray(),
             baseImage
@@ -78,23 +100,62 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
         dialog?.setCanceledOnTouchOutside(true)
         dialog?.window?.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
 
-        val parent = view.findViewById<ConstraintLayout>(R.id.layout_parent)
-        val chipGroup = view.findViewById<Flow>(R.id.chipgroup_Bodyparts2)
-        exercises.map { it.tags }.flatten().toSet().forEach { chipName ->
+        val chipGroup = view.findViewById<Flow>(R.id.flowlayout_bodypartChips)
+        val parent = chipGroup.parent as ConstraintLayout
+
+        exercises.map { it.tags }.flatten().toSet().sorted().forEachIndexed { index, chipName ->
             val newChip = Chip(chipGroup.context)
             newChip.text = chipName
             newChip.id = View.generateViewId()
-            newChip.setChipBackgroundColorResource(R.color.blue_accent_light)
-//            newChip.layoutParams = FrameLayout.LayoutParams(
-//                FrameLayout.LayoutParams.WRAP_CONTENT,
-//                FrameLayout.LayoutParams.WRAP_CONTENT,
-//                Gravity.END
-//            )
+            newChip.setChipBackgroundColorResource(colorList[index])
+            newChip.setTextColor(view.context.getColor(R.color.white))
             parent.addView(newChip)
             chipGroup.addView(newChip)
         }
         chipGroup.invalidate()
         chipGroup.requestLayout()
+
+        val datasets = mutableListOf<RadarDataSet>()
+        bodypartsByExercise.toSortedMap().onEachIndexed { index, (part, _) ->
+            val radarEntries = mutableListOf<RadarEntry>()
+
+            bodypartsByExercise.forEach { (innerPart, innerCount) ->
+                for (i in 1..innerCount) {
+                    if (part == innerPart) {
+                        radarEntries.add(RadarEntry(if (exercisesBySets[part] == null || exercisesBySets[part] == 0) 1f else exercisesBySets[part]!!.toFloat()))
+                    } else {
+                        radarEntries.add(RadarEntry(0f))
+                    }
+                }
+                radarEntries.add(RadarEntry(if (exercisesBySets[innerPart] == null || exercisesBySets[innerPart] == 0) 1f else exercisesBySets[innerPart]!!.toFloat()))
+
+            }
+            val dataset = RadarDataSet(radarEntries, part)
+            dataset.setDrawFilled(true)
+            dataset.color = view.context.getColor(R.color.black)
+            dataset.fillColor = view.context.getColor(colorList[index])
+            dataset.fillAlpha = 255
+            dataset.setDrawValues(false)
+            datasets.add(dataset)
+        }
+
+        val chart = view.findViewById<RadarChart>(R.id.chart_bodypartsInExercise)
+        val radarData = RadarData(datasets.toList())
+        radarData.setDrawValues(false)
+        radarData.labels = emptyList()
+
+        chart.data = radarData
+        chart.setDrawWeb(false)
+        chart.setDrawMarkers(false)
+        chart.yAxis.isEnabled = false
+        chart.xAxis.isEnabled = false
+        chart.setTouchEnabled(false)
+
+        /*chart.legend.form = Legend.LegendForm.CIRCLE
+        chart.legend.setDrawInside(false)*/
+        chart.legend.isEnabled = false
+
+        chart.description.isEnabled = false
     }
 
     companion object {
