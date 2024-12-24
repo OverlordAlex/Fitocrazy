@@ -1,7 +1,9 @@
 package com.itsabugnotafeature.fitocrazy.ui.workouts.workout.currentStats
 
+import android.content.res.ColorStateList
 import android.graphics.BlendMode
 import android.graphics.BlendModeColorFilter
+import android.graphics.Color
 import android.graphics.ColorFilter
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
@@ -16,6 +18,9 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.helper.widget.Flow
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.alpha
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.toColor
 import androidx.core.view.marginEnd
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.DialogFragment
@@ -57,7 +62,7 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
             R.color.blue_tertiary,
             R.color.blue_main_lighter,
             R.color.orange_main,
-            R.color.orange_accent,
+            R.color.purple_main,
             R.color.purple_accent,
         )
 
@@ -107,12 +112,38 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
         val chipGroup = view.findViewById<Flow>(R.id.flowlayout_bodypartChips)
         val parent = chipGroup.parent as ConstraintLayout
 
+        val states = arrayOf(
+            intArrayOf(android.R.attr.state_checked), // selected
+            intArrayOf(-android.R.attr.state_checked), // notselected
+        )
+
         exercises.map { it.tags }.flatten().toSet().sorted().forEachIndexed { index, chipName ->
             val newChip = Chip(chipGroup.context)
             newChip.text = chipName
             newChip.id = View.generateViewId()
-            newChip.setChipBackgroundColorResource(colorList[index])
-            newChip.setTextColor(view.context.getColor(R.color.white))
+
+            val backgroundColor = view.context.getColor(colorList[index]).toColor().toDrawable()
+            backgroundColor.alpha = 100
+            val chipBackgroundColors = intArrayOf(
+                view.context.getColor(colorList[index]),
+                backgroundColor.color,
+            )
+            val chipBackgroundColorsList = ColorStateList(states, chipBackgroundColors)
+            newChip.chipBackgroundColor = chipBackgroundColorsList
+            newChip.isCheckable = true
+            newChip.checkedIcon = null
+            newChip.rippleColor = null
+
+            newChip.setChipStrokeColorResource(colorList[index])
+            newChip.chipStrokeWidth = 8f
+
+            val chipTextColors = intArrayOf(
+                view.context.getColor(R.color.white),
+                view.context.getColor(R.color.black),
+            )
+            val chipTextColorsList = ColorStateList(states, chipTextColors)
+            newChip.setTextColor(chipTextColorsList)
+
             parent.addView(newChip)
             chipGroup.addView(newChip)
         }

@@ -13,6 +13,7 @@
         android:id="@+id/layout_bodypartSelectors"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
         app:layout_constraintBottom_toTopOf="@id/layout_imageAndGraph"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
