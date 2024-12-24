@@ -1,81 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/linearLayout"
+    style="@style/Dialog.NewExercise"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="@drawable/rounded_corner_search_box"
+    android:backgroundTint="@color/white">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+    <FrameLayout
+        android:id="@+id/layout_bodypartSelectors"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        app:layout_constraintBottom_toTopOf="@id/layout_imageAndGraph"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:clipToPadding="true">
+
+            <androidx.constraintlayout.helper.widget.Flow
+                android:id="@+id/flowlayout_bodypartChips"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingVertical="0dp"
+                app:flow_horizontalBias="0.5"
+                app:flow_horizontalGap="6dp"
+                app:flow_maxElementsWrap="4"
+                app:flow_verticalGap="1dp"
+                app:flow_verticalStyle="spread_inside"
+                app:flow_wrapMode="chain"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_imageAndGraph"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="@+id/chipgroup_Bodyparts"
-        app:layout_constraintStart_toEndOf="@+id/chipgroup_Bodyparts">
-
-        <LinearLayout
-            android:id="@+id/layout_lefthalfBodyparts"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            app:layout_constraintBaseline_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/image_bodypartsInWorkout"
-            app:layout_constraintHorizontal_bias="0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:clipToPadding="true"
-                    android:paddingHorizontal="20dp">
-
-                    <androidx.constraintlayout.helper.widget.Flow
-                        android:id="@+id/flowlayout_bodypartChips"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        app:flow_wrapMode="chain"
-                        tools:layout_editor_absoluteY="130dp" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-            </FrameLayout>
-
-            <com.github.mikephil.charting.charts.RadarChart
-                android:id="@+id/chart_bodypartsInExercise"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-
-        </LinearLayout>
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layout_bodypartSelectors">
 
         <ImageView
             android:id="@+id/image_bodypartsInWorkout"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:scaleType="fitCenter"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="1"
-            app:layout_constraintStart_toEndOf="@id/layout_lefthalfBodyparts"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/muscles_bodylines"
-            tools:layout_conversion_absoluteHeight="366dp"
-            tools:layout_conversion_absoluteWidth="206dp" />
+            app:srcCompat="@drawable/muscles_bodylines" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <com.github.mikephil.charting.charts.RadarChart
+            android:id="@+id/chart_bodypartsInExercise"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layout_otherStats"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+    </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

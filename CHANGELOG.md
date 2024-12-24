@@ -1,5 +1,6 @@
 # 23 Dec 2024 (bodypart in workoput summary)
 - added bodypart summary
+- Added coloured chips and graph to stats popup
 
 
 # 22 Dec 2024 (Styling suggestions box)

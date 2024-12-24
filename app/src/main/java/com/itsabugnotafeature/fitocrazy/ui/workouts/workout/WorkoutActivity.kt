@@ -10,18 +10,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
-import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.widget.Button
 import android.widget.Chronometer
 import android.widget.DatePicker
-import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.LinearLayout.LayoutParams
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
@@ -49,7 +44,6 @@ import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.AddSetNotificationManager
 import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.Set
-import com.itsabugnotafeature.fitocrazy.ui.exercises_and_components.exercises.ExerciseHistoryDialog
 import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.addExercise.AddNewExerciseToWorkoutActivity
 import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.currentStats.CurrentWorkoutStatisticsDialog
 import kotlinx.coroutines.runBlocking

@@ -12,9 +12,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager.LayoutParams
 import android.widget.ImageView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.helper.widget.Flow
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.marginEnd
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.DialogFragment
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.charts.RadarChart
@@ -43,6 +46,10 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        dialog?.setCanceledOnTouchOutside(true)
+        // why is this required here, but not in EnterTextForNewExerciseFragment ??
+        dialog?.window?.setBackgroundDrawable(AppCompatResources.getDrawable(view.context, R.drawable.rounded_corner_dialog))
+        dialog?.window?.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
 
         val colorList = listOf(
             R.color.blue_main,
@@ -97,9 +104,6 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
         val finalComposite = LayerDrawable(bodyparts)
         imageView.setImageDrawable(finalComposite)
 
-        dialog?.setCanceledOnTouchOutside(true)
-        dialog?.window?.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-
         val chipGroup = view.findViewById<Flow>(R.id.flowlayout_bodypartChips)
         val parent = chipGroup.parent as ConstraintLayout
 
@@ -149,13 +153,9 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
         chart.setDrawMarkers(false)
         chart.yAxis.isEnabled = false
         chart.xAxis.isEnabled = false
-        chart.setTouchEnabled(false)
-
-        /*chart.legend.form = Legend.LegendForm.CIRCLE
-        chart.legend.setDrawInside(false)*/
         chart.legend.isEnabled = false
-
         chart.description.isEnabled = false
+        chart.setTouchEnabled(false)
     }
 
     companion object {
