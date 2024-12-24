@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/linearLayout"
     style="@style/Dialog.NewExercise"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/rounded_corner_search_box"
+    android:background="@drawable/rounded_corner_dialog"
     android:backgroundTint="@color/white">
 
     <FrameLayout
@@ -51,6 +50,7 @@
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_min="250dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/layout_bodypartSelectors">
 
@@ -62,7 +62,7 @@
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/muscles_bodylines" />
 
-        <com.github.mikephil.charting.charts.RadarChart
+        <com.github.mikephil.charting.charts.PieChart
             android:id="@+id/chart_bodypartsInExercise"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

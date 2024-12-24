@@ -1,6 +1,7 @@
-# 23 Dec 2024 (bodypart in workoput summary)
+# 23 Dec 2024 (bodypart in workoput summary) 
 - added bodypart summary
 - Added coloured chips and graph to stats popup
+- Graph now selects as expected
 
 
 # 22 Dec 2024 (Styling suggestions box)

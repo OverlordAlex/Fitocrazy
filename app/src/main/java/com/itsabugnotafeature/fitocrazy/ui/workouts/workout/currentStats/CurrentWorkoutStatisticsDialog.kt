@@ -21,6 +21,8 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.alpha
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.toColor
+import androidx.core.view.allViews
+import androidx.core.view.children
 import androidx.core.view.marginEnd
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.DialogFragment
@@ -55,6 +57,8 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
         // why is this required here, but not in EnterTextForNewExerciseFragment ??
         dialog?.window?.setBackgroundDrawable(AppCompatResources.getDrawable(view.context, R.drawable.rounded_corner_dialog))
         dialog?.window?.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+
+        val chart = view.findViewById<PieChart>(R.id.chart_bodypartsInExercise)
 
         val colorList = listOf(
             R.color.blue_main,
@@ -99,7 +103,7 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
                 }.also { drawable ->
                     drawable?.colorFilter = BlendModeColorFilter(view.context.getColor(colorList[index]), BlendMode.SRC_ATOP)
                     drawable?.alpha =
-                        if (sets <= lowerBoundary) leastAlpha else if (sets <= upperBoundary) mediumAlpha else mostAlpha
+                        if (sets < lowerBoundary) leastAlpha else if (sets < upperBoundary) mediumAlpha else mostAlpha
                 }
             }.toTypedArray(),
             baseImage
@@ -117,6 +121,7 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
             intArrayOf(-android.R.attr.state_checked), // notselected
         )
 
+        val chips = mutableListOf<Chip>()
         exercises.map { it.tags }.flatten().toSet().sorted().forEachIndexed { index, chipName ->
             val newChip = Chip(chipGroup.context)
             newChip.text = chipName
@@ -143,47 +148,39 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
             )
             val chipTextColorsList = ColorStateList(states, chipTextColors)
             newChip.setTextColor(chipTextColorsList)
+            newChip.setOnCheckedChangeListener { compoundButton, state ->
 
+                //chart.highlightValue(0f, -1, false)
+
+                //chart.highlightValue(-all f, -1, false)
+
+                if (state) {
+                    chips.forEach { if (it != newChip) it.isChecked = false }
+                    chart.highlightValue(index.toFloat(), 0, false)
+                } else {
+                    chart.highlightValue(index.toFloat(), -1, false)
+                    //chart.highlightValue(null)
+                }
+
+                //chart.highlightValue(Highlight(0f, 0f, 0))
+            }
+            chips.add(newChip)
             parent.addView(newChip)
             chipGroup.addView(newChip)
         }
         chipGroup.invalidate()
         chipGroup.requestLayout()
 
-        val datasets = mutableListOf<RadarDataSet>()
-        bodypartsByExercise.toSortedMap().onEachIndexed { index, (part, _) ->
-            val radarEntries = mutableListOf<RadarEntry>()
+        val entries = exercisesBySets.map { PieEntry(it.value.toFloat(), it.key) }
+        val dataSet = PieDataSet(entries, null)
+        dataSet.colors = colorList.map { view.context.getColor(it) }
+        dataSet.selectionShift = 10f
 
-            bodypartsByExercise.forEach { (innerPart, innerCount) ->
-                for (i in 1..innerCount) {
-                    if (part == innerPart) {
-                        radarEntries.add(RadarEntry(if (exercisesBySets[part] == null || exercisesBySets[part] == 0) 1f else exercisesBySets[part]!!.toFloat()))
-                    } else {
-                        radarEntries.add(RadarEntry(0f))
-                    }
-                }
-                radarEntries.add(RadarEntry(if (exercisesBySets[innerPart] == null || exercisesBySets[innerPart] == 0) 1f else exercisesBySets[innerPart]!!.toFloat()))
+        val pieData = PieData(dataSet)
+        pieData.setDrawValues(true)
+        chart.data = pieData
 
-            }
-            val dataset = RadarDataSet(radarEntries, part)
-            dataset.setDrawFilled(true)
-            dataset.color = view.context.getColor(R.color.black)
-            dataset.fillColor = view.context.getColor(colorList[index])
-            dataset.fillAlpha = 255
-            dataset.setDrawValues(false)
-            datasets.add(dataset)
-        }
-
-        val chart = view.findViewById<RadarChart>(R.id.chart_bodypartsInExercise)
-        val radarData = RadarData(datasets.toList())
-        radarData.setDrawValues(false)
-        radarData.labels = emptyList()
-
-        chart.data = radarData
-        chart.setDrawWeb(false)
-        chart.setDrawMarkers(false)
-        chart.yAxis.isEnabled = false
-        chart.xAxis.isEnabled = false
+        chart.isDrawHoleEnabled = false
         chart.legend.isEnabled = false
         chart.description.isEnabled = false
         chart.setTouchEnabled(false)
