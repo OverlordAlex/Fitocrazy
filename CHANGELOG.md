@@ -1,4 +1,4 @@
-# 23 Dec 2024 (bodypart in workoput summary) 
+# 23 Dec 2024 (bodypart in workoput summary) (app 8, db 18)
 - added bodypart summary
 - Added coloured chips and graph to stats popup
 - Graph now selects as expected
