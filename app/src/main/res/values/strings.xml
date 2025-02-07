@@ -54,4 +54,7 @@
     <string name="achivement_most_reps">achivement: most reps</string>
     <string name="achivement_max_weight">achivement: max weight</string>
 
+    <string name="importData">Import</string>
+    <string name="exportData">Export</string>
+
 </resources>

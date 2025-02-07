@@ -244,29 +244,31 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <ScrollView
+        <HorizontalScrollView
             android:id="@+id/layout_suggestedNextExercises"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/vertical_gradient"
-            android:fadeScrollbars="false"
+            android:fadeScrollbars="true"
             android:padding="8dp"
-            android:scrollbarAlwaysDrawVerticalTrack="true"
+            android:scrollbarDefaultDelayBeforeFade="150"
+            android:scrollbarFadeDuration="100"
             android:scrollbarSize="8dp"
-            android:scrollbarStyle="outsideInset"
-            app:layout_constrainedHeight="true"
+            android:scrollbarStyle="insideInset"
+            android:scrollbars="horizontal"
             app:layout_constraintBottom_toTopOf="@id/cardView"
-            app:layout_constraintHeight_max="-1dp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/layout_currentWorkoutStats">
 
             <LinearLayout
                 android:id="@+id/layout_listSuggestedNextExercises"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
+                android:orientation="horizontal"
+                android:scrollbars="horizontal" />
 
-        </ScrollView>
+        </HorizontalScrollView>
 
 
         <androidx.cardview.widget.CardView

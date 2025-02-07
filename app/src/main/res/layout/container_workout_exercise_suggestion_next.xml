@@ -4,15 +4,17 @@
     android:id="@+id/layout_suggestExerciseForWorkoutVertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="4dp"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginEnd="20dp"
     android:background="@drawable/rounded_corner_dialog"
-    android:backgroundTint="@color/blue_tertiary_lightest">
+    android:backgroundTint="@color/blue_tertiary_lightest"
+    android:maxHeight="100dp">
 
     <TextView
         android:id="@+id/label_exerciseNameOnCard"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginHorizontal="8dp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/chipGroup_exerciseTags"

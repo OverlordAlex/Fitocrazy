@@ -19,7 +19,6 @@ android {
         targetSdk = 34
         versionCode = 8
         versionName = "8.0.18" // version 18 of the DB
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -65,6 +64,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 
     tasks.withType<Test> {

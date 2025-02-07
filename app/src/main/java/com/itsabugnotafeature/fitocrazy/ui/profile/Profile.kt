@@ -1,9 +1,9 @@
 package com.itsabugnotafeature.fitocrazy.ui.profile
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +12,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.findFragment
 import com.github.mikephil.charting.charts.CombinedChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
@@ -32,6 +36,9 @@ import java.time.ZoneId
 import kotlin.math.pow
 
 class Profile : Fragment() {
+
+    private lateinit var getBackupLocation: ActivityResultLauncher<Intent>
+    private lateinit var getRestoreLocation: ActivityResultLauncher<Intent>
 
     private fun loadChartData(chart: CombinedChart) {
         val weightRecordings = runBlocking {
@@ -65,8 +72,6 @@ class Profile : Fragment() {
                 return Converters.formatDoubleWeight(value.toDouble())
             }
         })
-
-
 
         if (weights.size > 2) {
             val lastFiveWeights = weightDataSet.values.takeLast(5).toList()
@@ -135,10 +140,53 @@ class Profile : Fragment() {
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        getBackupLocation = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            val resultUri = result.data?.data ?: return@registerForActivityResult
+            ExerciseDatabase.backupDatabase(requireContext(), resultUri).toString()
+            //labelLastExport.text = ExerciseDatabase.backupDatabase(requireContext(), resultUri).toString()
+        }
+
+        getRestoreLocation = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            val resultUri = result.data?.data ?: return@registerForActivityResult
+
+            ExerciseDatabase.restoreDatabase(requireContext(), resultUri)
+
+            // refresh the current fragment
+            val fragment = view?.findFragment<Profile>()
+            if (fragment != null) {
+                parentFragmentManager.beginTransaction().detach(fragment).commit()
+                parentFragmentManager.beginTransaction().attach(fragment).commit()
+            }
+            //labelLastExport.text = ExerciseDatabase.backupDatabase(requireContext(), resultUri).toString()
+        }
+
         return inflater.inflate(R.layout.fragment_profile, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        val exportDatabaseButton = view.findViewById<Button>(R.id.btn_exportData)
+        val labelLastExport = view.findViewById<TextView>(R.id.label_lastExportTimestamp)
+        val importDatabaseButton = view.findViewById<Button>(R.id.btn_importData)
+
+        exportDatabaseButton.setOnClickListener {
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/zip"
+//                type = "application/vnd.sqlite3"
+                putExtra(Intent.EXTRA_TITLE, "exercises.zip")
+            }
+            getBackupLocation.launch(intent)
+        }
+        importDatabaseButton.setOnClickListener {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/zip"
+                //putExtra(Intent.EXTRA_TITLE, "exercises.db")
+            }
+            getRestoreLocation.launch(intent)
+        }
+
 
         val dateLabel = view.findViewById<TextView>(R.id.label_date)
         dateLabel.text = Converters.dateFormatter.format(
@@ -179,8 +227,7 @@ class Profile : Fragment() {
 
         btnEnterWeight.setOnLongClickListener {
             runBlocking {
-                val db = ExerciseDatabase.getInstance(requireContext()).exerciseDao()
-                db.deleteLastBodyWeightRecord()
+                ExerciseDatabase.getInstance(requireContext()).exerciseDao().deleteLastBodyWeightRecord()
                 loadChartData(view.findViewById<CombinedChart>(R.id.chart_weightHistory))
             }
 
@@ -196,5 +243,9 @@ class Profile : Fragment() {
         //chart.setTouchEnabled(true)
 
         loadChartData(chart)
+    }
+
+    companion object {
+        private const val TAG = "ProfileFragment"
     }
 }

@@ -2,6 +2,7 @@ package com.itsabugnotafeature.fitocrazy
 
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.os.StrictMode
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
@@ -16,6 +17,11 @@ class HomepageActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        StrictMode.setVmPolicy(
+            StrictMode.VmPolicy.Builder()
+                .detectAll()
+                .build()
+        )
 
         binding = ActivityHomepageBinding.inflate(layoutInflater)
         setContentView(binding.root)

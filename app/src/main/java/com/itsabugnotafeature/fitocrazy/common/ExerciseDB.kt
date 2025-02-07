@@ -1,6 +1,10 @@
 package com.itsabugnotafeature.fitocrazy.common
 
 import android.content.Context
+import android.net.Uri
+import android.util.Log
+import androidx.core.graphics.blue
+import androidx.core.net.toFile
 import androidx.room.AutoMigration
 import androidx.room.ColumnInfo
 import androidx.room.Dao
@@ -20,8 +24,19 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.Update
 import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.ExerciseListViewAdapter
+import java.io.BufferedOutputStream
+import java.io.DataInputStream
+import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.time.Instant
 import java.time.LocalDate
 import java.util.EnumSet
+import java.util.Scanner
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 import kotlin.math.max
 import kotlin.math.pow
 
@@ -30,14 +45,12 @@ enum class ExerciseComponentType {
 }
 
 enum class RecordType {
-    MAX_WEIGHT,
-    MAX_REPS,
-    MAX_WEIGHT_MOVED
+    MAX_WEIGHT, MAX_REPS, MAX_WEIGHT_MOVED
 }
 
 data class ExerciseRecord(val oldBest: Number, val newBest: Number, val recordType: RecordType)
 data class PointsResult(val points: Int, val records: List<ExerciseRecord>)
-data class MostCommonExercisesAtWorkoutPosition(val order:Int, val exerciseIds: String, val counts: String) {
+data class MostCommonExercisesAtWorkoutPosition(val order: Int, val exerciseIds: String, val counts: String) {
     // TODO: could this be done with getters and setters?
     private fun getExerciseIds() = exerciseIds.split(",").map { it.toLong() }
     private fun getCounts() = counts.split(",").map { it.toInt() }
@@ -49,13 +62,10 @@ data class MostCommonExercisesAtWorkoutPosition(val order:Int, val exerciseIds: 
 
 @Entity
 data class ExerciseComponentModel(
-    @PrimaryKey(autoGenerate = true) var componentId: Long,
-    val name: String,
-    val type: ExerciseComponentType
+    @PrimaryKey(autoGenerate = true) var componentId: Long, val name: String, val type: ExerciseComponentType
 ) : Comparable<ExerciseComponentModel> {
     override fun toString() = name
-    override fun compareTo(other: ExerciseComponentModel) =
-        this.type.ordinal.compareTo(other.type.ordinal)
+    override fun compareTo(other: ExerciseComponentModel) = this.type.ordinal.compareTo(other.type.ordinal)
 
     override fun equals(other: Any?): Boolean {
         if (other is ExerciseComponentModel) return componentId == other.componentId
@@ -94,8 +104,7 @@ data class ExerciseWithComponentModel(
         parentColumn = "exerciseId",
         entityColumn = "componentId",
         associateBy = Junction(ExerciseExerciseComponentCrossRef::class)
-    )
-    val components: List<ExerciseComponentModel>,
+    ) val components: List<ExerciseComponentModel>,
 ) {
     override fun toString(): String {
         return components.sorted().joinToString(" ")
@@ -127,6 +136,7 @@ class Exercise(
             dirty = true
             field = value
         }
+
     @ColumnInfo(defaultValue = "0.0")
     var recordsAchieved: EnumSet<RecordType>? = recordsAchieved
         set(value) {
@@ -270,34 +280,28 @@ data class Workout(
             val exerciseMaxMoved = exercise.record?.mostWeightMoved ?: maxMovedThisSet
 
             if (maxWeightThisSet > exerciseMaxWeight) {
-                points += 75
+                points += 100
                 records.add(
                     ExerciseRecord(
-                        exercise.record?.maxWeight ?: 0.0,
-                        maxWeightThisSet,
-                        RecordType.MAX_WEIGHT
+                        exercise.record?.maxWeight ?: 0.0, maxWeightThisSet, RecordType.MAX_WEIGHT
                     )
                 )
             }
 
             if (maxRepsThisSet > exerciseMaxReps) {
-                points += 25
+                points += 75
                 records.add(
                     ExerciseRecord(
-                        exercise.record?.maxReps ?: 0.0,
-                        maxRepsThisSet,
-                        RecordType.MAX_REPS
+                        exercise.record?.maxReps ?: 0.0, maxRepsThisSet, RecordType.MAX_REPS
                     )
                 )
             }
 
             if (maxMovedThisSet > exerciseMaxMoved) {
-                points += 50
+                points += 100
                 records.add(
                     ExerciseRecord(
-                        exercise.record?.mostWeightMoved ?: 0.0,
-                        maxMovedThisSet,
-                        RecordType.MAX_WEIGHT_MOVED
+                        exercise.record?.mostWeightMoved ?: 0.0, maxMovedThisSet, RecordType.MAX_WEIGHT_MOVED
                     )
                 )
             }
@@ -358,15 +362,12 @@ interface ExerciseDao {
 
     @Query("SELECT * FROM ExerciseExerciseComponentCrossRef WHERE componentId IN (:firstComponentId, :secondComponentId, :thirdComponentId) GROUP BY exerciseId HAVING COUNT(exerciseId) = 3 LIMIT 1")
     suspend fun getExercise(
-        firstComponentId: Long,
-        secondComponentId: Long,
-        thirdComponentId: Long
+        firstComponentId: Long, secondComponentId: Long, thirdComponentId: Long
     ): ExerciseExerciseComponentCrossRef?
 
     @Query("SELECT * FROM ExerciseComponentModel WHERE name = :name AND type = :type")
     suspend fun getExerciseComponent(
-        name: String,
-        type: ExerciseComponentType
+        name: String, type: ExerciseComponentType
     ): ExerciseComponentModel?
 
     @Query("SELECT * FROM ExerciseComponentModel WHERE type = :type")
@@ -410,9 +411,7 @@ interface ExerciseDao {
 
     @Query("SELECT * FROM `Set` as s JOIN (SELECT * FROM Exercise ORDER BY date DESC) as E ON s.exerciseId=E.exerciseId WHERE E.exerciseModelId=:exerciseModelId AND workoutId in (SELECT workoutId FROM Exercise EX WHERE EX.exerciseModelId = :exerciseModelId AND EX.date < :excludeDate GROUP BY EX.workoutId ORDER BY EX.date DESC LIMIT :nSets)")
     suspend fun getHistoricalSets(
-        exerciseModelId: Long,
-        nSets: Int = Int.MAX_VALUE,
-        excludeDate: Long? = Long.MAX_VALUE
+        exerciseModelId: Long, nSets: Int = Int.MAX_VALUE, excludeDate: Long? = Long.MAX_VALUE
     ): Map<Exercise, List<Set>>
 
     @Query("SELECT * FROM Exercise WHERE workoutId = :workoutId")
@@ -444,8 +443,7 @@ interface ExerciseDao {
 
     @Query("SELECT * FROM MostCommonExerciseView WHERE (date < :today OR date IS NULL) AND exerciseModelId NOT IN (:existingExercises) ORDER BY count DESC, date DESC, displayName ASC")
     suspend fun getMostCommonExercises(
-        today: LocalDate,
-        existingExercises: List<Long> = emptyList()
+        today: LocalDate, existingExercises: List<Long> = emptyList()
     ): List<MostCommonExerciseView>
 
     @Query("SELECT * FROM WorkoutDatesView")
@@ -485,6 +483,9 @@ abstract class ExerciseDatabase : RoomDatabase() {
 
     companion object {
         private const val DATABASE_NAME = "exercises.db"
+        private const val DATABASE_BACKUP_SUFFIX = "-backup"
+        private const val SQLITE_WALFILE_SUFFIX = "-wal"
+        private const val SQLITE_SHMFILE_SUFFIX = "-shm"
 
         /**
          * As we need only one instance of db in our app will use to store
@@ -494,23 +495,217 @@ abstract class ExerciseDatabase : RoomDatabase() {
         private var INSTANCE: ExerciseDatabase? = null
 
         fun getInstance(context: Context): ExerciseDatabase {
-
             synchronized(this) {
                 var instance = INSTANCE
 
                 if (instance == null) {
                     instance = Room.databaseBuilder(
-                        context.applicationContext,
-                        ExerciseDatabase::class.java,
-                        DATABASE_NAME
-                    )
-                        .fallbackToDestructiveMigrationOnDowngrade()
-                        .build()
+                        context.applicationContext, ExerciseDatabase::class.java, DATABASE_NAME
+                    ).fallbackToDestructiveMigrationOnDowngrade().build()
 
                     INSTANCE = instance
                 }
                 return instance
             }
         }
+
+        fun backupDatabase(context: Context, resultUri: Uri): Long {
+            val dbFile = context.getDatabasePath(DATABASE_NAME)
+            val dbFilePath = dbFile.path
+            val dbWalFile = File(dbFilePath + SQLITE_WALFILE_SUFFIX)
+            val dbShmFile = File(dbFilePath + SQLITE_SHMFILE_SUFFIX)
+
+            val backupFile = context.contentResolver.openOutputStream(resultUri, "w")
+            //val backupFile = File(resultUri.path ?: (dbFilePath + DATABASE_BACKUP_SUFFIX))
+            /*val backupWalFile = File(dbFilePath + DATABASE_BACKUP_SUFFIX + SQLITE_WALFILE_SUFFIX)
+            val backupShmFile = File(dbFilePath + DATABASE_BACKUP_SUFFIX + SQLITE_SHMFILE_SUFFIX)*/
+
+            // Remove existing backup
+            // TODO: ask user if overwrite okay
+            //if (backupFile.exists()) backupFile.delete()
+            /*if (backupWalFile.exists()) backupWalFile.delete()
+            if (backupShmFile.exists()) backupShmFile.delete()*/
+
+            synchronized(this) {
+                INSTANCE?.close()
+                INSTANCE = null
+                val zipFile = ZipOutputStream(BufferedOutputStream(backupFile))
+                // TODO: ask user for location
+                try {
+                    zipFile.putNextEntry(ZipEntry("db_file"))
+                    zipFile.write(dbFile.readBytes())
+                    zipFile.closeEntry()
+                    Log.i("test", "wrote db_file")
+
+                    if (dbWalFile.exists()) {
+                        zipFile.putNextEntry(ZipEntry("db_wal_file"))
+                        zipFile.write(dbWalFile.readBytes())
+                        zipFile.closeEntry()
+                        Log.i("test", "wrote db_wal_file")
+                    }
+
+                    if (dbShmFile.exists()) {
+                        zipFile.putNextEntry(ZipEntry("db_shm_file"))
+                        zipFile.write(dbShmFile.readBytes())
+                        zipFile.closeEntry()
+                        Log.i("test", "wrote db_shm_file")
+                    }
+
+                    //dbFile.copyTo(backupFile, true)
+                    /*if (dbWalFile.exists()) dbWalFile.copyTo(backupWalFile)
+                if (dbShmFile.exists()) dbShmFile.copyTo(backupShmFile)*/
+                } catch (e: IOException) {
+                    Log.e("test", "Failed to backup", e)
+                    return -1
+                } finally {
+                    zipFile.close()
+                    //backupFile?.close()
+                }
+                getInstance(context)
+            }
+            return Instant.now().toEpochMilli()
+            //return backupFile.lastModified()
+        }
+
+        fun restoreDatabase(context: Context, resultUri: Uri): Long {
+            synchronized(this) {
+                INSTANCE?.close()
+                INSTANCE = null
+
+                val dbFile = context.getDatabasePath(DATABASE_NAME)
+                val dbFilePath = dbFile.path
+                val dbBackupFile = File(dbFilePath + DATABASE_BACKUP_SUFFIX)
+                val dbBackupWalFile = File(dbFilePath + SQLITE_WALFILE_SUFFIX + DATABASE_BACKUP_SUFFIX)
+                val dbBackupShmFile = File(dbFilePath + SQLITE_SHMFILE_SUFFIX + DATABASE_BACKUP_SUFFIX)
+
+                val zipFile = ZipInputStream(context.contentResolver.openInputStream(resultUri))
+                while (zipFile.available() > 0) {
+                    val next = zipFile.nextEntry
+                    Log.i("test", next.name)
+
+                    when (next.name) {
+                        "db_file" -> {
+                            val output = dbBackupFile.outputStream()
+                            val b = ByteArray(2048)
+                            var len = zipFile.read(b)
+                            while (len > 0) {
+                                output.write(b, 0, len)
+                                len = zipFile.read(b)
+                            }
+                            output.close()
+                            Log.i("test", "wrote db_file")
+                            //
+                            //
+                            //
+                            zipFile.closeEntry()
+                        }
+
+                        "db_wal_file" -> {
+                            val output = dbBackupWalFile.outputStream()
+                            val b = ByteArray(2048)
+                            var len = zipFile.read(b)
+                            while (len > 0) {
+                                output.write(b, 0, len)
+                                len = zipFile.read(b)
+                            }
+                            output.close()
+                            Log.i("test", "wrote db_wal_file")
+                            /*val b = ByteArray(next.size.toInt())
+                        zipFile.read(b, 0, next.size.toInt())
+                        dbWalFile.outputStream().write(b)*/
+                            //dbWalFile.outputStream().write(zipFile.readBytes())
+                            zipFile.closeEntry()
+                        }
+
+                        "db_shm_file" -> {
+                            val output = dbBackupShmFile.outputStream()
+                            val b = ByteArray(2048)
+                            var len = zipFile.read(b)
+                            while (len > 0) {
+                                output.write(b, 0, len)
+                                len = zipFile.read(b)
+                            }
+                            output.close()
+                            Log.i("test", "wrote db_shm_file")
+                            //zipFile.closeEntry()
+                            /*val b = ByteArray(next.size.toInt())
+                        zipFile.read(b, 0, next.size.toInt())
+                        dbShmFile.outputStream().write(b)*/
+                            //dbShmFile.outputStream().write(zipFile.readBytes())
+                            zipFile.closeEntry()
+                        }
+
+                    }
+                }
+                zipFile.close()
+
+                val dbWalFile = File(dbFilePath + SQLITE_WALFILE_SUFFIX)
+                val dbShmFile = File(dbFilePath + SQLITE_SHMFILE_SUFFIX)
+
+                //dbBackupFile.renameTo(dbFile)
+                if (dbBackupWalFile.exists()) {
+                    //dbBackupWalFile.renameTo(dbWalFile)
+                    Files.copy(dbBackupWalFile.toPath(), dbWalFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                }
+                if (dbBackupShmFile.exists()) {
+                    //dbBackupShmFile.renameTo(dbShmFile)
+                    Files.copy(dbBackupShmFile.toPath(), dbShmFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                }
+
+                Files.copy(dbBackupFile.toPath(), dbFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+
+                // TODO: restart app?
+                // TODO: ask user for location
+                //temp.copyTo(dbFile, overwrite = true)
+
+                /*synchronized(this) {
+                try {
+                    if (backupFile != null) {
+                        //dbFile.delete()
+                        //dbFile.createNewFile()
+                        //dbFile.writeBytes(backupFile.readBytes())
+                        val bytes = ByteArray(backupFile.available())
+
+                        DataInputStream(backupFile).readFully(bytes)
+                        dbFile.outputStream().write(bytes)
+                    }
+                    backupFile.copyTo(dbFile, overwrite = true)
+                } catch (e: IOException) {
+                    Log.e("test", "Failed to restore", e)
+                    return -1
+                } finally {
+                    backupFile?.close()
+                    dbFile.outputStream().close()
+                }
+            }*/
+
+
+                /*try {
+                if (backupWalFile.exists()) {
+                    backupWalFile.copyTo(dbWalFile, overwrite = true)
+                }
+            } catch (e: IOException) {
+                Log.e("test", "Failed to restore", e)
+                //return -1
+            }
+
+            try {
+                if (backupShmFile.exists()) {
+                    backupShmFile.copyTo(dbShmFile, overwrite = true)
+                }
+            } catch (e: IOException) {
+                Log.e("test", "Failed to restore", e)
+                //return -1
+            }*/
+
+                // recreate the DB
+
+
+            }
+            getInstance(context)
+            return Instant.now().toEpochMilli()
+            //return backupFile.lastModified()
+        }
+
     }
 }

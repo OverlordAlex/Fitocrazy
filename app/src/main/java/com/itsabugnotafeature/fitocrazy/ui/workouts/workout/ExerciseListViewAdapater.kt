@@ -23,6 +23,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.itsabugnotafeature.fitocrazy.BuildConfig
 import com.itsabugnotafeature.fitocrazy.R
 import com.itsabugnotafeature.fitocrazy.common.AddSetNotificationManager
 import com.itsabugnotafeature.fitocrazy.common.Converters
@@ -277,13 +278,17 @@ class ExerciseListViewAdapter(
 
         // ready after 1 minute, assumed working after 2, old after 3.5
         exercise.timerTasks.map { taskHandler.removeCallbacks(it) }
-        taskHandler.postDelayed(readyToWorkTask, 60_000)
-        taskHandler.postDelayed(inProgressTask, 120_000)
-        taskHandler.postDelayed(oldTask, 210_000)
-        // TODO: check env to set these when running debug/local builds
-//        taskHandler.postDelayed(readyToWorkTask, 5_000)
-//        taskHandler.postDelayed(inProgressTask, 10_000)
-//        taskHandler.postDelayed(oldTask, 15_000)
+
+        if (BuildConfig.BUILD_TYPE == "debug") {
+            taskHandler.postDelayed(readyToWorkTask, 5_000)
+            taskHandler.postDelayed(inProgressTask, 10_000)
+            taskHandler.postDelayed(oldTask, 15_000)
+        } else {
+            taskHandler.postDelayed(readyToWorkTask, 60_000)
+            taskHandler.postDelayed(inProgressTask, 120_000)
+            taskHandler.postDelayed(oldTask, 210_000)
+        }
+
         exercise.timerTasks = listOf(readyToWorkTask, inProgressTask, oldTask)
         displayList[idx] = dataList[idx]
 
@@ -469,7 +474,8 @@ class ExerciseListViewAdapter(
         private val bodyPartsChipGroup = itemView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
 
         private val exerciseSetsScrollLayout = itemView.findViewById<LinearLayout>(R.id.layout_listOfSetsOnExerciseCard)
-        private val listOfSetsScrollView = itemView.findViewById<HorizontalScrollView>(R.id.scrollview_listOfSetsOnExerciseCard)
+        private val listOfSetsScrollView =
+            itemView.findViewById<HorizontalScrollView>(R.id.scrollview_listOfSetsOnExerciseCard)
 
         private val mostWeightAchievementBadge = itemView.findViewById<ImageView>(R.id.img_achievementMostWeight)
         private val mostRepsAchivementBadge = itemView.findViewById<ImageView>(R.id.img_achievementMostReps)

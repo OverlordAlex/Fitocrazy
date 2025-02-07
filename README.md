@@ -1,6 +1,18 @@
 # Known Bugs
+Moving workouts loses the timers to change colour
+Progression in exercise graph wanted
+Next suggested exercise should be based on previous
+Edit exercise Bodyparts
+Better points for records
+- I do get points for every new record?.
+  Workout end summary screen
+Ordering problems when leaving after adding two exercises?
+- sets got added to wrong exercise!!
+  suggestions box should scroll horizontally
+
 
 # TODO
+- use firebaseDB to store the exercises when exporting?
 - oh god adding sets makes noise??
 - exercises should use text entry to suggest next set
 - update SDK target (edge to edge, intents, and string formatting to be checked)

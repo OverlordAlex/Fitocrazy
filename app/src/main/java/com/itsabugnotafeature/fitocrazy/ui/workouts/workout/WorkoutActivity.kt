@@ -16,6 +16,7 @@ import android.view.animation.AccelerateInterpolator
 import android.widget.Button
 import android.widget.Chronometer
 import android.widget.DatePicker
+import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -195,7 +196,7 @@ class WorkoutActivity : AppCompatActivity() {
         val setTimeTimer = findViewById<Chronometer>(R.id.timer_timeAfterLastSet)
 
         val suggestionsLayout = findViewById<LinearLayout>(R.id.layout_listSuggestedNextExercises)
-        val suggestionsLayoutParent = findViewById<ScrollView>(R.id.layout_suggestedNextExercises)
+        val suggestionsLayoutParent = findViewById<HorizontalScrollView>(R.id.layout_suggestedNextExercises)
 
         class SetAddedBroadcastReceiver : BroadcastReceiver() {
             override fun onReceive(context: Context?, incomingIntent: Intent?) {
@@ -252,7 +253,7 @@ class WorkoutActivity : AppCompatActivity() {
                 }
                 suggestionsLayoutParent.scrollTo(0, 0)
 
-                val currentParams = suggestionsLayoutParent.layoutParams as ConstraintLayout.LayoutParams
+                /*val currentParams = suggestionsLayoutParent.layoutParams as ConstraintLayout.LayoutParams
 
                 currentParams.matchConstraintMaxHeight =
                     if (exerciseListViewAdapter.itemCount == 0) -1 else TypedValue.applyDimension(
@@ -260,13 +261,13 @@ class WorkoutActivity : AppCompatActivity() {
                         100F,
                         resources.displayMetrics
                     ).toInt()
-                suggestionsLayoutParent.layoutParams = currentParams
+                suggestionsLayoutParent.layoutParams = currentParams*/
 
                 exerciseListView.postDelayed({
                     val scrollTarget = exerciseListViewAdapter.getNextReadyExerciseIdx()
                     if (scrollTarget < 0) return@postDelayed
                     exerciseListView.smoothScrollToPosition(scrollTarget)
-                }, 250)
+                }, 150)
             }
 
             override fun setAdded(exercise: ExerciseListViewAdapter.ExerciseView, set: Set) {
