@@ -1,3 +1,8 @@
+# 09 Feb 2025 (backup and restore) 
+- Added ability to export entire DB
+- Restore DB from a given backup file
+
+
 # 23 Dec 2024 (bodypart in workoput summary) (app 8, db 18)
 - added bodypart summary
 - Added coloured chips and graph to stats popup

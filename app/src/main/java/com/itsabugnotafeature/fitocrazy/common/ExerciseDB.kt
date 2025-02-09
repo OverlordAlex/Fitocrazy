@@ -28,6 +28,7 @@ import java.io.BufferedOutputStream
 import java.io.DataInputStream
 import java.io.File
 import java.io.IOException
+import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.time.Instant
@@ -487,6 +488,10 @@ abstract class ExerciseDatabase : RoomDatabase() {
         private const val SQLITE_WALFILE_SUFFIX = "-wal"
         private const val SQLITE_SHMFILE_SUFFIX = "-shm"
 
+        private const val ZIP_DATABASE = "db_file"
+        private const val ZIP_DATABASE_WAL = "db_wal_file"
+        private const val ZIP_DATABASE_SHM = "db_shm_file"
+
         /**
          * As we need only one instance of db in our app will use to store
          * This is to avoid memory leaks in android when there exist multiple instances of db
@@ -512,199 +517,132 @@ abstract class ExerciseDatabase : RoomDatabase() {
         fun backupDatabase(context: Context, resultUri: Uri): Long {
             val dbFile = context.getDatabasePath(DATABASE_NAME)
             val dbFilePath = dbFile.path
+            val dbVersion = INSTANCE?.openHelper?.readableDatabase?.version ?: -1
+
             val dbWalFile = File(dbFilePath + SQLITE_WALFILE_SUFFIX)
             val dbShmFile = File(dbFilePath + SQLITE_SHMFILE_SUFFIX)
 
             val backupFile = context.contentResolver.openOutputStream(resultUri, "w")
-            //val backupFile = File(resultUri.path ?: (dbFilePath + DATABASE_BACKUP_SUFFIX))
-            /*val backupWalFile = File(dbFilePath + DATABASE_BACKUP_SUFFIX + SQLITE_WALFILE_SUFFIX)
-            val backupShmFile = File(dbFilePath + DATABASE_BACKUP_SUFFIX + SQLITE_SHMFILE_SUFFIX)*/
-
-            // Remove existing backup
-            // TODO: ask user if overwrite okay
-            //if (backupFile.exists()) backupFile.delete()
-            /*if (backupWalFile.exists()) backupWalFile.delete()
-            if (backupShmFile.exists()) backupShmFile.delete()*/
 
             synchronized(this) {
-                INSTANCE?.close()
+                if (INSTANCE?.isOpen == true) {
+                    INSTANCE?.close()
+                }
                 INSTANCE = null
-                val zipFile = ZipOutputStream(BufferedOutputStream(backupFile))
-                // TODO: ask user for location
                 try {
-                    zipFile.putNextEntry(ZipEntry("db_file"))
-                    zipFile.write(dbFile.readBytes())
-                    zipFile.closeEntry()
-                    Log.i("test", "wrote db_file")
+                    val outputStream = BufferedOutputStream(backupFile)
+                    outputStream.write(ByteBuffer.allocate(Int.SIZE_BYTES).putInt(dbVersion).array())
+                    ZipOutputStream(outputStream).use { zipFile ->
 
-                    if (dbWalFile.exists()) {
-                        zipFile.putNextEntry(ZipEntry("db_wal_file"))
-                        zipFile.write(dbWalFile.readBytes())
+                        zipFile.putNextEntry(ZipEntry(ZIP_DATABASE))
+                        zipFile.write(dbFile.readBytes())
                         zipFile.closeEntry()
-                        Log.i("test", "wrote db_wal_file")
-                    }
 
-                    if (dbShmFile.exists()) {
-                        zipFile.putNextEntry(ZipEntry("db_shm_file"))
-                        zipFile.write(dbShmFile.readBytes())
-                        zipFile.closeEntry()
-                        Log.i("test", "wrote db_shm_file")
-                    }
+                        if (dbWalFile.exists()) {
+                            zipFile.putNextEntry(ZipEntry(ZIP_DATABASE_WAL))
+                            zipFile.write(dbWalFile.readBytes())
+                            zipFile.closeEntry()
+                        }
 
-                    //dbFile.copyTo(backupFile, true)
-                    /*if (dbWalFile.exists()) dbWalFile.copyTo(backupWalFile)
-                if (dbShmFile.exists()) dbShmFile.copyTo(backupShmFile)*/
+                        if (dbShmFile.exists()) {
+                            zipFile.putNextEntry(ZipEntry(ZIP_DATABASE_SHM))
+                            zipFile.write(dbShmFile.readBytes())
+                            zipFile.closeEntry()
+                        }
+                    }
                 } catch (e: IOException) {
                     Log.e("test", "Failed to backup", e)
                     return -1
-                } finally {
-                    zipFile.close()
-                    //backupFile?.close()
                 }
                 getInstance(context)
             }
+
+            // TODO: write this to the DB
             return Instant.now().toEpochMilli()
-            //return backupFile.lastModified()
         }
 
         fun restoreDatabase(context: Context, resultUri: Uri): Long {
+            val dbFile = context.getDatabasePath(DATABASE_NAME)
+            val dbFilePath = dbFile.path
+            val dbVersion = INSTANCE?.openHelper?.readableDatabase?.version ?: -1
+            val dbWalFile = File(dbFilePath + SQLITE_WALFILE_SUFFIX)
+            val dbShmFile = File(dbFilePath + SQLITE_SHMFILE_SUFFIX)
+
+            val dbBackupFile = File(dbFilePath + DATABASE_BACKUP_SUFFIX)
+            val dbBackupWalFile = File(dbFilePath + SQLITE_WALFILE_SUFFIX + DATABASE_BACKUP_SUFFIX)
+            val dbBackupShmFile = File(dbFilePath + SQLITE_SHMFILE_SUFFIX + DATABASE_BACKUP_SUFFIX)
+
             synchronized(this) {
-                INSTANCE?.close()
+                if (INSTANCE?.isOpen == true) {
+                    INSTANCE?.close()
+                }
                 INSTANCE = null
+                val inputStream = context.contentResolver.openInputStream(resultUri)
 
-                val dbFile = context.getDatabasePath(DATABASE_NAME)
-                val dbFilePath = dbFile.path
-                val dbBackupFile = File(dbFilePath + DATABASE_BACKUP_SUFFIX)
-                val dbBackupWalFile = File(dbFilePath + SQLITE_WALFILE_SUFFIX + DATABASE_BACKUP_SUFFIX)
-                val dbBackupShmFile = File(dbFilePath + SQLITE_SHMFILE_SUFFIX + DATABASE_BACKUP_SUFFIX)
+                val dbVersionFile = ByteBuffer.allocate(Int.SIZE_BYTES)
+                inputStream?.read(dbVersionFile.array(), 0, Int.SIZE_BYTES)
+                Log.i("test", dbVersionFile.getInt().toString())
 
-                val zipFile = ZipInputStream(context.contentResolver.openInputStream(resultUri))
-                while (zipFile.available() > 0) {
-                    val next = zipFile.nextEntry
-                    Log.i("test", next.name)
+                ZipInputStream(inputStream).use { zipFile ->
 
-                    when (next.name) {
-                        "db_file" -> {
-                            val output = dbBackupFile.outputStream()
-                            val b = ByteArray(2048)
-                            var len = zipFile.read(b)
-                            while (len > 0) {
-                                output.write(b, 0, len)
-                                len = zipFile.read(b)
+                    while (zipFile.available() > 0) {
+                        val next = zipFile.nextEntry
+
+                        when (next.name) {
+                            ZIP_DATABASE -> {
+                                val output = dbBackupFile.outputStream()
+                                val b = ByteArray(2048)
+                                var len = zipFile.read(b)
+                                while (len > 0) {
+                                    output.write(b, 0, len)
+                                    len = zipFile.read(b)
+                                }
+                                output.close()
+                                zipFile.closeEntry()
                             }
-                            output.close()
-                            Log.i("test", "wrote db_file")
-                            //
-                            //
-                            //
-                            zipFile.closeEntry()
-                        }
 
-                        "db_wal_file" -> {
-                            val output = dbBackupWalFile.outputStream()
-                            val b = ByteArray(2048)
-                            var len = zipFile.read(b)
-                            while (len > 0) {
-                                output.write(b, 0, len)
-                                len = zipFile.read(b)
+                            ZIP_DATABASE_WAL -> {
+                                val output = dbBackupWalFile.outputStream()
+                                val b = ByteArray(2048)
+                                var len = zipFile.read(b)
+                                while (len > 0) {
+                                    output.write(b, 0, len)
+                                    len = zipFile.read(b)
+                                }
+                                output.close()
+                                zipFile.closeEntry()
                             }
-                            output.close()
-                            Log.i("test", "wrote db_wal_file")
-                            /*val b = ByteArray(next.size.toInt())
-                        zipFile.read(b, 0, next.size.toInt())
-                        dbWalFile.outputStream().write(b)*/
-                            //dbWalFile.outputStream().write(zipFile.readBytes())
-                            zipFile.closeEntry()
-                        }
 
-                        "db_shm_file" -> {
-                            val output = dbBackupShmFile.outputStream()
-                            val b = ByteArray(2048)
-                            var len = zipFile.read(b)
-                            while (len > 0) {
-                                output.write(b, 0, len)
-                                len = zipFile.read(b)
+                            ZIP_DATABASE_SHM -> {
+                                val output = dbBackupShmFile.outputStream()
+                                val b = ByteArray(2048)
+                                var len = zipFile.read(b)
+                                while (len > 0) {
+                                    output.write(b, 0, len)
+                                    len = zipFile.read(b)
+                                }
+                                output.close()
+                                zipFile.closeEntry()
                             }
-                            output.close()
-                            Log.i("test", "wrote db_shm_file")
-                            //zipFile.closeEntry()
-                            /*val b = ByteArray(next.size.toInt())
-                        zipFile.read(b, 0, next.size.toInt())
-                        dbShmFile.outputStream().write(b)*/
-                            //dbShmFile.outputStream().write(zipFile.readBytes())
-                            zipFile.closeEntry()
-                        }
 
+                        }
                     }
                 }
-                zipFile.close()
 
-                val dbWalFile = File(dbFilePath + SQLITE_WALFILE_SUFFIX)
-                val dbShmFile = File(dbFilePath + SQLITE_SHMFILE_SUFFIX)
-
-                //dbBackupFile.renameTo(dbFile)
                 if (dbBackupWalFile.exists()) {
-                    //dbBackupWalFile.renameTo(dbWalFile)
-                    Files.copy(dbBackupWalFile.toPath(), dbWalFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                    Files.move(dbBackupWalFile.toPath(), dbWalFile.toPath(), StandardCopyOption.ATOMIC_MOVE)
                 }
                 if (dbBackupShmFile.exists()) {
-                    //dbBackupShmFile.renameTo(dbShmFile)
-                    Files.copy(dbBackupShmFile.toPath(), dbShmFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                    Files.move(dbBackupShmFile.toPath(), dbShmFile.toPath(), StandardCopyOption.ATOMIC_MOVE)
                 }
 
-                Files.copy(dbBackupFile.toPath(), dbFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                Files.move(dbBackupFile.toPath(), dbFile.toPath(), StandardCopyOption.ATOMIC_MOVE)
 
-                // TODO: restart app?
-                // TODO: ask user for location
-                //temp.copyTo(dbFile, overwrite = true)
-
-                /*synchronized(this) {
-                try {
-                    if (backupFile != null) {
-                        //dbFile.delete()
-                        //dbFile.createNewFile()
-                        //dbFile.writeBytes(backupFile.readBytes())
-                        val bytes = ByteArray(backupFile.available())
-
-                        DataInputStream(backupFile).readFully(bytes)
-                        dbFile.outputStream().write(bytes)
-                    }
-                    backupFile.copyTo(dbFile, overwrite = true)
-                } catch (e: IOException) {
-                    Log.e("test", "Failed to restore", e)
-                    return -1
-                } finally {
-                    backupFile?.close()
-                    dbFile.outputStream().close()
-                }
-            }*/
-
-
-                /*try {
-                if (backupWalFile.exists()) {
-                    backupWalFile.copyTo(dbWalFile, overwrite = true)
-                }
-            } catch (e: IOException) {
-                Log.e("test", "Failed to restore", e)
-                //return -1
+                getInstance(context)
             }
 
-            try {
-                if (backupShmFile.exists()) {
-                    backupShmFile.copyTo(dbShmFile, overwrite = true)
-                }
-            } catch (e: IOException) {
-                Log.e("test", "Failed to restore", e)
-                //return -1
-            }*/
-
-                // recreate the DB
-
-
-            }
-            getInstance(context)
+            // TODO: return the time from the file!
             return Instant.now().toEpochMilli()
-            //return backupFile.lastModified()
         }
 
     }

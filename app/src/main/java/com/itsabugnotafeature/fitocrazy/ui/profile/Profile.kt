@@ -142,8 +142,8 @@ class Profile : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         getBackupLocation = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
             val resultUri = result.data?.data ?: return@registerForActivityResult
-            ExerciseDatabase.backupDatabase(requireContext(), resultUri).toString()
-            //labelLastExport.text = ExerciseDatabase.backupDatabase(requireContext(), resultUri).toString()
+            val labelLastExport = view?.findViewById<TextView>(R.id.label_lastExportTimestamp)
+            labelLastExport?.text = ExerciseDatabase.backupDatabase(requireContext(), resultUri).toString()
         }
 
         getRestoreLocation = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
@@ -173,7 +173,6 @@ class Profile : Fragment() {
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "application/zip"
-//                type = "application/vnd.sqlite3"
                 putExtra(Intent.EXTRA_TITLE, "exercises.zip")
             }
             getBackupLocation.launch(intent)
@@ -182,7 +181,6 @@ class Profile : Fragment() {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "application/zip"
-                //putExtra(Intent.EXTRA_TITLE, "exercises.db")
             }
             getRestoreLocation.launch(intent)
         }

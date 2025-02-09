@@ -12,7 +12,6 @@ Ordering problems when leaving after adding two exercises?
 
 
 # TODO
-- use firebaseDB to store the exercises when exporting?
 - oh god adding sets makes noise??
 - exercises should use text entry to suggest next set
 - update SDK target (edge to edge, intents, and string formatting to be checked)
@@ -50,6 +49,7 @@ Ordering problems when leaving after adding two exercises?
 
 
 # Out of Scope
+- use firebaseDB to store the exercises when exporting?
 - allow selection of colours for resting/work/etc
 - tint of chips should be per bodypart - right now its ordered by most frequent
 - bring points to the spinners on exercise type for more flexibility?
