@@ -1,6 +1,7 @@
 package com.itsabugnotafeature.fitocrazy.common
 
 import android.content.Context
+import android.database.sqlite.SQLiteDatabaseCorruptException
 import android.net.Uri
 import android.util.Log
 import androidx.core.graphics.blue
@@ -16,6 +17,7 @@ import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.Insert
 import androidx.room.Junction
+import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Relation
@@ -23,6 +25,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.Update
+import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase.Companion.INSTANCE
 import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.ExerciseListViewAdapter
 import java.io.BufferedOutputStream
 import java.io.DataInputStream
@@ -34,6 +37,7 @@ import java.nio.file.StandardCopyOption
 import java.time.Instant
 import java.time.LocalDate
 import java.util.EnumSet
+import java.util.InputMismatchException
 import java.util.Scanner
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -330,6 +334,13 @@ data class BodyWeightRecord(
     val weight: Double,
 )
 
+@Entity
+data class ApplicationConfig(
+    @PrimaryKey val applicationId: Int = 1,
+    var databaseVersion: Int = -1,
+    var databaseLastBackupTime: Long = Instant.now().toEpochMilli(),
+)
+
 @Dao
 interface ExerciseDao {
 // do joins need @Transaction ?
@@ -460,15 +471,20 @@ interface ExerciseDao {
     suspend fun deleteLastBodyWeightRecord()
 
     // TODO this should be moved to a view for performance
-    @Query("select `order`, group_concat(IDs) as exerciseIds, group_concat(Count) as counts  from (select  `order`, group_concat(distinct exerciseModelId) as IDs , count(exerciseModelId) as Count from Exercise E group by `order`, exerciseModelId order by Count desc)  group by `order` ")
+    @Query("SELECT `order`, group_concat(IDs) AS exerciseIds, group_concat(Count) AS counts FROM (SELECT `order`, group_concat(DISTINCT exerciseModelId) AS IDs , count(exerciseModelId) AS Count FROM Exercise E GROUP BY `order`, exerciseModelId ORDER BY Count DESC) GROUP BY `order` ")
     suspend fun getExercisesWithOrders(): List<MostCommonExercisesAtWorkoutPosition>
 
+    @Query("SELECT * FROM ApplicationConfig LIMIT 1")
+    suspend fun getApplicationConfig(): ApplicationConfig?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun updateApplicationConfig(applicationConfig: ApplicationConfig)
 }
 
 @Database(
-    entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class, BodyWeightRecord::class],
+    entities = [ExerciseModel::class, ExerciseComponentModel::class, ExerciseExerciseComponentCrossRef::class, Exercise::class, Set::class, Workout::class, BodyWeightRecord::class, ApplicationConfig::class],
     views = [SetRecordView::class, WorkoutRecordView::class, MostCommonExerciseView::class, WorkoutDatesView::class],
-    version = 18,
+    version = 19,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 13, to = 14),
@@ -476,6 +492,7 @@ interface ExerciseDao {
         AutoMigration(from = 15, to = 16),
         AutoMigration(from = 16, to = 17),
         AutoMigration(from = 17, to = 18),
+        AutoMigration(from = 18, to = 19),
     ],
 )
 @TypeConverters(Converters::class)
@@ -514,7 +531,7 @@ abstract class ExerciseDatabase : RoomDatabase() {
             }
         }
 
-        fun backupDatabase(context: Context, resultUri: Uri): Long {
+        suspend fun backupDatabase(context: Context, resultUri: Uri): Long {
             val dbFile = context.getDatabasePath(DATABASE_NAME)
             val dbFilePath = dbFile.path
             val dbVersion = INSTANCE?.openHelper?.readableDatabase?.version ?: -1
@@ -557,11 +574,16 @@ abstract class ExerciseDatabase : RoomDatabase() {
                 getInstance(context)
             }
 
-            // TODO: write this to the DB
-            return Instant.now().toEpochMilli()
+            val dbInstance = getInstance(context).exerciseDao()
+            val appConfig = dbInstance.getApplicationConfig() ?: ApplicationConfig()
+            appConfig.databaseVersion = dbVersion
+            appConfig.databaseLastBackupTime = Instant.now().toEpochMilli()
+            dbInstance.updateApplicationConfig(appConfig)
+
+            return appConfig.databaseLastBackupTime
         }
 
-        fun restoreDatabase(context: Context, resultUri: Uri): Long {
+        suspend fun restoreDatabase(context: Context, resultUri: Uri): Long {
             val dbFile = context.getDatabasePath(DATABASE_NAME)
             val dbFilePath = dbFile.path
             val dbVersion = INSTANCE?.openHelper?.readableDatabase?.version ?: -1
@@ -569,6 +591,7 @@ abstract class ExerciseDatabase : RoomDatabase() {
             val dbShmFile = File(dbFilePath + SQLITE_SHMFILE_SUFFIX)
 
             val dbBackupFile = File(dbFilePath + DATABASE_BACKUP_SUFFIX)
+            var dbBackupVersion: Int
             val dbBackupWalFile = File(dbFilePath + SQLITE_WALFILE_SUFFIX + DATABASE_BACKUP_SUFFIX)
             val dbBackupShmFile = File(dbFilePath + SQLITE_SHMFILE_SUFFIX + DATABASE_BACKUP_SUFFIX)
 
@@ -581,10 +604,16 @@ abstract class ExerciseDatabase : RoomDatabase() {
 
                 val dbVersionFile = ByteBuffer.allocate(Int.SIZE_BYTES)
                 inputStream?.read(dbVersionFile.array(), 0, Int.SIZE_BYTES)
-                Log.i("test", dbVersionFile.getInt().toString())
+                dbBackupVersion = dbVersionFile.getInt()
+
+                // if the backup is too old, restart application to apply migrations
+                // if the backup is newer, should not be a problem?
+                // TODO: for now, just panic. User should update both sides before dump/import
+                if (dbVersion != dbBackupVersion) {
+                    throw SQLiteDatabaseCorruptException("Current DB is $dbBackupVersion, cannot replace with a new DB that is $dbVersion. Versions must match")
+                }
 
                 ZipInputStream(inputStream).use { zipFile ->
-
                     while (zipFile.available() > 0) {
                         val next = zipFile.nextEntry
 
@@ -641,8 +670,13 @@ abstract class ExerciseDatabase : RoomDatabase() {
                 getInstance(context)
             }
 
-            // TODO: return the time from the file!
-            return Instant.now().toEpochMilli()
+            val dbInstance = getInstance(context).exerciseDao()
+            val appConfig = dbInstance.getApplicationConfig()  ?: ApplicationConfig()
+            appConfig.databaseVersion = dbBackupVersion
+            appConfig.databaseLastBackupTime = Instant.now().toEpochMilli()
+            dbInstance.updateApplicationConfig(appConfig)
+
+            return appConfig.databaseLastBackupTime
         }
 
     }

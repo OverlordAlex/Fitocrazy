@@ -1,3 +1,7 @@
+# 11 Feb 2025 (backup and restore) (app 9, db 19)
+- Added version check to DB backups
+
+
 # 09 Feb 2025 (backup and restore) 
 - Added ability to export entire DB
 - Restore DB from a given backup file

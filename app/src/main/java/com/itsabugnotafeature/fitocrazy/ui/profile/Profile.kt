@@ -26,9 +26,11 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.itsabugnotafeature.fitocrazy.R
+import com.itsabugnotafeature.fitocrazy.common.ApplicationConfig
 import com.itsabugnotafeature.fitocrazy.common.BodyWeightRecord
 import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
+import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase.Companion.getInstance
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
 import java.time.LocalDateTime
@@ -143,13 +145,20 @@ class Profile : Fragment() {
         getBackupLocation = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
             val resultUri = result.data?.data ?: return@registerForActivityResult
             val labelLastExport = view?.findViewById<TextView>(R.id.label_lastExportTimestamp)
-            labelLastExport?.text = ExerciseDatabase.backupDatabase(requireContext(), resultUri).toString()
+
+            runBlocking {
+
+                labelLastExport?.text = Instant.ofEpochMilli(ExerciseDatabase.backupDatabase(requireContext(), resultUri)).toString()
+            }
         }
 
         getRestoreLocation = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
             val resultUri = result.data?.data ?: return@registerForActivityResult
+            val labelLastExport = view?.findViewById<TextView>(R.id.label_lastExportTimestamp)
 
-            ExerciseDatabase.restoreDatabase(requireContext(), resultUri)
+            runBlocking {
+                labelLastExport?.text = Instant.ofEpochMilli(ExerciseDatabase.restoreDatabase(requireContext(), resultUri)).toString()
+            }
 
             // refresh the current fragment
             val fragment = view?.findFragment<Profile>()
@@ -166,8 +175,8 @@ class Profile : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         val exportDatabaseButton = view.findViewById<Button>(R.id.btn_exportData)
-        val labelLastExport = view.findViewById<TextView>(R.id.label_lastExportTimestamp)
         val importDatabaseButton = view.findViewById<Button>(R.id.btn_importData)
+        val labelLastExport = view.findViewById<TextView>(R.id.label_lastExportTimestamp)
 
         exportDatabaseButton.setOnClickListener {
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
@@ -184,6 +193,13 @@ class Profile : Fragment() {
             }
             getRestoreLocation.launch(intent)
         }
+
+        runBlocking {
+            val db = ExerciseDatabase.getInstance(requireContext()).exerciseDao()
+            val appConfig = db.getApplicationConfig() ?: ApplicationConfig()
+            labelLastExport.text = Instant.ofEpochMilli(appConfig.databaseLastBackupTime).toString()
+        }
+
 
 
         val dateLabel = view.findViewById<TextView>(R.id.label_date)
