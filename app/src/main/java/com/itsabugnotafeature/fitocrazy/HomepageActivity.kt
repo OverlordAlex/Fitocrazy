@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.StrictMode
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -22,6 +23,7 @@ class HomepageActivity : AppCompatActivity() {
                 .detectAll()
                 .build()
         )
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         binding = ActivityHomepageBinding.inflate(layoutInflater)
         setContentView(binding.root)

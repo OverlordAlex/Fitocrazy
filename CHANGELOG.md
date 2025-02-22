@@ -1,3 +1,8 @@
+# 22 Feb 2025 (backup and restore) 
+- Disable dark mode (Darkmode on device (eg battery saver) causes weird visual artefacts)
+- Removed XML rules which prevented device backup
+
+
 # 11 Feb 2025 (backup and restore) (app 9, db 19)
 - Added version check to DB backups
 

@@ -10,7 +10,6 @@ Ordering problems when leaving after adding two exercises?
 - sets got added to wrong exercise!!
   suggestions box should scroll horizontally
 
-
 # TODO
 - oh god adding sets makes noise??
 - exercises should use text entry to suggest next set
