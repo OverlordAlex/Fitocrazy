@@ -4,11 +4,9 @@ import android.content.res.ColorStateList
 import android.graphics.BlendMode
 import android.graphics.BlendModeColorFilter
 import android.graphics.Color
-import android.graphics.ColorFilter
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,29 +16,22 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.helper.widget.Flow
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.alpha
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.toColor
-import androidx.core.view.allViews
-import androidx.core.view.children
-import androidx.core.view.marginEnd
-import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.DialogFragment
 import com.github.mikephil.charting.charts.PieChart
-import com.github.mikephil.charting.charts.RadarChart
-import com.github.mikephil.charting.components.Description
-import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
-import com.github.mikephil.charting.data.RadarData
-import com.github.mikephil.charting.data.RadarDataSet
-import com.github.mikephil.charting.data.RadarEntry
-import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.formatter.ValueFormatter
 import com.google.android.material.chip.Chip
 import com.itsabugnotafeature.fitocrazy.R
+import com.itsabugnotafeature.fitocrazy.common.Converters
 import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.ExerciseListViewAdapter.ExerciseView
+import kotlin.math.cos
 import kotlin.math.max
+import kotlin.math.pow
+
 
 class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : DialogFragment() {
 
@@ -51,11 +42,23 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
         return inflater.inflate(R.layout.dialog_current_workout_summary, container, false)
     }
 
+    private fun ease(x: Float): Float {
+        // https://easings.net/
+        // return x
+        return 1 - cos((x * Math.PI) / 2f).toFloat()
+        // return (-(cos(Math.PI * x) - 1f) / 2f).toFloat()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         dialog?.setCanceledOnTouchOutside(true)
         // why is this required here, but not in EnterTextForNewExerciseFragment ??
-        dialog?.window?.setBackgroundDrawable(AppCompatResources.getDrawable(view.context, R.drawable.rounded_corner_dialog))
+        dialog?.window?.setBackgroundDrawable(
+            AppCompatResources.getDrawable(
+                view.context,
+                R.drawable.rounded_corner_dialog
+            )
+        )
         dialog?.window?.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
 
         val chart = view.findViewById<PieChart>(R.id.chart_bodypartsInExercise)
@@ -74,15 +77,18 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
 
         val exercisesBySets =
             exercises.map { exercise ->
-                (exercise.tags.joinToString(";") + ";").repeat(max(1, exercise.sets.size)).split(";").filterNot { it.isEmpty() }
-            }
-                .flatten().groupingBy { it }.eachCount().toSortedMap()
+                (exercise.tags.joinToString(";") + ";").repeat(max(1, exercise.sets.size)).split(";")
+                    .filterNot { it.isEmpty() }
+            }.flatten().groupingBy { it }.eachCount().toSortedMap()
 
         val baseImage = ResourcesCompat.getDrawable(resources, R.drawable.muscles_bodylines, null)
         val values = exercisesBySets.map { it.value }
         val total = values.sum()
         val min = values.min()
         val max = values.max()
+
+        val exerciseBySetsEased = exercisesBySets.map { (k, v) -> ease(v * 1f / total) to k }.sortedBy { it.first }.reversed().toMap()
+
         val leastAlpha = 100
         val lowerBoundary = (max - min) / 3.0 + min
         val mediumAlpha = 200
@@ -101,7 +107,8 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
                     "core" -> ResourcesCompat.getDrawable(resources, R.drawable.muscles_core, null)
                     else -> ResourcesCompat.getDrawable(resources, R.drawable.muscles_bodylines, null)
                 }.also { drawable ->
-                    drawable?.colorFilter = BlendModeColorFilter(view.context.getColor(colorList[index]), BlendMode.SRC_ATOP)
+                    drawable?.colorFilter =
+                        BlendModeColorFilter(view.context.getColor(colorList[index]), BlendMode.SRC_ATOP)
                     drawable?.alpha =
                         if (sets < lowerBoundary) leastAlpha else if (sets < upperBoundary) mediumAlpha else mostAlpha
                 }
@@ -149,9 +156,7 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
             val chipTextColorsList = ColorStateList(states, chipTextColors)
             newChip.setTextColor(chipTextColorsList)
             newChip.setOnCheckedChangeListener { compoundButton, state ->
-
                 //chart.highlightValue(0f, -1, false)
-
                 //chart.highlightValue(-all f, -1, false)
 
                 if (state) {
@@ -171,10 +176,22 @@ class CurrentWorkoutStatisticsDialog(val exercises: List<ExerciseView>) : Dialog
         chipGroup.invalidate()
         chipGroup.requestLayout()
 
-        val entries = exercisesBySets.map { PieEntry(it.value.toFloat(), it.key) }
+        val entries = exercisesBySets.map { PieEntry(ease(it.value.toFloat() / total), it.key) }
         val dataSet = PieDataSet(entries, null)
         dataSet.colors = colorList.map { view.context.getColor(it) }
         dataSet.selectionShift = 10f
+        dataSet.setDrawValues(false)
+        /*
+        dataSet.valueTextSize = 12f
+        dataSet.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                val bodypart = exerciseBySetsEased[value]
+                return if (exerciseBySetsEased.values.take(3).contains(bodypart))
+                    Converters.formatDoubleWeight(value.toDouble())
+                else
+                    ""
+            }
+        }*/
 
         val pieData = PieData(dataSet)
         pieData.setDrawValues(true)

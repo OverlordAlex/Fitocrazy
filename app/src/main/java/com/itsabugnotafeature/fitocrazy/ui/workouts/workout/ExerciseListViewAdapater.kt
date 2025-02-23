@@ -488,6 +488,7 @@ class ExerciseListViewAdapter(
 
         @SuppressLint("ClickableViewAccessibility")
         fun bind(currentExercise: ExerciseView) {
+            // TODO fixme?
             exerciseNameOnCard.text =
                 currentExercise.displayName + if (currentExercise.sets.isEmpty()) "" else " [" + currentExercise.sets.size + "]"
             exerciseNameOnCard.isSelected = true  // required for marquee
@@ -628,7 +629,7 @@ class ExerciseListViewAdapter(
             recordListView.findViewById<TextView>(R.id.textlist_repsInSet).text = recordValues
             exerciseSetsScrollLayout.addView(recordListView)
 
-            currentExercise.historicalSets.reversed().forEach { (workoutDate, setList) ->
+            currentExercise.historicalSets.forEach { (workoutDate, setList) ->
                 val setListView = LayoutInflater.from(itemView.context).inflate(
                     R.layout.container_workout_exercise_set_list_horizontal, itemView.rootView as ViewGroup, false
                 )

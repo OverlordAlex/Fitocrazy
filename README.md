@@ -8,9 +8,10 @@ Better points for records
   Workout end summary screen
 Ordering problems when leaving after adding two exercises?
 - sets got added to wrong exercise!!
-  suggestions box should scroll horizontally
 
 # TODO
+- snap suggestions bar horizontally
+- move ApplicationConfig to DataStore (https://developer.android.com/topic/libraries/architecture/datastore)
 - oh god adding sets makes noise??
 - exercises should use text entry to suggest next set
 - update SDK target (edge to edge, intents, and string formatting to be checked)

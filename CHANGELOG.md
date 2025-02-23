@@ -1,6 +1,10 @@
-# 22 Feb 2025 (backup and restore) 
+# 22 Feb 2025 () 
 - Disable dark mode (Darkmode on device (eg battery saver) causes weird visual artefacts)
 - Removed XML rules which prevented device backup
+- wrong order of historical sets?
+- change how current workout statistics weights the body parts
+- - changed current workout bodypart graph to emphasize relative number of sets, instead of absolute
+- [was added at some point] suggestions box should scroll horizontally
 
 
 # 11 Feb 2025 (backup and restore) (app 9, db 19)
