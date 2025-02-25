@@ -474,6 +474,9 @@ interface ExerciseDao {
     @Query("SELECT `order`, group_concat(IDs) AS exerciseIds, group_concat(Count) AS counts FROM (SELECT `order`, group_concat(DISTINCT exerciseModelId) AS IDs , count(exerciseModelId) AS Count FROM Exercise E GROUP BY `order`, exerciseModelId ORDER BY Count DESC) GROUP BY `order` ")
     suspend fun getExercisesWithOrders(): List<MostCommonExercisesAtWorkoutPosition>
 
+/*    @Query("SELECT CAST(AVG(`order`) AS INT) as position FROM Exercise WHERE exerciseModelId=:modelId GROUP BY exerciseModelId")
+    suspend fun getExerciseModelAveragePosition(modelId: Long): Int
+*/
     @Query("SELECT * FROM ApplicationConfig LIMIT 1")
     suspend fun getApplicationConfig(): ApplicationConfig?
 

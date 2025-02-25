@@ -6,10 +6,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="4dp"
-    android:layout_marginEnd="20dp"
     android:background="@drawable/rounded_corner_dialog"
     android:backgroundTint="@color/blue_tertiary_lightest"
-    android:maxHeight="100dp">
+    android:maxHeight="100dp"
+    android:minHeight="48dp">
 
     <Button
         android:id="@+id/btn_AddExercise"
@@ -17,6 +17,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
         android:width="48dp"
+        android:height="48dp"
         android:maxWidth="48dp"
         android:minWidth="48dp"
         android:paddingHorizontal="4dp"
@@ -41,7 +42,7 @@
         android:id="@+id/chipGroup_exerciseTags"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="2dp"
+        android:layout_marginEnd="4dp"
         app:itemSpacing="1dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/btn_AddExercise"

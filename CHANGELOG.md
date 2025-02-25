@@ -1,6 +1,8 @@
 # 22 Feb 2025 ()
 - snap suggestions bar horizontally
 - - move add button to the left
+- oh god adding sets makes noise?? (not any more)
+- fixed bug with suggested exercise bar collapsing and being too small
 
 
 # 22 Feb 2025 (disable dark mode) 

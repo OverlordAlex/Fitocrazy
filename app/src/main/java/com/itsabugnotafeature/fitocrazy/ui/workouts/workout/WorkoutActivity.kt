@@ -223,6 +223,7 @@ class WorkoutActivity : AppCompatActivity() {
         val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
 
         class Notifier : ExerciseNotification {
+
             @SuppressLint("ClickableViewAccessibility")
             fun updateExerciseSuggestions() {
                 val suggestedExercises = exerciseListViewAdapter.getSuggestedNextExercises()
@@ -267,9 +268,13 @@ class WorkoutActivity : AppCompatActivity() {
                 }
 
                 val taskHandler: Handler = Handler(Looper.getMainLooper())
-                suggestionsLayoutParent.setOnScrollChangeListener { _, _, _, _, _ ->
-                    taskHandler.removeCallbacksAndMessages("scroll")
-                    taskHandler.postDelayed(scrollTo, "scroll", 150)
+                suggestionsLayoutParent.setOnTouchListener { view, motionEvent ->
+                    Log.i("test", "${motionEvent.action}")
+                    if (motionEvent.action == MotionEvent.ACTION_UP) {
+                        taskHandler.removeCallbacksAndMessages("scroll")
+                        taskHandler.postDelayed(scrollTo, "scroll", 180)
+                    }
+                    false
                 }
 
                 exerciseListView.postDelayed({
@@ -422,10 +427,6 @@ class WorkoutActivity : AppCompatActivity() {
                         exerciseListViewAdapter.addExercises(applicationContext, exerciseModelIds.reversed())
                     }
                     //exerciseListViewAdapter.showNotification()
-
-                    val currentParams = suggestionsLayoutParent.layoutParams as ConstraintLayout.LayoutParams
-                    currentParams.matchConstraintMaxHeight = 100
-                    suggestionsLayoutParent.layoutParams = currentParams
 
                     // start the timer fresh
                     setTimeTimer.base = SystemClock.elapsedRealtime()
