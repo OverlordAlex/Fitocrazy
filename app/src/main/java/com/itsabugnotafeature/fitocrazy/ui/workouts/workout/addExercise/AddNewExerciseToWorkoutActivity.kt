@@ -172,9 +172,9 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
         val positionSpinner = findViewById<Spinner>(R.id.spinner_position)
         val movementSpinner = findViewById<Spinner>(R.id.spinner_movement)
 
-        equipmentAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_dropdown_item_1line)
-        locationAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_dropdown_item_1line)
-        movementAdapter = ArrayAdapter(applicationContext, android.R.layout.simple_dropdown_item_1line)
+        equipmentAdapter = ArrayAdapter(baseContext, android.R.layout.simple_dropdown_item_1line)
+        locationAdapter = ArrayAdapter(baseContext, android.R.layout.simple_dropdown_item_1line)
+        movementAdapter = ArrayAdapter(baseContext, android.R.layout.simple_dropdown_item_1line)
         suggestedExerciseAdapter = SuggestedExercisesListAdapter()
         runBlocking {
             updateSpinnerData()
@@ -183,7 +183,7 @@ class AddNewExerciseToWorkoutActivity : AppCompatActivity(), AdapterView.OnItemS
             movementSpinner.adapter = movementAdapter
 
             suggestedExerciseAdapter.loadData(
-                applicationContext,
+                baseContext,
                 mapOf(
                     "currentExercisesInWorkout" to
                             (intent.getLongArrayExtra("currentExercisesInWorkout")?.toTypedArray() ?: emptyArray<Long>())

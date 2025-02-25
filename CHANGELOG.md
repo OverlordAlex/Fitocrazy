@@ -1,4 +1,9 @@
-# 22 Feb 2025 () 
+# 22 Feb 2025 ()
+- snap suggestions bar horizontally
+- - move add button to the left
+
+
+# 22 Feb 2025 (disable dark mode) 
 - Disable dark mode (Darkmode on device (eg battery saver) causes weird visual artefacts)
 - Removed XML rules which prevented device backup
 - wrong order of historical sets?

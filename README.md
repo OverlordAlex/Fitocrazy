@@ -10,7 +10,8 @@ Ordering problems when leaving after adding two exercises?
 - sets got added to wrong exercise!!
 
 # TODO
-- snap suggestions bar horizontally
+- should the suggested exercise list in a workout be a view adapter? (suggestionsLayout in WorkoutActivity)
+- change current workout graph to have readable numbers
 - move ApplicationConfig to DataStore (https://developer.android.com/topic/libraries/architecture/datastore)
 - oh god adding sets makes noise??
 - exercises should use text entry to suggest next set

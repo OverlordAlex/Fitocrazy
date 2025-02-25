@@ -9,9 +9,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.widget.Button
 import android.widget.Chronometer
@@ -31,6 +36,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.children
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
@@ -217,6 +223,7 @@ class WorkoutActivity : AppCompatActivity() {
         val exerciseListView = findViewById<RecyclerView>(R.id.list_exercisesInCurrentWorkout)
 
         class Notifier : ExerciseNotification {
+            @SuppressLint("ClickableViewAccessibility")
             fun updateExerciseSuggestions() {
                 val suggestedExercises = exerciseListViewAdapter.getSuggestedNextExercises()
 
@@ -229,10 +236,12 @@ class WorkoutActivity : AppCompatActivity() {
                     suggestionsLayoutParent.visibility = ScrollView.VISIBLE
                 }
 
+                val suggestedExerciseViews = mutableListOf<View>()
                 for (exercise in suggestedExercises) {
                     val suggestedExerciseView = LayoutInflater.from(suggestionsLayout.context).inflate(
                         R.layout.container_workout_exercise_suggestion_next, suggestionsLayout, false
                     )
+
                     suggestedExerciseView.findViewById<TextView>(R.id.label_exerciseNameOnCard).text =
                         exercise.displayName
                     val chipGroup = suggestedExerciseView.findViewById<ChipGroup>(R.id.chipGroup_exerciseTags)
@@ -249,19 +258,19 @@ class WorkoutActivity : AppCompatActivity() {
                         }
                     }
                     suggestionsLayout.addView(suggestedExerciseView)
-
+                    suggestedExerciseViews.add(suggestedExerciseView)
                 }
                 suggestionsLayoutParent.scrollTo(0, 0)
+                val scrollTo = Runnable {
+                    val width = suggestedExerciseViews.first().width
+                    suggestionsLayoutParent.smoothScrollTo((suggestionsLayoutParent.scrollX + width/2).div(width) * width, 0)
+                }
 
-                /*val currentParams = suggestionsLayoutParent.layoutParams as ConstraintLayout.LayoutParams
-
-                currentParams.matchConstraintMaxHeight =
-                    if (exerciseListViewAdapter.itemCount == 0) -1 else TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP,
-                        100F,
-                        resources.displayMetrics
-                    ).toInt()
-                suggestionsLayoutParent.layoutParams = currentParams*/
+                val taskHandler: Handler = Handler(Looper.getMainLooper())
+                suggestionsLayoutParent.setOnScrollChangeListener { _, _, _, _, _ ->
+                    taskHandler.removeCallbacksAndMessages("scroll")
+                    taskHandler.postDelayed(scrollTo, "scroll", 150)
+                }
 
                 exerciseListView.postDelayed({
                     val scrollTarget = exerciseListViewAdapter.getNextReadyExerciseIdx()
