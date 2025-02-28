@@ -12,8 +12,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.util.Log
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -36,7 +34,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.children
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
@@ -226,7 +223,7 @@ class WorkoutActivity : AppCompatActivity() {
 
             @SuppressLint("ClickableViewAccessibility")
             fun updateExerciseSuggestions() {
-                val suggestedExercises = exerciseListViewAdapter.getSuggestedNextExercises()
+                val suggestedExercises = exerciseListViewAdapter.getSuggestedNextExercises(baseContext)
 
                 suggestionsLayout.removeAllViews()
 
@@ -269,7 +266,6 @@ class WorkoutActivity : AppCompatActivity() {
 
                 val taskHandler: Handler = Handler(Looper.getMainLooper())
                 suggestionsLayoutParent.setOnTouchListener { view, motionEvent ->
-                    Log.i("test", "${motionEvent.action}")
                     if (motionEvent.action == MotionEvent.ACTION_UP) {
                         taskHandler.removeCallbacksAndMessages("scroll")
                         taskHandler.postDelayed(scrollTo, "scroll", 180)

@@ -251,6 +251,7 @@
             android:fadeScrollbars="true"
             android:paddingStart="4dp"
             android:paddingTop="8dp"
+            android:requiresFadingEdge="horizontal"
             android:scrollbarDefaultDelayBeforeFade="150"
             android:scrollbarFadeDuration="100"
             android:scrollbarSize="8dp"
@@ -285,7 +286,9 @@
                 android:id="@+id/list_exercisesInCurrentWorkout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingHorizontal="2dp">
+                android:fadingEdgeLength="16dp"
+                android:paddingHorizontal="2dp"
+                android:requiresFadingEdge="vertical">
 
             </androidx.recyclerview.widget.RecyclerView>
         </androidx.cardview.widget.CardView>

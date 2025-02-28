@@ -31,6 +31,7 @@ import com.itsabugnotafeature.fitocrazy.common.DisplayListAdapter
 import com.itsabugnotafeature.fitocrazy.common.Exercise
 import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase
 import com.itsabugnotafeature.fitocrazy.common.ExerciseModel
+import com.itsabugnotafeature.fitocrazy.common.ExerciseTransition
 import com.itsabugnotafeature.fitocrazy.common.ExerciseWithComponentModel
 import com.itsabugnotafeature.fitocrazy.common.RecordType
 import com.itsabugnotafeature.fitocrazy.common.Set
@@ -57,6 +58,7 @@ class ExerciseListViewAdapter(
     override var dataList = emptyList<ExerciseView>().toMutableList()
     override var displayList = emptyList<ExerciseView>().toMutableList()
     private var suggestedExercisePerOrderPosition = emptyList<MutableList<ExerciseModel>>()
+    private var suggestedNextExercise= emptyMap<Long, List<ExerciseTransition>>()
     private var inReorderMode: Boolean = false
     private var lastAdded: ExerciseView? = null
     private val taskHandler: Handler = Handler(Looper.getMainLooper())
@@ -136,13 +138,16 @@ class ExerciseListViewAdapter(
                 )
             }.sorted().toMutableList()
 
+            suggestedNextExercise = db.getMostCommonNextExercise().sortedBy { it.count }.groupBy { it.start }
             suggestedExercisePerOrderPosition = db.getExercisesWithOrders().map {
                 // count is used in SQL for ordering, returned as convenience
+                // TODO: move this map to be called only when needed
                 it.getCountPerExercise().map { (exerciseId, count) ->
                     db.getExerciseDetails(exerciseId)!!.exercise
                 }.toMutableList()
             }
         }
+
         displayList.addAll(dataList)
         notifyItemRangeInserted(0, displayList.size)
         lastAdded = displayList.lastOrNull()
@@ -330,10 +335,32 @@ class ExerciseListViewAdapter(
         }
     }
 
-    fun getSuggestedNextExercises(): List<ExerciseModel> {
+    fun getSuggestedNextExercises(context: Context): List<ExerciseModel> {
         // TODO: always ensure some suggestions when bodypart chips limit choices?
-        val existingExercises = currentExerciseIds()
+        val suggestions = mutableListOf<ExerciseModel>()
+
+        val existingExercises = currentExerciseIds().toMutableList()
         val lastExerciseBodyPartChips = lastAdded?.tags ?: emptyList()
+        val lastId = lastAdded?.exercise?.exerciseModelId ?: -1
+
+        if (lastId > 0 && lastId in suggestedNextExercise) {
+            val possibilities =
+                suggestedNextExercise[lastId]!!.filter { it.end !in existingExercises && it.count > 1 }.take(3)
+                    .map { it.end }
+            if (possibilities.isNotEmpty()) {
+                val db = ExerciseDatabase.getInstance(context).exerciseDao()
+                runBlocking {
+                    withContext(Dispatchers.IO) {
+                        suggestions.addAll(
+                            possibilities.map {
+                                db.getExerciseDetails(it)!!.exercise
+                            })
+                    }
+                }
+                existingExercises.addAll(possibilities)
+            }
+        }
+
         val possibleSuggestions =
             suggestedExercisePerOrderPosition
                 .map { suggestion ->
@@ -348,11 +375,12 @@ class ExerciseListViewAdapter(
                 .toMutableList()
         val position = min(itemCount, suggestedExercisePerOrderPosition.size) // for which position we are suggesting
 
-        val suggestions = possibleSuggestions
+        suggestions.addAll(possibleSuggestions
             .subList(position, possibleSuggestions.size)
             .flatten()
             .toSet()
-            .take(3).toMutableList()
+            .take(3).toMutableList())
+
         if (suggestions.size < 3) {
             suggestions.addAll(
                 possibleSuggestions.subList(0, position)
@@ -360,11 +388,11 @@ class ExerciseListViewAdapter(
                     .flatten()
                     .toSet()
                     .filter { it !in suggestions }
-                    .take(3 - suggestions.size)
+                    .take(3)
             )
         }
 
-        return suggestions
+        return suggestions.take(3)
     }
 
     private suspend fun saveExercises(context: Context) {

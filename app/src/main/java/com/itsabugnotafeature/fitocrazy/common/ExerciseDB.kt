@@ -4,8 +4,6 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabaseCorruptException
 import android.net.Uri
 import android.util.Log
-import androidx.core.graphics.blue
-import androidx.core.net.toFile
 import androidx.room.AutoMigration
 import androidx.room.ColumnInfo
 import androidx.room.Dao
@@ -25,10 +23,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.Update
-import com.itsabugnotafeature.fitocrazy.common.ExerciseDatabase.Companion.INSTANCE
 import com.itsabugnotafeature.fitocrazy.ui.workouts.workout.ExerciseListViewAdapter
 import java.io.BufferedOutputStream
-import java.io.DataInputStream
 import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -37,8 +33,6 @@ import java.nio.file.StandardCopyOption
 import java.time.Instant
 import java.time.LocalDate
 import java.util.EnumSet
-import java.util.InputMismatchException
-import java.util.Scanner
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -64,6 +58,8 @@ data class MostCommonExercisesAtWorkoutPosition(val order: Int, val exerciseIds:
         return getExerciseIds().mapIndexed { index, item -> Pair(item, countCache[index]) }
     }
 }
+
+data class ExerciseTransition(val start: Long, val end: Long, val count:Long)
 
 @Entity
 data class ExerciseComponentModel(
@@ -474,9 +470,9 @@ interface ExerciseDao {
     @Query("SELECT `order`, group_concat(IDs) AS exerciseIds, group_concat(Count) AS counts FROM (SELECT `order`, group_concat(DISTINCT exerciseModelId) AS IDs , count(exerciseModelId) AS Count FROM Exercise E GROUP BY `order`, exerciseModelId ORDER BY Count DESC) GROUP BY `order` ")
     suspend fun getExercisesWithOrders(): List<MostCommonExercisesAtWorkoutPosition>
 
-/*    @Query("SELECT CAST(AVG(`order`) AS INT) as position FROM Exercise WHERE exerciseModelId=:modelId GROUP BY exerciseModelId")
-    suspend fun getExerciseModelAveragePosition(modelId: Long): Int
-*/
+    @Query("SELECT e1.exerciseModelId AS start, e2.exerciseModelId AS `end`, COUNT(*) as `count` FROM Exercise e1 JOIN Exercise e2 ON e1.workoutId=e2.workoutId AND e1.`order`=(e2.`order`-1) GROUP BY e1.exerciseModelId || \",\" || e2.exerciseModelId ORDER BY count DESC")
+    suspend fun getMostCommonNextExercise(): List<ExerciseTransition>
+
     @Query("SELECT * FROM ApplicationConfig LIMIT 1")
     suspend fun getApplicationConfig(): ApplicationConfig?
 

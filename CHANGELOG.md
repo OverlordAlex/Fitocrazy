@@ -1,4 +1,9 @@
-# 22 Feb 2025 ()
+# 22 Feb 2025 (better suggestions)
+- added some fading edges on scrollables in the workout
+- changed how suggestions work to focus on statistical next-activity first, and only then position
+
+
+# 22 Feb 2025 (suggestions bar improvements)
 - snap suggestions bar horizontally
 - - move add button to the left
 - oh god adding sets makes noise?? (not any more)
