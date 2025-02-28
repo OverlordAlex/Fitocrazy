@@ -1,6 +1,7 @@
-# 22 Feb 2025 (better suggestions)
+# 22 Feb 2025 (better suggestions) (app 10, db 19)
 - added some fading edges on scrollables in the workout
 - changed how suggestions work to focus on statistical next-activity first, and only then position
+- - BUG: Next suggested exercise should be based on previous
 
 
 # 22 Feb 2025 (suggestions bar improvements)
