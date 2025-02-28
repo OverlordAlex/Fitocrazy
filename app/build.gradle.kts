@@ -11,12 +11,12 @@ plugins {
 
 android {
     namespace = "com.itsabugnotafeature.fitocrazy"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.itsabugnotafeature.fitocrazy"
         minSdk = 29
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 10
         versionName = "10.0.19" // version 19 of the DB
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
