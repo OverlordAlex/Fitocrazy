@@ -1,5 +1,12 @@
-Attribution-NonCommercial-ShareAlike 4.0 International
+This project is licensed under CC BY-NC 4.0 for non-commercial use.
+For commercial use, licensing options are available — please contact me.
 
+The license below was taken directly from https://creativecommons.org/licenses/by-nc-sa/4.0/ on 2025-Apr-21
+
+=======================================================================
+
+
+Attribution-NonCommercial-ShareAlike 4.0 International
 =======================================================================
 
 Creative Commons Corporation ("Creative Commons") is not a law firm and
